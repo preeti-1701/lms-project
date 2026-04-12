@@ -13,6 +13,10 @@ users = [
 def home():
     return "LMS Backend is running "
 
+@app.route('/test-login')
+def test_login():
+    return "Login route exists!"
+    
 # Login API
 @app.route('/login', methods=['POST'])
 def login():
