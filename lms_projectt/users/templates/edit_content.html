@@ -1,0 +1,31 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+    <div class="navbar">
+    <div class="logo">LMS</div>
+    <div class="nav-links">
+        <a href="/logout/">Logout</a>
+    </div>
+</div>
+    <div class="container">
+    <h2>Edit Content</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <input name="title" value="{{ content.title }}">
+
+        <input type="file" name="file">
+
+        <button>Update</button>
+    </form>
+</div>
+</body>
+</html>

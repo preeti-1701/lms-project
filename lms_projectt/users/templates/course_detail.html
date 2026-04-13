@@ -1,0 +1,124 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+
+<body>
+    <div class="navbar">
+        <div class="logo">LMS</div>
+        <div class="nav-links">
+
+            <a href="/logout/">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <h2>{{ course.title }}</h2>
+        <p>{{ course.description }}</p>
+        <p>Created by: {{ course.created_by }}</p>
+
+        <!-- ENROLL -->
+        {% if role == "student" %}
+        {% if is_enrolled %}
+        <button disabled style="background: gray;">Already Enrolled</button>
+        <a href="/complete/{{ course.id }}/" class="btn">Mark Complete</a>
+        {% else %}
+        <a href="/enroll/{{ course.id }}/" class="btn">Enroll</a>
+        {% endif %}
+        {% endif %}
+
+        <!-- TRAINER UPLOAD -->
+        {% if role == "trainer" %}
+        <a href="/upload-content/{{ course.id }}/" class="btn">Upload Content</a>
+        {% endif %}
+
+        <!-- COURSE CONTENT -->
+        <h3 style="margin-top:30px;">Course Content</h3>
+
+        {% for content in contents %}
+        <div class="card">
+            <h4>{{ content.title }}</h4>
+
+            {% if content.file.url|lower|slice:"-4:" == ".mp4" %}
+
+            <video width="100%" controls id="video{{ content.id }}">
+                <source src="{{ content.file.url }}" type="video/mp4">
+            </video>
+
+
+            {% elif content.file.url|lower|slice:"-4:" == ".pdf" %}
+
+            <a href="{{ content.file.url }}" target="_blank" class="btn">
+                Open PDF
+            </a>
+            {% else %}
+
+            <a href="{{ content.file.url }}" target="_blank">Download File</a>
+
+            {% endif %}
+            <!--only trainer delete   ------------------->
+            {% if role == "trainer" %}
+            <a href="/delete-content/{{ content.id }}/"
+                onclick="return confirm('Are you sure you want to delete this content?')"
+                style="color:red; margin-top:10px; display:block;">
+                Delete
+            </a>
+            <a href="/edit-content/{{ content.id }}" style="color:rgb(0, 255, 225); margin-top:10px; display:block;">
+                Edit
+            </a>
+            <a href="/students/{{ course.id }}/" class="btn" style="margin-top:10px;">
+                View Students
+            </a>
+
+
+            {% endif %}
+        </div>
+        {% empty %}
+        <p>No content uploaded</p>
+        {% endfor %}
+        <!----------------- assignments   ------------- -->
+        {% if role == "student" and is_enrolled %}
+
+        <h3 style="margin-top:30px;">Submit Assignment</h3>
+
+        <form method="POST" action="/upload-assignment/{{ course.id }}/" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="file" name="file" required>
+            <button type="submit">Submit Assignment</button>
+        </form>
+        {% if role == "teacher" %}
+        <a href="/assignments/{{ course.id }}/" class="btn">
+            View Assignments
+        </a>
+
+        {% endif %}
+
+        {% endif %}
+    </div>
+    <script>
+        const video = document.getElementById("video{{ content.id }}");
+
+        video.addEventListener("timeupdate", () => {
+            fetch("/save-progress/", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: new URLSearchParams({
+                    content_id: "{{ content.id }}",
+                    time: Math.floor(video.currentTime)
+                })
+            });
+        });
+    </script>
+
+</body>
+
+</html>

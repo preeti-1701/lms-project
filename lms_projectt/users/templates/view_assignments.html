@@ -1,0 +1,34 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+
+</head>
+
+<body>
+    <div class="container">
+        <h2>Assignments for {{ course.title }}</h2>
+
+        {% for a in assignments %}
+        <div class="card">
+            <p><b>{{ a.student }}</b></p>
+            <a href="{{ a.file.url }}" target="_blank"><button>View File</button></a><br>
+
+            {% if a.reviewed %}
+           <br> <p style="color:green;">Reviewed</p>
+            {% else %}
+            <a href="/review/{{ a.id }}/" class="btn">Mark as Reviewed</a>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p>No submissions yet</p>
+        {% endfor %}
+    </div>
+</body>
+
+</html>
