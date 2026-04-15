@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en" data-role="student">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduVerse – Student Dashboard</title>
+  <meta name="description" content="Your personalized learning dashboard – track courses, progress, and certificates."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="dashboard.css"/>
+</head>
+<body>
+
+<div class="dash-layout">
+
+  <!-- ── Backdrop (mobile) ── -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <!-- ══════════════ SIDEBAR ══════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-label="EduVerse">
+        <rect width="40" height="40" rx="10" fill="url(#sg1)"/>
+        <path d="M8 14l12-6 12 6v12l-12 6-12-6V14z" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M8 14l12 6 12-6M20 20v12" stroke="white" stroke-width="2"/>
+        <defs><linearGradient id="sg1" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#3B82F6"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient></defs>
+      </svg>
+      <span class="logo-text">EduVerse</span>
+    </div>
+
+    <!-- Nav -->
+    <nav class="sidebar-nav" role="navigation">
+      <span class="nav-section-label">Main</span>
+
+      <a href="#" class="nav-link active" data-section="overview" id="nav-overview">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+        <span class="nav-label">Dashboard</span>
+      </a>
+
+      <a href="#" class="nav-link" data-section="courses" id="nav-courses">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></span>
+        <span class="nav-label">My Courses</span>
+        <span class="nav-badge" id="courseCountBadge">0</span>
+      </a>
+
+      <a href="#" class="nav-link" data-section="progress" id="nav-progress">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+        <span class="nav-label">Progress</span>
+      </a>
+
+      <a href="#" class="nav-link" data-section="certificates" id="nav-certificates">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg></span>
+        <span class="nav-label">Certificates</span>
+      </a>
+
+      <span class="nav-section-label">Account</span>
+
+      <a href="#" class="nav-link" data-section="settings" id="nav-settings">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>
+        <span class="nav-label">Settings</span>
+      </a>
+    </nav>
+
+    <!-- Collapse btn -->
+    <button class="sidebar-collapse-btn" id="collapseBtn" title="Collapse sidebar">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+
+    <!-- Footer / logout -->
+    <div class="sidebar-footer">
+      <button class="sidebar-logout" id="logoutBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ══════════════ MAIN ══════════════ -->
+  <main class="main-content" id="mainContent">
+
+    <!-- Header -->
+    <header class="dash-header">
+      <div class="header-left">
+        <button class="menu-toggle" id="menuToggle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <span class="breadcrumb">Welcome back, <strong id="breadcrumb">Dashboard</strong></span>
+      </div>
+      <div class="header-right">
+        <button class="notif-btn" title="Notifications">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          <span class="notif-dot"></span>
+        </button>
+        <div class="user-chip" id="userChip">
+          <div class="user-avatar" id="userAvatar">A</div>
+          <span class="user-name" id="userName">Loading…</span>
+          <span class="user-role-tag student" id="userRoleTag">student</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="content-area">
+
+      <!-- ════ OVERVIEW ════ -->
+      <section class="content-section active" id="section-overview">
+        <div class="page-title" id="greetingTitle">Good morning! 👋</div>
+        <div class="page-subtitle">Here's your learning overview for today.</div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-card" style="--card-gradient: linear-gradient(90deg,#3B82F6,#06B6D4)">
+            <div class="stat-header">
+              <span class="stat-label">Enrolled Courses</span>
+              <span class="stat-icon" style="background:rgba(59,130,246,0.12)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+              </span>
+            </div>
+            <div class="stat-value" id="statEnrolled">0</div>
+            <div class="stat-change">Active courses in your library</div>
+          </div>
+          <div class="stat-card" style="--card-gradient: linear-gradient(90deg,#10B981,#06B6D4)">
+            <div class="stat-header">
+              <span class="stat-label">Avg. Completion</span>
+              <span class="stat-icon" style="background:rgba(16,185,129,0.12)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+            </div>
+            <div class="stat-value" id="statCompletion">0%</div>
+            <div class="stat-change">Across all enrolled courses</div>
+          </div>
+          <div class="stat-card" style="--card-gradient: linear-gradient(90deg,#8B5CF6,#EC4899)">
+            <div class="stat-header">
+              <span class="stat-label">Videos Watched</span>
+              <span class="stat-icon" style="background:rgba(139,92,246,0.12)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+              </span>
+            </div>
+            <div class="stat-value" id="statVideos">0</div>
+            <div class="stat-change">Videos completed ≥ 50%</div>
+          </div>
+          <div class="stat-card" style="--card-gradient: linear-gradient(90deg,#F59E0B,#EF4444)">
+            <div class="stat-header">
+              <span class="stat-label">Certificates</span>
+              <span class="stat-icon" style="background:rgba(245,158,11,0.12)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+              </span>
+            </div>
+            <div class="stat-value" id="statCerts">0</div>
+            <div class="stat-change">Courses fully completed</div>
+          </div>
+        </div>
+
+        <!-- Continue Watching -->
+        <div class="section-header">
+          <span class="section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Continue Watching
+          </span>
+        </div>
+        <div id="continueWatchingContainer"></div>
+
+        <!-- My Courses -->
+        <div class="section-header">
+          <span class="section-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+            My Courses
+          </span>
+          <button class="section-action" onclick="document.querySelector('[data-section=courses]').click()">View All →</button>
+        </div>
+        <div class="courses-grid" id="overviewCoursesGrid">
+          <div class="empty-state"><div class="empty-icon">📚</div><p>Loading courses…</p></div>
+        </div>
+      </section>
+
+      <!-- ════ MY COURSES ════ -->
+      <section class="content-section" id="section-courses">
+        <div class="page-title">My Courses</div>
+        <div class="page-subtitle">All your enrolled courses in one place.</div>
+        <div class="courses-grid" id="allCoursesGrid"></div>
+      </section>
+
+      <!-- ════ PROGRESS ════ -->
+      <section class="content-section" id="section-progress">
+        <div class="page-title">My Progress</div>
+        <div class="page-subtitle">Detailed breakdown of your learning journey.</div>
+        <div class="table-wrapper">
+          <div class="table-header">
+            <span class="table-title">Course Progress Report</span>
+          </div>
+          <table class="data-table" id="progressTable">
+            <thead>
+              <tr>
+                <th>Course</th>
+                <th>Trainer</th>
+                <th>Videos</th>
+                <th>Progress</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="progressTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ════ CERTIFICATES ════ -->
+      <section class="content-section" id="section-certificates">
+        <div class="page-title">🏆 Certificates</div>
+        <div class="page-subtitle">Courses you have fully completed.</div>
+        <div class="courses-grid" id="certsGrid"></div>
+      </section>
+
+      <!-- ════ SETTINGS ════ -->
+      <section class="content-section" id="section-settings">
+        <div class="page-title">Settings</div>
+        <div class="page-subtitle">Manage your account preferences.</div>
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h3>👤 Profile Information</h3>
+            <div class="form-group">
+              <label>Full Name</label>
+              <input class="form-control" id="settingName" placeholder="Your name"/>
+            </div>
+            <div class="form-group">
+              <label>Email Address</label>
+              <input class="form-control" id="settingEmail" placeholder="your@email.com" type="email"/>
+            </div>
+            <div class="form-group">
+              <label>Mobile Number</label>
+              <input class="form-control" id="settingMobile" placeholder="+91 98765 43210" type="tel"/>
+            </div>
+            <button class="btn-primary" onclick="saveSettings()">Save Changes</button>
+          </div>
+          <div class="settings-card">
+            <h3>🔐 Security</h3>
+            <div class="form-group">
+              <label>Current Password</label>
+              <input class="form-control" type="password" placeholder="••••••••"/>
+            </div>
+            <div class="form-group">
+              <label>New Password</label>
+              <input class="form-control" type="password" placeholder="Min. 8 characters"/>
+            </div>
+            <div class="form-group">
+              <label>Confirm New Password</label>
+              <input class="form-control" type="password" placeholder="Repeat new password"/>
+            </div>
+            <button class="btn-primary" onclick="showToast('Password updated successfully!','success')">Update Password</button>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- end content-area -->
+  </main>
+</div>
+
+<div id="dashToast" class="dash-toast"></div>
+
+<script src="dashboard.js"></script>
+<script src="student.js"></script>
+</body>
+</html>

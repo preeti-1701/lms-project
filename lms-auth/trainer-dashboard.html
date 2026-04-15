@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en" data-role="trainer">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduVerse – Trainer Dashboard</title>
+  <meta name="description" content="Manage your courses, videos, and students from the trainer dashboard."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="dashboard.css"/>
+  <style>
+    .course-manage-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 16px; overflow: hidden; }
+    .course-manage-head { display: flex; align-items: center; gap: 16px; padding: 16px 20px; cursor: pointer; transition: background var(--transition); }
+    .course-manage-head:hover { background: var(--bg-card-hover); }
+    .course-manage-icon { width: 50px; height: 50px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+    .course-manage-info { flex: 1; min-width: 0; }
+    .course-manage-title { font-size: 0.95rem; font-weight: 700; }
+    .course-manage-meta { font-size: 0.78rem; color: var(--text-secondary); display: flex; gap: 12px; margin-top: 3px; }
+    .course-manage-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .video-manage-list { border-top: 1px solid var(--border); }
+    .video-manage-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--border); transition: background var(--transition); }
+    .video-manage-item:last-child { border-bottom: none; }
+    .video-manage-item:hover { background: rgba(255,255,255,0.02); }
+    .video-manage-num { width: 28px; height: 28px; border-radius: 50%; background: rgba(59,130,246,0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; flex-shrink: 0; }
+    .video-manage-info { flex: 1; min-width: 0; }
+    .video-manage-title { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .video-manage-url { font-size: 0.72rem; color: var(--text-muted); }
+    .video-manage-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .add-video-row { padding: 12px 20px; border-top: 1px solid var(--border); }
+    .yt-preview { margin-top: 8px; padding: 10px 14px; background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.15); border-radius: var(--radius-sm); font-size: 0.82rem; display: none; }
+    .yt-preview.show { display: flex; align-items: center; gap: 10px; }
+    .yt-thumb { width: 80px; height: 45px; border-radius: 4px; object-fit: cover; background: #000; }
+  </style>
+</head>
+<body>
+
+<div class="dash-layout">
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+        <rect width="40" height="40" rx="10" fill="url(#tg1)"/>
+        <path d="M8 14l12-6 12 6v12l-12 6-12-6V14z" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M8 14l12 6 12-6M20 20v12" stroke="white" stroke-width="2"/>
+        <defs><linearGradient id="tg1" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#8B5CF6"/><stop offset="1" stop-color="#3B82F6"/></linearGradient></defs>
+      </svg>
+      <span class="logo-text">EduVerse</span>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Trainer</span>
+      <a href="#" class="nav-link active" data-section="overview">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+        <span class="nav-label">Dashboard</span>
+      </a>
+      <a href="#" class="nav-link" data-section="courses">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></span>
+        <span class="nav-label">My Courses</span>
+      </a>
+      <a href="#" class="nav-link" data-section="students">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></span>
+        <span class="nav-label">Students</span>
+      </a>
+      <a href="#" class="nav-link" data-section="analytics">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+        <span class="nav-label">Analytics</span>
+      </a>
+      <span class="nav-section-label">Account</span>
+      <a href="#" class="nav-link" data-section="settings">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>
+        <span class="nav-label">Settings</span>
+      </a>
+    </nav>
+    <button class="sidebar-collapse-btn" id="collapseBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="sidebar-footer">
+      <button class="sidebar-logout" id="logoutBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="main-content" id="mainContent">
+    <header class="dash-header">
+      <div class="header-left">
+        <button class="menu-toggle" id="menuToggle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <span class="breadcrumb"><strong id="breadcrumb">Dashboard</strong></span>
+      </div>
+      <div class="header-right">
+        <button class="btn-primary" style="padding:8px 16px; font-size:0.83rem;" data-modal-open="addCourseModal">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Course
+        </button>
+        <div class="user-chip">
+          <div class="user-avatar" id="userAvatar">T</div>
+          <span class="user-name" id="userName">Trainer</span>
+          <span class="user-role-tag trainer" id="userRoleTag">trainer</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-area">
+
+      <!-- ════ OVERVIEW ════ -->
+      <section class="content-section active" id="section-overview">
+        <div class="page-title">Trainer Dashboard</div>
+        <div class="page-subtitle">Manage your courses and track student performance.</div>
+
+        <div class="stats-row">
+          <div class="stat-card" style="--card-gradient:linear-gradient(90deg,#8B5CF6,#3B82F6)">
+            <div class="stat-header"><span class="stat-label">My Courses</span>
+              <span class="stat-icon" style="background:rgba(139,92,246,0.12)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></span>
+            </div>
+            <div class="stat-value" id="tStatCourses">0</div>
+            <div class="stat-change">Published courses</div>
+          </div>
+          <div class="stat-card" style="--card-gradient:linear-gradient(90deg,#10B981,#06B6D4)">
+            <div class="stat-header"><span class="stat-label">Total Students</span>
+              <span class="stat-icon" style="background:rgba(16,185,129,0.12)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></span>
+            </div>
+            <div class="stat-value" id="tStatStudents">0</div>
+            <div class="stat-change">Enrolled across all courses</div>
+          </div>
+          <div class="stat-card" style="--card-gradient:linear-gradient(90deg,#3B82F6,#8B5CF6)">
+            <div class="stat-header"><span class="stat-label">Total Videos</span>
+              <span class="stat-icon" style="background:rgba(59,130,246,0.12)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span>
+            </div>
+            <div class="stat-value" id="tStatVideos">0</div>
+            <div class="stat-change">Across all your courses</div>
+          </div>
+          <div class="stat-card" style="--card-gradient:linear-gradient(90deg,#F59E0B,#EC4899)">
+            <div class="stat-header"><span class="stat-label">Completion Rate</span>
+              <span class="stat-icon" style="background:rgba(245,158,11,0.12)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></span>
+            </div>
+            <div class="stat-value" id="tStatRate">—</div>
+            <div class="stat-change">Avg. student completion</div>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <span class="section-title">Recent Courses</span>
+          <button class="section-action" onclick="document.querySelector('[data-section=courses]').click()">Manage All →</button>
+        </div>
+        <div id="tOverviewCourses"></div>
+      </section>
+
+      <!-- ════ MY COURSES ════ -->
+      <section class="content-section" id="section-courses">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+          <div>
+            <div class="page-title">My Courses</div>
+            <div class="page-subtitle">Create and manage course content.</div>
+          </div>
+          <button class="btn-primary" data-modal-open="addCourseModal">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Course
+          </button>
+        </div>
+        <div id="tCoursesList"></div>
+      </section>
+
+      <!-- ════ STUDENTS ════ -->
+      <section class="content-section" id="section-students">
+        <div class="page-title">My Students</div>
+        <div class="page-subtitle">Students enrolled in your courses.</div>
+        <div class="table-wrapper">
+          <div class="table-header">
+            <span class="table-title">Enrolled Students</span>
+            <div class="table-actions">
+              <div class="search-box">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="studentSearch" placeholder="Search students…" oninput="filterStudents(this.value)"/>
+              </div>
+            </div>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr><th>Student</th><th>Course</th><th>Enrolled</th><th>Progress</th><th>Status</th></tr>
+            </thead>
+            <tbody id="tStudentTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ════ ANALYTICS ════ -->
+      <section class="content-section" id="section-analytics">
+        <div class="page-title">Analytics</div>
+        <div class="page-subtitle">Performance overview across your courses.</div>
+        <div id="analyticsContent"></div>
+      </section>
+
+      <!-- ════ SETTINGS ════ -->
+      <section class="content-section" id="section-settings">
+        <div class="page-title">Settings</div>
+        <div class="page-subtitle">Manage your trainer profile.</div>
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h3>👤 Profile</h3>
+            <div class="form-group"><label>Full Name</label><input class="form-control" id="tSettingName"/></div>
+            <div class="form-group"><label>Email</label><input class="form-control" id="tSettingEmail" type="email"/></div>
+            <div class="form-group"><label>Subject / Area</label><input class="form-control" id="tSettingSubject"/></div>
+            <div class="form-group"><label>Bio</label><textarea class="form-control" id="tSettingBio" rows="3"></textarea></div>
+            <button class="btn-primary" onclick="showToast('Profile saved!','success')">Save Profile</button>
+          </div>
+          <div class="settings-card">
+            <h3>🔐 Security</h3>
+            <div class="form-group"><label>Current Password</label><input class="form-control" type="password"/></div>
+            <div class="form-group"><label>New Password</label><input class="form-control" type="password"/></div>
+            <div class="form-group"><label>Confirm Password</label><input class="form-control" type="password"/></div>
+            <button class="btn-primary" onclick="showToast('Password updated!','success')">Update Password</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- ══ Add Course Modal ══ -->
+<div class="modal-overlay" id="addCourseModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>📚 Create New Course</h3>
+      <button class="modal-close-btn" data-modal-close="addCourseModal">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Course Title *</label><input class="form-control" id="newCourseTitle" placeholder="e.g. Advanced Python Programming"/></div>
+      <div class="form-group"><label>Description *</label><textarea class="form-control" id="newCourseDesc" rows="3" placeholder="Brief description of what students will learn…"></textarea></div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Category *</label>
+          <select class="form-control" id="newCourseCat">
+            <option value="">Select category</option>
+            <option>Web Development</option><option>Data Science</option><option>AI / ML</option>
+            <option>Design</option><option>Data Engineering</option><option>Mobile Dev</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Course Icon</label>
+          <select class="form-control" id="newCourseIcon">
+            <option value="💻">💻 Code</option><option value="📊">📊 Data</option><option value="🤖">🤖 AI</option>
+            <option value="🎨">🎨 Design</option><option value="⚙️">⚙️ Backend</option><option value="📱">📱 Mobile</option><option value="🗄️">🗄️ Database</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" data-modal-close="addCourseModal">Cancel</button>
+      <button class="btn-primary" id="btnCreateCourse">Create Course</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Add Video Modal ══ -->
+<div class="modal-overlay" id="addVideoModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>🎬 Add Video</h3>
+      <button class="modal-close-btn" data-modal-close="addVideoModal">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="videoTargetCourse"/>
+      <div class="form-group"><label>Video Title *</label><input class="form-control" id="newVideoTitle" placeholder="e.g. Introduction to Variables"/></div>
+      <div class="form-group">
+        <label>YouTube URL *</label>
+        <input class="form-control" id="newVideoUrl" placeholder="https://www.youtube.com/watch?v=..." oninput="previewYouTube(this.value)"/>
+        <div class="yt-preview" id="ytPreview">
+          <img class="yt-thumb" id="ytPreviewThumb" src="" alt="thumbnail"/>
+          <div>
+            <div style="font-size:0.82rem; font-weight:600;" id="ytPreviewTitle">Valid YouTube URL ✓</div>
+            <div style="font-size:0.72rem; color:var(--text-muted);" id="ytPreviewId">ID: —</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group"><label>Duration</label><input class="form-control" id="newVideoDuration" placeholder="e.g. 12:30"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" data-modal-close="addVideoModal">Cancel</button>
+      <button class="btn-primary" id="btnAddVideo">Add Video</button>
+    </div>
+  </div>
+</div>
+
+<div id="dashToast" class="dash-toast"></div>
+<script src="dashboard.js"></script>
+<script src="trainer.js"></script>
+</body>
+</html>

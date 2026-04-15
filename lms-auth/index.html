@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduVerse LMS – Login & Register</title>
+  <meta name="description" content="EduVerse Learning Management System – Secure login and registration for Students, Teachers, and Administrators." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ── Background blobs ── -->
+  <div class="bg-blobs" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- ── Main Wrapper ── -->
+  <div class="page-wrapper">
+
+    <!-- Left Panel – Illustration / Branding -->
+    <aside class="brand-panel" id="brandPanel">
+      <div class="brand-logo">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-label="EduVerse logo">
+          <rect width="40" height="40" rx="12" fill="white" fill-opacity="0.15"/>
+          <path d="M8 14l12-6 12 6v12l-12 6-12-6V14z" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M8 14l12 6 12-6M20 20v12" stroke="white" stroke-width="2"/>
+        </svg>
+        <span class="brand-name">EduVerse</span>
+      </div>
+
+      <div class="brand-content">
+        <h1 class="brand-headline">Empower Your<br/><span class="highlight">Learning Journey</span></h1>
+        <p class="brand-subtext">A unified platform for students, educators, and administrators to collaborate, grow, and succeed.</p>
+
+        <div class="brand-stats">
+          <div class="stat-item">
+            <span class="stat-num">50K+</span>
+            <span class="stat-label">Students</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">2K+</span>
+            <span class="stat-label">Courses</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">98%</span>
+            <span class="stat-label">Satisfaction</span>
+          </div>
+        </div>
+
+        <!-- SVG Illustration -->
+        <div class="brand-illustration" id="brandIllustration">
+          <!-- Student Illustration -->
+          <svg id="illStudent" class="illus active" viewBox="0 0 340 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="40" y="60" width="260" height="170" rx="16" fill="white" fill-opacity="0.08"/>
+            <rect x="60" y="80" width="140" height="12" rx="6" fill="white" fill-opacity="0.4"/>
+            <rect x="60" y="102" width="100" height="8" rx="4" fill="white" fill-opacity="0.25"/>
+            <rect x="60" y="122" width="220" height="60" rx="10" fill="white" fill-opacity="0.1"/>
+            <circle cx="85" cy="152" r="20" fill="white" fill-opacity="0.15"/>
+            <path d="M80 152 L85 157 L92 148" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="115" y="144" width="100" height="8" rx="4" fill="white" fill-opacity="0.3"/>
+            <rect x="115" y="158" width="70" height="6" rx="3" fill="white" fill-opacity="0.2"/>
+            <circle cx="285" cy="110" r="30" fill="white" fill-opacity="0.12"/>
+            <path d="M275 110 L280 90 L285 110 L295 100 L285 115 L280 130 L275 110 Z" fill="white" fill-opacity="0.6"/>
+            <rect x="60" y="200" width="80" height="8" rx="4" fill="white" fill-opacity="0.2"/>
+            <rect x="60" y="215" width="60" height="6" rx="3" fill="white" fill-opacity="0.15"/>
+          </svg>
+          <!-- Teacher Illustration -->
+          <svg id="illTeacher" class="illus" viewBox="0 0 340 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="30" y="40" width="280" height="190" rx="16" fill="white" fill-opacity="0.07"/>
+            <rect x="30" y="40" width="280" height="40" rx="16" fill="white" fill-opacity="0.1"/>
+            <circle cx="60" cy="60" r="8" fill="#EF4444" fill-opacity="0.7"/>
+            <circle cx="82" cy="60" r="8" fill="#F59E0B" fill-opacity="0.7"/>
+            <circle cx="104" cy="60" r="8" fill="#10B981" fill-opacity="0.7"/>
+            <rect x="50" y="100" width="100" height="100" rx="8" fill="white" fill-opacity="0.1"/>
+            <rect x="60" y="110" width="80" height="6" rx="3" fill="white" fill-opacity="0.4"/>
+            <rect x="60" y="124" width="60" height="5" rx="2.5" fill="white" fill-opacity="0.25"/>
+            <rect x="60" y="136" width="70" height="5" rx="2.5" fill="white" fill-opacity="0.25"/>
+            <rect x="60" y="148" width="50" height="5" rx="2.5" fill="white" fill-opacity="0.25"/>
+            <rect x="60" y="170" width="80" height="20" rx="6" fill="white" fill-opacity="0.2"/>
+            <rect x="170" y="100" width="120" height="44" rx="8" fill="white" fill-opacity="0.1"/>
+            <rect x="182" y="112" width="60" height="6" rx="3" fill="white" fill-opacity="0.4"/>
+            <rect x="182" y="124" width="45" height="5" rx="2.5" fill="white" fill-opacity="0.25"/>
+            <rect x="170" y="155" width="120" height="44" rx="8" fill="white" fill-opacity="0.1"/>
+            <rect x="182" y="167" width="50" height="6" rx="3" fill="white" fill-opacity="0.4"/>
+            <rect x="182" y="179" width="70" height="5" rx="2.5" fill="white" fill-opacity="0.25"/>
+          </svg>
+          <!-- Admin Illustration -->
+          <svg id="illAdmin" class="illus" viewBox="0 0 340 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="20" y="30" width="300" height="200" rx="16" fill="white" fill-opacity="0.06"/>
+            <rect x="20" y="30" width="80" height="200" rx="16" fill="white" fill-opacity="0.06"/>
+            <circle cx="60" cy="80" r="20" fill="white" fill-opacity="0.12"/>
+            <path d="M52 80 L58 75 L68 86" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            <rect x="40" y="112" width="40" height="6" rx="3" fill="white" fill-opacity="0.3"/>
+            <rect x="40" y="126" width="30" height="5" rx="2.5" fill="white" fill-opacity="0.2"/>
+            <rect x="40" y="146" width="40" height="6" rx="3" fill="white" fill-opacity="0.3"/>
+            <rect x="40" y="160" width="25" height="5" rx="2.5" fill="white" fill-opacity="0.2"/>
+            <rect x="120" y="50" width="180" height="80" rx="10" fill="white" fill-opacity="0.08"/>
+            <rect x="135" y="65" width="70" height="8" rx="4" fill="white" fill-opacity="0.4"/>
+            <rect x="135" y="82" width="50" height="6" rx="3" fill="white" fill-opacity="0.25"/>
+            <rect x="135" y="96" width="80" height="20" rx="5" fill="white" fill-opacity="0.15"/>
+            <rect x="120" y="150" width="80" height="60" rx="10" fill="white" fill-opacity="0.08"/>
+            <rect x="220" y="150" width="80" height="60" rx="10" fill="white" fill-opacity="0.08"/>
+            <rect x="135" y="165" width="50" height="6" rx="3" fill="white" fill-opacity="0.3"/>
+            <rect x="135" y="179" width="30" height="5" rx="2.5" fill="white" fill-opacity="0.2"/>
+            <rect x="235" y="165" width="50" height="6" rx="3" fill="white" fill-opacity="0.3"/>
+            <rect x="235" y="179" width="30" height="5" rx="2.5" fill="white" fill-opacity="0.2"/>
+          </svg>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Right Panel – Auth Forms -->
+    <main class="auth-panel">
+      <div class="auth-card" id="authCard">
+
+        <!-- Role Tabs -->
+        <div class="role-tabs" role="tablist" aria-label="Select your role">
+          <button class="role-tab active" id="tabStudent" role="tab" aria-selected="true" aria-controls="panelStudent" data-role="student">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+            Student
+          </button>
+          <button class="role-tab" id="tabTeacher" role="tab" aria-selected="false" aria-controls="panelTeacher" data-role="teacher">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            Teacher
+          </button>
+          <button class="role-tab" id="tabAdmin" role="tab" aria-selected="false" aria-controls="panelAdmin" data-role="admin">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Admin
+          </button>
+          <div class="tab-indicator" id="tabIndicator"></div>
+        </div>
+
+        <!-- ══════════════════ STUDENT PANEL ══════════════════ -->
+        <div class="role-panel active" id="panelStudent" role="tabpanel" aria-labelledby="tabStudent">
+
+          <!-- Student Login -->
+          <div class="form-view active" id="studentLogin">
+            <div class="form-header">
+              <h2>Welcome Back! 👋</h2>
+              <p>Sign in to continue your learning journey</p>
+            </div>
+
+            <form id="formStudentLogin" novalidate>
+              <div class="field-group">
+                <label for="sLoginEmail">Email or Mobile Number</label>
+                <div class="input-wrap">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+                  <input type="text" id="sLoginEmail" placeholder="email@example.com or 9876543210" autocomplete="email" />
+                </div>
+                <span class="field-error" id="sLoginEmailErr"></span>
+              </div>
+
+              <div class="field-group">
+                <label for="sLoginPassword">Password</label>
+                <div class="input-wrap">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                  <input type="password" id="sLoginPassword" placeholder="Enter your password" autocomplete="current-password" />
+                  <button type="button" class="toggle-pw" aria-label="Toggle password visibility" data-target="sLoginPassword">
+                    <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg class="eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  </button>
+                </div>
+                <span class="field-error" id="sLoginPasswordErr"></span>
+              </div>
+
+              <div class="form-row">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="sRemember" />
+                  <span class="checkmark"></span>
+                  Remember me
+                </label>
+                <button type="button" class="link-btn forgot-btn" data-role="student">Forgot Password?</button>
+              </div>
+
+              <button type="submit" class="btn-primary" id="btnStudentLogin">
+                <span class="btn-text">Sign In</span>
+                <span class="btn-spinner hidden"></span>
+              </button>
+
+              <div class="divider"><span>or continue with</span></div>
+
+              <button type="button" class="btn-google" id="btnGoogleStudent">
+                <svg viewBox="0 0 24 24" width="20" height="20"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                Continue with Google
+              </button>
+            </form>
+
+            <p class="form-switch">Don't have an account? <button type="button" class="link-btn" onclick="switchView('studentRegister')">Sign up free</button></p>
+          </div>
+
+          <!-- Student Register -->
+          <div class="form-view" id="studentRegister">
+            <div class="form-header">
+              <h2>Create Account 🎓</h2>
+              <p>Join thousands of learners today</p>
+            </div>
+
+            <form id="formStudentRegister" novalidate>
+              <div class="form-row-2">
+                <div class="field-group">
+                  <label for="sRegName">Full Name</label>
+                  <div class="input-wrap">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <input type="text" id="sRegName" placeholder="John Doe" autocomplete="name" />
+                  </div>
+                  <span class="field-error" id="sRegNameErr"></span>
+                </div>
+                <div class="field-group">
+                  <label for="sRegMobile">Mobile Number</label>
+                  <div class="input-wrap">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                    <input type="tel" id="sRegMobile" placeholder="+91 98765 43210" autocomplete="tel" />
+                  </div>
+                  <span class="field-error" id="sRegMobileErr"></span>
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label for="sRegEmail">Email Address</label>
+                <div class="input-wrap">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+                  <input type="email" id="sRegEmail" placeholder="john@example.com" autocomplete="email" />
+                </div>
+                <span class="field-error" id="sRegEmailErr"></span>
+              </div>
+
+              <div class="field-group">
+                <label for="sRegPassword">Password</label>
+                <div class="input-wrap">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                  <input type="password" id="sRegPassword" placeholder="Min. 8 characters" autocomplete="new-password" />
+                  <button type="button" class="toggle-pw" aria-label="Toggle password visibility" data-target="sRegPassword">
+                    <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg class="eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  </button>
+                </div>
+                <div class="pw-strength" id="sRegPwStrength">
+                  <div class="pw-bar"><div class="pw-fill" id="sRegPwFill"></div></div>
+                  <span class="pw-label" id="sRegPwLabel">Password strength</span>
+                </div>
+                <span class="field-error" id="sRegPasswordErr"></span>
+              </div>
+
+              <div class="field-group">
+                <label>Interests (Optional)</label>
+                <div class="interest-tags" id="interestTags">
+                  <button type="button" class="tag" data-val="web">💻 Web Dev</button>
+                  <button type="button" class="tag" data-val="data">📊 Data Science</button>
+                  <button type="button" class="tag" data-val="design">🎨 Design</button>
+                  <button type="button" class="tag" data-val="ai">🤖 AI / ML</button>
+                  <button type="button" class="tag" data-val="business">💼 Business</button>
+                  <button type="button" class="tag" data-val="lang">🗣 Languages</button>
+                </div>
+              </div>
+
+              <button type="submit" class="btn-primary" id="btnStudentRegister">
+                <span class="btn-text">Create My Account</span>
+                <span class="btn-spinner hidden"></span>
+              </button>
+            </form>
+
+            <p class="form-switch">Already have an account? <button type="button" class="link-btn" onclick="switchView('studentLogin')">Sign in</button></p>
+          </div>
+        </div>
+        <!-- END STUDENT -->
+
+        <!-- ══════════════════ TEACHER PANEL ══════════════════ -->
+        <div class="role-panel" id="panelTeacher" role="tabpanel" aria-labelledby="tabTeacher">
+
+          <!-- Teacher Login -->
+          <div class="form-view active" id="teacherLogin">
+            <div class="form-header">
+              <h2>Teacher Portal</h2>
+              <p>Secure sign-in for education professionals</p>
+            </div>
+
+            <form id="formTeacherLogin" novalidate>
+              <div class="field-group">
+                <label for="tLoginEmail">Institutional Email</label>
+                <div class="input-wrap">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+                  <input type="email" id="tLoginEmail" placeholder="teacher@institution.edu" autocomplete="email" />
+                </div>
+                <span class="field-error" id="tLoginEmailErr"></span>
+              </div>
+
+              <div class="field-group">
+                <label for="tLoginPassword">Password</label>
+                <div class="input-wrap">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                  <input type="password" id="tLoginPassword" placeholder="Enter your password" autocomplete="current-password" />
+                  <button type="button" class="toggle-pw" aria-label="Toggle password visibility" data-target="tLoginPassword">
+                    <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg class="eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  </button>
+                </div>
+                <span class="field-error" id="tLoginPasswordErr"></span>
+              </div>
+
+              <!-- OTP 2FA Section -->
+              <div class="otp-section" id="otpSection" style="display:none;">
+                <div class="otp-badge">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  Two-Factor Authentication
+                </div>
+                <p class="otp-hint">Enter the 6-digit code sent to your email</p>
+                <div class="otp-inputs" id="otpInputs">
+                  <input type="text" class="otp-digit" maxlength="1" pattern="\d" inputmode="numeric" />
+                  <input type="text" class="otp-digit" maxlength="1" pattern="\d" inputmode="numeric" />
+                  <input type="text" class="otp-digit" maxlength="1" pattern="\d" inputmode="numeric" />
+                  <input type="text" class="otp-digit" maxlength="1" pattern="\d" inputmode="numeric" />
+                  <input type="text" class="otp-digit" maxlength="1" pattern="\d" inputmode="numeric" />
+                  <input type="text" class="otp-digit" maxlength="1" pattern="\d" inputmode="numeric" />
+                </div>
+                <div class="otp-actions">
+                  <span class="otp-timer" id="otpTimer">Resend in <strong id="otpCountdown">30</strong>s</span>
+                  <button type="button" class="link-btn otp-resend hidden" id="otpResend">Resend Code</button>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div></div>
+                <button type="button" class="link-btn forgot-btn" data-role="teacher">Forgot Password?</button>
+              </div>
+
+              <button type="submit" class="btn-primary" id="btnTeacherLogin">
+                <span class="btn-text">Continue</span>
+                <span class="btn-spinner hidden"></span>
+              </button>
+            </form>
+
+            <p class="form-switch">New to EduVerse? <button type="button" class="link-btn" onclick="switchView('teacherRegister')">Apply as Teacher</button></p>
+          </div>
+
+          <!-- Teacher Multi-Step Register -->
+          <div class="form-view" id="teacherRegister">
+            <div class="form-header">
+              <h2>Join as Teacher 🏫</h2>
+              <p>Share your expertise with learners worldwide</p>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="step-progress" aria-label="Registration steps">
+              <div class="step-track">
+                <div class="step-fill" id="tRegStepFill"></div>
+              </div>
+              <div class="step-dots">
+                <div class="step-dot active" data-step="1"><span>1</span><label>Personal</label></div>
+                <div class="step-dot" data-step="2"><span>2</span><label>Expertise</label></div>
+                <div class="step-dot" data-step="3"><span>3</span><label>Documents</label></div>
+                <div class="step-dot" data-step="4"><span>4</span><label>Account</label></div>
+              </div>
+            </div>
+            <div class="step-label-center" id="tRegStepLabel">Step 1 of 4 – Personal Details</div>
+
+            <form id="formTeacherRegister" novalidate>
+              <!-- Step 1 -->
+              <div class="t-step active" id="tStep1">
+                <div class="form-row-2">
+                  <div class="field-group">
+                    <label for="tRegFName">First Name</label>
+                    <div class="input-wrap">
+                      <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                      <input type="text" id="tRegFName" placeholder="First name" />
+                    </div>
+                    <span class="field-error" id="tRegFNameErr"></span>
+                  </div>
+                  <div class="field-group">
+                    <label for="tRegLName">Last Name</label>
+                    <div class="input-wrap">
+                      <input type="text" id="tRegLName" placeholder="Last name" />
+                    </div>
+                    <span class="field-error" id="tRegLNameErr"></span>
+                  </div>
+                </div>
+                <div class="field-group">
+                  <label for="tRegEmail">Email Address</label>
+                  <div class="input-wrap">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+                    <input type="email" id="tRegEmail" placeholder="your@email.com" />
+                  </div>
+                  <span class="field-error" id="tRegEmailErr"></span>
+                </div>
+                <div class="field-group">
+                  <label for="tRegPhone">Phone Number</label>
+                  <div class="input-wrap">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                    <input type="tel" id="tRegPhone" placeholder="+91 98765 43210" />
+                  </div>
+                  <span class="field-error" id="tRegPhoneErr"></span>
+                </div>
+              </div>
+
+              <!-- Step 2 -->
+              <div class="t-step" id="tStep2">
+                <div class="field-group">
+                  <label for="tRegQual">Highest Qualification</label>
+                  <div class="input-wrap select-wrap">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                    <select id="tRegQual">
+                      <option value="">Select qualification</option>
+                      <option>Bachelor's Degree</option>
+                      <option>Master's Degree</option>
+                      <option>Ph.D</option>
+                      <option>Professional Certification</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+                  <span class="field-error" id="tRegQualErr"></span>
+                </div>
+                <div class="field-group">
+                  <label for="tRegSubject">Subject / Expertise Area</label>
+                  <div class="input-wrap">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                    <input type="text" id="tRegSubject" placeholder="e.g. Mathematics, Python, Design" />
+                  </div>
+                  <span class="field-error" id="tRegSubjectErr"></span>
+                </div>
+                <div class="field-group">
+                  <label for="tRegExp">Years of Experience</label>
+                  <div class="input-wrap select-wrap">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <select id="tRegExp">
+                      <option value="">Select experience</option>
+                      <option>0 – 1 year</option>
+                      <option>1 – 3 years</option>
+                      <option>3 – 5 years</option>
+                      <option>5 – 10 years</option>
+                      <option>10+ years</option>
+                    </select>
+                  </div>
+                  <span class="field-error" id="tRegExpErr"></span>
+                </div>
+                <div class="field-group">
+                  <label for="tRegBio">Short Bio</label>
+                  <textarea id="tRegBio" rows="3" placeholder="Tell students a little about yourself..."></textarea>
+                  <span class="field-error" id="tRegBioErr"></span>
+                </div>
+              </div>
+
+              <!-- Step 3 -->
+              <div class="t-step" id="tStep3">
+                <div class="upload-area" id="uploadCert">
+                  <div class="upload-icon">📄</div>
+                  <p class="upload-title">Degree / Certificates</p>
+                  <p class="upload-hint">PDF, JPG, PNG – max 5MB</p>
+                  <input type="file" id="fileCert" accept=".pdf,.jpg,.jpeg,.png" hidden />
+                  <button type="button" class="btn-outline" onclick="document.getElementById('fileCert').click()">Choose File</button>
+                  <span class="upload-name" id="certName">No file chosen</span>
+                </div>
+
+                <div class="upload-area" id="uploadId">
+                  <div class="upload-icon">🪪</div>
+                  <p class="upload-title">Government ID Proof</p>
+                  <p class="upload-hint">Aadhaar, Passport, or Driving License</p>
+                  <input type="file" id="fileId" accept=".pdf,.jpg,.jpeg,.png" hidden />
+                  <button type="button" class="btn-outline" onclick="document.getElementById('fileId').click()">Choose File</button>
+                  <span class="upload-name" id="idName">No file chosen</span>
+                </div>
+
+                <div class="info-note">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  Documents are verified within 2–3 business days. You'll be notified via email.
+                </div>
+              </div>
+
+              <!-- Step 4 -->
+              <div class="t-step" id="tStep4">
+                <div class="field-group">
+                  <label for="tRegPw">Create Password</label>
+                  <div class="input-wrap">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                    <input type="password" id="tRegPw" placeholder="Min. 8 characters" autocomplete="new-password" />
+                    <button type="button" class="toggle-pw" aria-label="Toggle password visibility" data-target="tRegPw">
+                      <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      <svg class="eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    </button>
+                  </div>
+                  <div class="pw-strength" id="tRegPwStrength">
+                    <div class="pw-bar"><div class="pw-fill" id="tRegPwFill"></div></div>
+                    <span class="pw-label" id="tRegPwLabel">Password strength</span>
+                  </div>
+                  <span class="field-error" id="tRegPwErr"></span>
+                </div>
+                <div class="field-group">
+                  <label for="tRegPwConfirm">Confirm Password</label>
+                  <div class="input-wrap">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                    <input type="password" id="tRegPwConfirm" placeholder="Re-enter your password" autocomplete="new-password" />
+                    <button type="button" class="toggle-pw" aria-label="Toggle password visibility" data-target="tRegPwConfirm">
+                      <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      <svg class="eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    </button>
+                  </div>
+                  <span class="field-error" id="tRegPwConfirmErr"></span>
+                </div>
+                <label class="checkbox-label mt8">
+                  <input type="checkbox" id="tRegTerms" />
+                  <span class="checkmark"></span>
+                  I agree to the <a href="#" class="link-inline">Terms of Service</a> and <a href="#" class="link-inline">Privacy Policy</a>
+                </label>
+              </div>
+
+              <!-- Step Navigation -->
+              <div class="step-nav">
+                <button type="button" class="btn-outline" id="tRegBack" onclick="teacherStep(-1)" style="display:none;">← Back</button>
+                <button type="button" class="btn-primary step-next" id="tRegNext" onclick="teacherStep(1)">
+                  <span class="btn-text">Next Step →</span>
+                  <span class="btn-spinner hidden"></span>
+                </button>
+              </div>
+            </form>
+
+            <p class="form-switch">Already registered? <button type="button" class="link-btn" onclick="switchView('teacherLogin')">Sign in</button></p>
+          </div>
+        </div>
+        <!-- END TEACHER -->
+
+        <!-- ══════════════════ ADMIN PANEL ══════════════════ -->
+        <div class="role-panel" id="panelAdmin" role="tabpanel" aria-labelledby="tabAdmin">
+
+          <div class="form-view active" id="adminLogin">
+            <div class="form-header">
+              <div class="admin-badge">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Secure Admin Access
+              </div>
+              <h2>Administrator Login</h2>
+              <p>Restricted area – authorized personnel only</p>
+            </div>
+
+            <div class="security-strip">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Session secured · 256-bit SSL encryption
+            </div>
+
+            <form id="formAdminLogin" novalidate>
+              <div class="field-group">
+                <label for="aLoginId">Admin ID</label>
+                <div class="input-wrap">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  <input type="text" id="aLoginId" placeholder="ADM-XXXXXXXX" autocomplete="username" />
+                </div>
+                <span class="field-error" id="aLoginIdErr"></span>
+              </div>
+
+              <div class="field-group">
+                <label for="aLoginPassword">Password</label>
+                <div class="input-wrap">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                  <input type="password" id="aLoginPassword" placeholder="Enter your password" autocomplete="current-password" />
+                  <button type="button" class="toggle-pw" aria-label="Toggle password visibility" data-target="aLoginPassword">
+                    <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg class="eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  </button>
+                </div>
+                <span class="field-error" id="aLoginPasswordErr"></span>
+              </div>
+
+              <!-- CAPTCHA -->
+              <div class="field-group">
+                <label for="aCaptchaInput">Security Code</label>
+                <div class="captcha-wrap">
+                  <div class="captcha-box" id="captchaBox" aria-label="CAPTCHA code">
+                    <span id="captchaText"></span>
+                  </div>
+                  <button type="button" class="captcha-refresh" id="captchaRefresh" aria-label="Refresh CAPTCHA" title="Refresh">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+                  </button>
+                  <div class="input-wrap captcha-input-wrap">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <input type="text" id="aCaptchaInput" placeholder="Enter code above" maxlength="6" autocomplete="off" />
+                  </div>
+                </div>
+                <span class="field-error" id="aCaptchaErr"></span>
+              </div>
+
+              <div class="form-row">
+                <div></div>
+                <button type="button" class="link-btn forgot-btn" data-role="admin">Forgot Password?</button>
+              </div>
+
+              <button type="submit" class="btn-primary" id="btnAdminLogin">
+                <span class="btn-text">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                  Secure Sign In
+                </span>
+                <span class="btn-spinner hidden"></span>
+              </button>
+            </form>
+          </div>
+        </div>
+        <!-- END ADMIN -->
+
+      </div><!-- end auth-card -->
+    </main>
+  </div><!-- end page-wrapper -->
+
+  <!-- ── Forgot Password Modal ── -->
+  <div class="modal-overlay" id="forgotModal" role="dialog" aria-modal="true" aria-labelledby="forgotTitle">
+    <div class="modal-card">
+      <button type="button" class="modal-close" id="modalClose" aria-label="Close modal">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="modal-icon">🔑</div>
+      <h3 id="forgotTitle">Reset Your Password</h3>
+      <p id="forgotHint">Enter your email address and we'll send you a link to reset your password.</p>
+      <form id="forgotForm">
+        <div class="field-group">
+          <label for="forgotEmail">Email Address</label>
+          <div class="input-wrap">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+            <input type="email" id="forgotEmail" placeholder="your@email.com" />
+          </div>
+          <span class="field-error" id="forgotEmailErr"></span>
+        </div>
+        <button type="submit" class="btn-primary" id="btnForgot">
+          <span class="btn-text">Send Reset Link</span>
+          <span class="btn-spinner hidden"></span>
+        </button>
+      </form>
+      <div class="modal-success hidden" id="forgotSuccess">
+        <div class="success-icon">✅</div>
+        <p>Reset link sent! Check your inbox.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Toast Notification ── -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

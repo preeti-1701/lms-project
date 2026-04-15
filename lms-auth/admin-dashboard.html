@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en" data-role="admin">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduVerse – Admin Dashboard</title>
+  <meta name="description" content="System administration: user management, session control, course oversight."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="dashboard.css"/>
+  <style>
+    :root { --primary:#EF4444; --primary-dark:#DC2626; --primary-glow:rgba(239,68,68,0.2); }
+    .admin-stat-card { --card-gradient: linear-gradient(90deg,#EF4444,#F59E0B); }
+    .session-live { display:flex; align-items:center; gap:6px; }
+    .audit-action { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:20px; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+    .audit-LOGIN    { background:rgba(16,185,129,0.15); color:var(--success); }
+    .audit-LOGOUT   { background:rgba(100,116,139,0.15); color:var(--text-muted); }
+    .audit-DISABLED { background:rgba(239,68,68,0.15); color:var(--danger); }
+    .audit-CREATED  { background:rgba(59,130,246,0.15); color:#3B82F6; }
+    .audit-FORCED   { background:rgba(245,158,11,0.15); color:var(--warning); }
+    .role-select { background:var(--bg-base); border:1px solid var(--border); border-radius:6px; color:var(--text-primary); font-size:0.78rem; padding:4px 8px; cursor:pointer; }
+    .status-toggle { cursor:pointer; }
+  </style>
+</head>
+<body>
+
+<div class="dash-layout">
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+        <rect width="40" height="40" rx="10" fill="url(#ag1)"/>
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="white" stroke-width="2"/>
+        <defs><linearGradient id="ag1" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#EF4444"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient></defs>
+      </svg>
+      <span class="logo-text">EduVerse</span>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Administration</span>
+      <a href="#" class="nav-link active" data-section="overview">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+        <span class="nav-label">Dashboard</span>
+      </a>
+      <a href="#" class="nav-link" data-section="users">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></span>
+        <span class="nav-label">User Management</span>
+      </a>
+      <a href="#" class="nav-link" data-section="courses">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></span>
+        <span class="nav-label">Courses</span>
+      </a>
+      <a href="#" class="nav-link" data-section="sessions">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+        <span class="nav-label">Session Monitor</span>
+        <span class="nav-badge" id="activeSessionBadge">0</span>
+      </a>
+      <a href="#" class="nav-link" data-section="audit">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
+        <span class="nav-label">Audit Log</span>
+      </a>
+      <span class="nav-section-label">System</span>
+      <a href="#" class="nav-link" data-section="settings">
+        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>
+        <span class="nav-label">Settings</span>
+      </a>
+    </nav>
+    <button class="sidebar-collapse-btn" id="collapseBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="sidebar-footer">
+      <button class="sidebar-logout" id="logoutBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="main-content" id="mainContent">
+    <header class="dash-header">
+      <div class="header-left">
+        <button class="menu-toggle" id="menuToggle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <span class="breadcrumb"><strong id="breadcrumb">Admin Dashboard</strong></span>
+      </div>
+      <div class="header-right">
+        <div style="display:flex;align-items:center;gap:6px; font-size:0.78rem; color:var(--success); background:rgba(16,185,129,0.1); padding:6px 12px; border-radius:20px; border:1px solid rgba(16,185,129,0.2);">
+          <span class="pulse-dot"></span> System Online
+        </div>
+        <div class="user-chip">
+          <div class="user-avatar" style="background:linear-gradient(135deg,#EF4444,#8B5CF6)" id="userAvatar">A</div>
+          <span class="user-name" id="userName">Admin</span>
+          <span class="user-role-tag admin" id="userRoleTag">admin</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-area">
+
+      <!-- ════ OVERVIEW ════ -->
+      <section class="content-section active" id="section-overview">
+        <div class="page-title">System Overview</div>
+        <div class="page-subtitle">Real-time platform statistics and health monitoring.</div>
+        <div class="stats-row">
+          <div class="stat-card" style="--card-gradient:linear-gradient(90deg,#EF4444,#F59E0B)">
+            <div class="stat-header"><span class="stat-label">Total Users</span>
+              <span class="stat-icon" style="background:rgba(239,68,68,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></span>
+            </div>
+            <div class="stat-value" id="aStatUsers">0</div>
+            <div class="stat-change">Students, Trainers &amp; Admins</div>
+          </div>
+          <div class="stat-card" style="--card-gradient:linear-gradient(90deg,#10B981,#06B6D4)">
+            <div class="stat-header"><span class="stat-label">Active Sessions</span>
+              <span class="stat-icon" style="background:rgba(16,185,129,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+            </div>
+            <div class="stat-value" id="aStatSessions">0</div>
+            <div class="stat-change"><span class="pulse-dot" style="margin-right:4px;"></span>Currently online</div>
+          </div>
+          <div class="stat-card" style="--card-gradient:linear-gradient(90deg,#3B82F6,#8B5CF6)">
+            <div class="stat-header"><span class="stat-label">Total Courses</span>
+              <span class="stat-icon" style="background:rgba(59,130,246,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></span>
+            </div>
+            <div class="stat-value" id="aStatCourses">0</div>
+            <div class="stat-change">Published on the platform</div>
+          </div>
+          <div class="stat-card" style="--card-gradient:linear-gradient(90deg,#8B5CF6,#EC4899)">
+            <div class="stat-header"><span class="stat-label">Enrollments</span>
+              <span class="stat-icon" style="background:rgba(139,92,246,0.1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+            </div>
+            <div class="stat-value" id="aStatEnrollments">0</div>
+            <div class="stat-change">Total course enrollments</div>
+          </div>
+        </div>
+
+        <!-- Quick Summary Cards -->
+        <div class="section-header"><span class="section-title">Active Sessions</span>
+          <button class="section-action" onclick="document.querySelector('[data-section=sessions]').click()">View All →</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead><tr><th>User</th><th>Role</th><th>IP Address</th><th>Device</th><th>Since</th><th>Action</th></tr></thead>
+            <tbody id="aOverviewSessions"></tbody>
+          </table>
+        </div>
+
+        <div class="section-header"><span class="section-title">Recent Audit Events</span>
+          <button class="section-action" onclick="document.querySelector('[data-section=audit]').click()">View Log →</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead><tr><th>User</th><th>Action</th><th>Timestamp</th><th>IP</th><th>Details</th></tr></thead>
+            <tbody id="aOverviewAudit"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ════ USERS ════ -->
+      <section class="content-section" id="section-users">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div><div class="page-title">User Management</div><div class="page-subtitle">Create, edit, and manage platform users.</div></div>
+          <button class="btn-primary" data-modal-open="addUserModal">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add User
+          </button>
+        </div>
+        <div class="table-wrapper">
+          <div class="table-header">
+            <span class="table-title">All Users (<span id="userCount">0</span>)</span>
+            <div class="table-actions">
+              <div class="search-box">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="userSearch" placeholder="Search users…" oninput="filterUsers(this.value)"/>
+              </div>
+              <select class="role-select" id="roleFilter" onchange="filterUsers(document.getElementById('userSearch').value)">
+                <option value="">All Roles</option>
+                <option value="student">Students</option>
+                <option value="trainer">Trainers</option>
+                <option value="admin">Admins</option>
+              </select>
+            </div>
+          </div>
+          <table class="data-table">
+            <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Joined</th><th>Last Login</th><th>Actions</th></tr></thead>
+            <tbody id="usersTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ════ COURSES ════ -->
+      <section class="content-section" id="section-courses">
+        <div class="page-title">Course Oversight</div>
+        <div class="page-subtitle">Platform-wide course management and assignments.</div>
+        <div class="table-wrapper">
+          <div class="table-header">
+            <span class="table-title">All Courses</span>
+            <div class="table-actions">
+              <div class="search-box">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="courseSearch" placeholder="Search courses…" oninput="filterCourses(this.value)"/>
+              </div>
+            </div>
+          </div>
+          <table class="data-table">
+            <thead><tr><th>Course</th><th>Trainer</th><th>Category</th><th>Videos</th><th>Students</th><th>Created</th></tr></thead>
+            <tbody id="adminCoursesBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ════ SESSIONS ════ -->
+      <section class="content-section" id="section-sessions">
+        <div class="page-title">Session Monitor</div>
+        <div class="page-subtitle">Track active user sessions. Force logout any session instantly.</div>
+        <div class="table-wrapper">
+          <div class="table-header">
+            <span class="table-title">Active Sessions (<span class="pulse-dot" style="margin:0 4px 0 2px;"></span><span id="sessionCount">0</span> online)</span>
+            <div class="table-actions">
+              <button class="btn-sm btn-sm-danger" onclick="forceLogoutAll()">Force Logout All</button>
+            </div>
+          </div>
+          <table class="data-table">
+            <thead><tr><th>User</th><th>Role</th><th>IP Address</th><th>Device</th><th>Login Time</th><th>Duration</th><th>Action</th></tr></thead>
+            <tbody id="sessionsTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ════ AUDIT ════ -->
+      <section class="content-section" id="section-audit">
+        <div class="page-title">Audit Log</div>
+        <div class="page-subtitle">Complete history of user actions and system events.</div>
+        <div class="table-wrapper">
+          <div class="table-header">
+            <span class="table-title">Event Log</span>
+            <div class="table-actions">
+              <select class="role-select" id="auditFilter" onchange="renderAuditLog()">
+                <option value="">All Events</option>
+                <option value="LOGIN">Login</option>
+                <option value="LOGOUT">Logout</option>
+                <option value="DISABLED">Disabled</option>
+                <option value="FORCED">Force Logout</option>
+                <option value="CREATED">Created</option>
+              </select>
+            </div>
+          </div>
+          <table class="data-table">
+            <thead><tr><th>User</th><th>Action</th><th>Timestamp</th><th>IP</th><th>Details</th></tr></thead>
+            <tbody id="auditTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ════ SETTINGS ════ -->
+      <section class="content-section" id="section-settings">
+        <div class="page-title">System Settings</div>
+        <div class="page-subtitle">Platform configuration and admin profile.</div>
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h3>🔐 Admin Profile</h3>
+            <div class="form-group"><label>Name</label><input class="form-control" value="System Admin"/></div>
+            <div class="form-group"><label>Email</label><input class="form-control" value="admin@eduverse.com" type="email"/></div>
+            <button class="btn-primary" onclick="showToast('Profile saved!','success')">Save Profile</button>
+          </div>
+          <div class="settings-card">
+            <h3>⚙️ Platform Settings</h3>
+            <div class="form-group" style="display:flex;justify-content:space-between;align-items:center;">
+              <label style="text-transform:none;font-size:0.875rem;font-weight:500;">Right-click protection</label>
+              <div style="padding:4px 12px;background:rgba(16,185,129,0.1);color:var(--success);border-radius:20px;font-size:0.78rem;font-weight:600;">Enabled</div>
+            </div>
+            <div class="form-group" style="display:flex;justify-content:space-between;align-items:center;">
+              <label style="text-transform:none;font-size:0.875rem;font-weight:500;">Dynamic watermark</label>
+              <div style="padding:4px 12px;background:rgba(16,185,129,0.1);color:var(--success);border-radius:20px;font-size:0.78rem;font-weight:600;">Enabled</div>
+            </div>
+            <div class="form-group" style="display:flex;justify-content:space-between;align-items:center;">
+              <label style="text-transform:none;font-size:0.875rem;font-weight:500;">Single device session</label>
+              <div style="padding:4px 12px;background:rgba(16,185,129,0.1);color:var(--success);border-radius:20px;font-size:0.78rem;font-weight:600;">Enabled</div>
+            </div>
+            <div class="form-group" style="display:flex;justify-content:space-between;align-items:center;">
+              <label style="text-transform:none;font-size:0.875rem;font-weight:500;">HTTPS enforcement</label>
+              <div style="padding:4px 12px;background:rgba(16,185,129,0.1);color:var(--success);border-radius:20px;font-size:0.78rem;font-weight:600;">Enabled</div>
+            </div>
+            <button class="btn-secondary" style="width:100%;margin-top:6px;" onclick="showToast('Settings are managed by the server administrator.','info')">Request Change</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- ══ Add User Modal ══ -->
+<div class="modal-overlay" id="addUserModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>👤 Add New User</h3>
+      <button class="modal-close-btn" data-modal-close="addUserModal">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row-2">
+        <div class="form-group"><label>Full Name *</label><input class="form-control" id="newUserName" placeholder="John Doe"/></div>
+        <div class="form-group"><label>Role *</label>
+          <select class="form-control" id="newUserRole">
+            <option value="student">Student</option><option value="trainer">Trainer</option><option value="admin">Admin</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>Email *</label><input class="form-control" id="newUserEmail" type="email" placeholder="user@example.com"/></div>
+      <div class="form-group"><label>Temporary Password *</label><input class="form-control" id="newUserPw" type="password" placeholder="Min. 8 characters"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" data-modal-close="addUserModal">Cancel</button>
+      <button class="btn-primary" id="btnCreateUser">Create User</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Assign Course Modal ══ -->
+<div class="modal-overlay" id="assignCourseModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>📚 Assign Courses</h3>
+      <button class="modal-close-btn" data-modal-close="assignCourseModal">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="assignUserId"/>
+      <p id="assignUserLabel" style="font-size:0.875rem;margin-bottom:14px;color:var(--text-secondary);"></p>
+      <div id="courseCheckboxList"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" data-modal-close="assignCourseModal">Cancel</button>
+      <button class="btn-primary" id="btnAssignCourses">Save Assignments</button>
+    </div>
+  </div>
+</div>
+
+<div id="dashToast" class="dash-toast"></div>
+<script src="dashboard.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
