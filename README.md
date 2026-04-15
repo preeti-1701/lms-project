@@ -1,14 +1,16 @@
 # LMS landing page
 __Landing Page__
->used
+[used]
 -HTML
+
 -CSS
+
 -JAVAScript
 
 Next process
 -__Including ReactJS__
->for FrontEnd 
+for FrontEnd 
 -__Django__
->for BackEnd
+for BackEnd
 
 Added a Demo Landing Page and try to change as per the requirements
