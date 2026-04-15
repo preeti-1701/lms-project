@@ -1,6 +1,8 @@
 # LMS landing page
 __Landing Page__
-[used]
+
+__USED__
+
 -HTML
 
 -CSS
@@ -8,8 +10,10 @@ __Landing Page__
 -JAVAScript
 
 Next process
+
 -__Including ReactJS__
 for FrontEnd 
+
 -__Django__
 for BackEnd
 
