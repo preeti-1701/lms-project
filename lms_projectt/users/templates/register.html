@@ -1,23 +1,35 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+
     <link rel="stylesheet" href="{% static 'style.css' %}">
 </head>
 
 <body>
 
     <div class="container">
-        <h2>Create Account</h2>
 
-        <form method="POST">
+        <h2>Register</h2>
+
+        <!-- ERROR MESSAGE -->
+        {% if error %}
+        <p style="color:red; margin-bottom:10px;">
+            {{ error }}
+        </p>
+        {% endif %}
+
+        <form id="registerForm">
             {% csrf_token %}
-            <input name="username" placeholder="Username">
-            <input name="password" type="password" placeholder="Password">
 
-            <select name="role">
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="password" id="password" placeholder="Password" required>
+
+            <select id="role" required>
                 <option value="">Select Role</option>
                 <option value="student">Student</option>
                 <option value="trainer">Trainer</option>
@@ -26,7 +38,16 @@
 
             <button type="submit">Register</button>
         </form>
+        <p id="message" style="margin-top:10px;"></p>
+
+        <p style="margin-top:15px;">
+            Already have an account?
+            <a href="/login/">Login</a>
+        </p>
+
     </div>
+
 </body>
+
 
 </html>

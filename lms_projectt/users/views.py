@@ -6,7 +6,13 @@ from django.contrib.auth.hashers import check_password
 import random
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.hashers import check_password
-
+from .serializers import CourseSerializer
+from .serializers import CourseSerializer, AssignmentSerializer
+from .models import Profile
+from django.shortcuts import render, redirect
+from django.contrib.auth.models import User
+from .models import Course, Enrollment, Assignment, Profile
+from django.contrib.auth import authenticate, login
 
 def home(request):
     return render(request, "home.html")
@@ -16,37 +22,53 @@ def all_users(request):
     return render(request, "users_list.html", {"users": users})
 
 #------------------- Register ------------------
+from django.contrib.auth.models import User, Group
+
 def register(request):
     if request.method == "POST":
         username = request.POST['username']
-        password = make_password(request.POST['password'])
+        password = request.POST['password']
         role = request.POST['role']
 
+        # ✅ CHECK if username exists
         if User.objects.filter(username=username).exists():
-            return render(request, "register.html", {"error": "User exists"})
+            return render(request, "register.html", {
+                "error": "Username already exists"
+            })
 
-        User.objects.create(username=username, password=password, role=role)
+        # create user
+        user = User.objects.create_user(username=username, password=password)
+
+        # create/get group
+        group, created = Group.objects.get_or_create(name=role)
+        user.groups.add(group)
+
         return redirect('/login/')
 
     return render(request, "register.html")
 
 #------------------- Login ------------------
-def login_view(request):
+def login_view(request):   # FUNCTION START
+
     if request.method == "POST":
         username = request.POST['username']
         password = request.POST['password']
 
         user = User.objects.filter(username=username).first()
 
-        if user and check_password(password, user.password):
-            request.session['user'] = user.username
-            request.session['role'] = user.role
-            return redirect('/dashboard/')
-        else:
-            return render(request, "login.html", {"error": "Invalid login"})
+        if user and user.check_password(password):
+            request.session['user'] = username
 
-    return render(request, "login.html")
+            if user.groups.exists():
+                role = user.groups.first().name
+            else:
+                role = "student"
 
+            request.session['role'] = role
+
+            return redirect('/dashboard/')   # ✅ inside function
+
+    return render(request, "login.html")     # ✅ inside function
 #------------------- Forgot Password ------------------
 def forgot(request):
     if request.method == "POST":
@@ -536,3 +558,24 @@ def reject_assignment(request, id):
         return redirect('/pending-assignments/')
 
     return redirect('/login/')
+def login_view(request):
+    if request.method == "POST":
+        username = request.POST['username']
+        password = request.POST['password']
+
+        user = authenticate(request, username=username, password=password)
+
+        if user:
+            login(request, user)
+
+            role = user.groups.first().name if user.groups.exists() else "student"
+
+            request.session['user'] = username
+            request.session['role'] = role
+
+            return redirect('/dashboard/')
+
+        return render(request, "login.html", {"error": "Invalid credentials"})
+
+    return render(request, "login.html")
+   

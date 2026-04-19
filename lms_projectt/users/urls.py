@@ -26,4 +26,7 @@ urlpatterns = [
     path('my-submissions/', views.my_submissions),
     path('pending-assignments/', views.pending_assignments),
     path('reject/<int:id>/', views.reject_assignment),
+
+  
+    
 ]
