@@ -6,6 +6,7 @@ from .models import Course, Video, Enrollment, Progress, Question
 from lsmapp.models import User
 from django.urls import reverse
 from .models import Quiz
+from .models import Course, Enrollment
 
 @login_required
 def create_course(request):
@@ -105,10 +106,41 @@ def mark_complete(request, video_id):
 
 
 # take quizz function for trainer for assign quizz for student accoording to respective courses
-@login_required
+'''@login_required
 def take_quiz(request, quiz_id):
     quiz = get_object_or_404(Quiz, id=quiz_id)
     questions = Question.objects.filter(quiz=quiz)
+
+    return render(request, 'take_quiz.html', {
+        'quiz': quiz,
+        'questions': questions
+    })
+'''
+@login_required
+def take_quiz(request, quiz_id):
+    quiz = Quiz.objects.get(id=quiz_id)
+    questions = Question.objects.filter(quiz=quiz)
+
+    print("METHOD:", request.method)   
+
+    if request.method == "POST":
+        score = 0
+        total = questions.count()
+
+        for q in questions:
+            selected = request.POST.get(f'q{q.id}')
+            print("Selected:", selected)   
+
+            if selected:
+                if int(selected) == q.correct_option:
+                    score += 1
+
+        print("Score:", score)   
+
+        return render(request, 'quiz_result.html', {
+            'score': score,
+            'total': total
+        })
 
     return render(request, 'take_quiz.html', {
         'quiz': quiz,
@@ -150,13 +182,16 @@ def question_count(request):
 # Adding multiple questions for quizz
 @login_required
 def add_question(request):
-    count = int(request.GET.get('count', 1))
     quiz_id = request.GET.get('quiz_id')   #GET QUIZ ID
+    count = int(request.GET.get('count', 1))
 
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    
     if request.method == "POST":
         for i in range(count):
             Question.objects.create(
-                quiz_id=quiz_id,    
+                #quiz_id=quiz_id,
+                quiz=quiz,    
                 text=request.POST.get(f'question_{i}'),
                 option1=request.POST.get(f'option1_{i}'),
                 option2=request.POST.get(f'option2_{i}'),
@@ -169,4 +204,48 @@ def add_question(request):
 
     return render(request, 'add_multiple_questions.html', {
         'count': range(count)
+    })
+
+
+
+# function for Show all courses to students
+@login_required
+def all_courses(request):
+    courses = Course.objects.all()
+    return render(request, 'all_courses.html', {'courses': courses})
+
+
+# function for  Enroll in course
+@login_required
+def enroll_course(request, course_id):
+    Enrollment.objects.get_or_create(
+        student=request.user,
+        course_id=course_id
+    )
+    return redirect('student_courses')
+
+from .models import Enrollment, Quiz
+
+@login_required
+def quiz_courses(request):
+    enrollments = Enrollment.objects.filter(student=request.user)
+
+    return render(request, 'quiz_courses.html', {
+        'enrollments': enrollments
+    })
+
+@login_required
+def start_quiz(request, course_id):
+    course = Course.objects.get(id=course_id)
+
+    quiz = Quiz.objects.filter(course=course).first()
+
+    if not quiz:
+        return render(request, 'no_quiz.html')
+
+    questions = Question.objects.filter(quiz=quiz)
+
+    return render(request, 'take_quiz.html', {
+        'quiz': quiz,
+        'questions': questions
     })

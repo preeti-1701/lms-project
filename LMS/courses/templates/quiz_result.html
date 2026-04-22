@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz Result</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            width: 300px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        .score {
+            font-size: 24px;
+            margin: 20px 0;
+            color: #764ba2;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            background: #764ba2;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h2>Quiz Result</h2>
+
+<p class="score">
+    You scored <b>{{ score }}</b> out of <b>{{ total }}</b>
+</p>
+
+<a href="/dashboard/" class="btn">Go to Dashboard</a>
+
+</div>
+
+</body>
+</html>

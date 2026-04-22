@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Courses</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .course-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .course-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            transition: 0.3s;
+        }
+
+        .course-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .course-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #222;
+            margin-bottom: 10px;
+        }
+
+        .course-desc {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .enroll-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .enroll-btn:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>All Courses</h2>
+
+<div class="course-container">
+    {% for course in courses %}
+        <div class="course-card">
+            <div class="course-title">{{ course.title }}</div>
+            <div class="course-desc">{{ course.description }}</div>
+
+            <form method="POST" action="{% url 'enroll_course' course.id %}">
+                {% csrf_token %}
+                <button class="enroll-btn" type="submit">Enroll</button>
+            </form>
+        </div>
+    {% endfor %}
+</div>
+
+</body>
+</html>
