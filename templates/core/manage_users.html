@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>User Management</h2>
+<div class="actions">
+  <a class="btn" href="{% url 'user_create' %}">Create User</a>
+</div>
+
+{% for user_obj in users %}
+  <div class="card">
+    <h3>{{ user_obj.username }}</h3>
+    <p>Email: {{ user_obj.email|default:'N/A' }}</p>
+    <p>Role: {{ user_obj.profile.get_role_display }} | Mobile: {{ user_obj.profile.mobile|default:'N/A' }}</p>
+    <p>Status: {% if user_obj.is_active %}Active{% else %}Disabled{% endif %}</p>
+    <div class="actions">
+      <a class="btn btn-secondary" href="{% url 'user_edit' user_obj.id %}">Edit</a>
+      <form method="post" action="{% url 'user_delete' user_obj.id %}" onsubmit="return confirm('Delete user {{ user_obj.username }}?');">
+        {% csrf_token %}
+        <button class="btn" type="submit" style="background: #a91d3a;">Delete</button>
+      </form>
+    </div>
+  </div>
+{% empty %}
+  <p>No users found.</p>
+{% endfor %}
+{% endblock %}

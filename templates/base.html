@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LMS</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 0; background: #f4f6f8; }
+      nav { background: #1f3c88; color: #fff; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+      nav a { color: #fff; text-decoration: none; margin-left: 12px; }
+      .container { max-width: 960px; margin: 30px auto; background: #fff; padding: 24px; border-radius: 10px; }
+      .card { border: 1px solid #ddd; border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+      .btn { background: #1f3c88; color: #fff; padding: 8px 12px; text-decoration: none; border-radius: 5px; display: inline-block; border: none; cursor: pointer; }
+      .btn-secondary { background: #4f5d75; }
+      input, textarea, select { padding: 8px; width: 100%; margin: 6px 0 10px; box-sizing: border-box; }
+      .messages { list-style: none; padding: 0; }
+      .messages li { background: #e8f2ff; border-left: 4px solid #1f3c88; padding: 10px; margin-bottom: 10px; }
+      .actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 18px; }
+      .muted { color: #666; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <div><strong>Simple Secure LMS</strong></div>
+      <div>
+        {% if user.is_authenticated %}
+          {{ user.username }}
+          <a href="{% url 'dashboard' %}">Dashboard</a>
+          {% if user.profile.role == 'admin' %}
+            <a href="{% url 'manage_users' %}">Users</a>
+            <a href="{% url 'user_sessions' %}">Sessions</a>
+          {% endif %}
+          {% if user.profile.role == 'admin' or user.profile.role == 'trainer' %}
+            <a href="{% url 'course_create' %}">Create Course</a>
+          {% endif %}
+          <a href="{% url 'logout' %}">Logout</a>
+        {% else %}
+          <a href="{% url 'login' %}">Login</a>
+        {% endif %}
+      </div>
+    </nav>
+    <div class="container">
+      {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </div>
+    <script>
+      document.addEventListener('contextmenu', function (e) {
+        if (e.target.closest('.protected-content')) {
+          e.preventDefault();
+        }
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'PrintScreen') {
+          e.preventDefault();
+          alert('Screenshots are discouraged on this platform.');
+        }
+      });
+    </script>
+  </body>
+</html>

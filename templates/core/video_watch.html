@@ -1,0 +1,48 @@
+{% extends 'base.html' %} {% block content %}
+<div class="protected-content">
+  <h2>{{ video.title }}</h2>
+  <p><strong>Course:</strong> {{ course.title }}</p>
+
+  <div class="card" style="position: relative; overflow: hidden">
+    <iframe
+      width="100%"
+      height="420"
+      src="{{ embed_url }}"
+      title="YouTube video player"
+      frameborder="0"
+      allow="
+        accelerometer;
+        autoplay;
+        clipboard-write;
+        encrypted-media;
+        gyroscope;
+        picture-in-picture;
+        web-share;
+      "
+      referrerpolicy="strict-origin-when-cross-origin"
+      allowfullscreen
+    ></iframe>
+    <div
+      style="
+        position: absolute;
+        top: 10px;
+        right: -40px;
+        transform: rotate(25deg);
+        background: rgba(255, 0, 0, 0.15);
+        color: rgba(120, 0, 0, 0.75);
+        padding: 4px 40px;
+        font-size: 12px;
+        pointer-events: none;
+      "
+    >
+      {{ request.user.username }} | {{ request.user.email|default:'student' }}
+    </div>
+  </div>
+
+  <div class="actions">
+    <a class="btn btn-secondary" href="{% url 'course_detail' course.id %}"
+      >Back to Course</a
+    >
+  </div>
+</div>
+{% endblock %}

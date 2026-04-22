@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>{{ title }}</h2>
+<p class="muted">Add one YouTube video while creating the course.</p>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button class="btn" type="submit">Save Course</button>
+</form>
+{% endblock %}

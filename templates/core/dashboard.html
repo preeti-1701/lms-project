@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Dashboard</h2>
+<p>Role: <strong>{{ role|title }}</strong></p>
+
+{% if role == 'admin' %}
+  <div class="actions">
+    <a class="btn" href="{% url 'manage_users' %}">Manage Users</a>
+    <a class="btn btn-secondary" href="{% url 'user_sessions' %}">View Sessions</a>
+  </div>
+{% endif %}
+
+{% if role == 'admin' or role == 'trainer' %}
+  <div class="actions">
+    <a class="btn" href="{% url 'course_create' %}">Create Course</a>
+  </div>
+{% endif %}
+
+{% for course in courses %}
+  <div class="card">
+    <h3>{{ course.title }}</h3>
+    <p>{{ course.description|default:'No description yet.' }}</p>
+    <p class="muted">Created by: {{ course.created_by.username }} | Total videos: {{ course.videos.count }}</p>
+    <div class="actions">
+      <a class="btn" href="{% url 'course_detail' course.id %}">Open Course</a>
+      {% if role == 'admin' %}
+        <a class="btn btn-secondary" href="{% url 'enrollment_add' course.id %}">Assign Student</a>
+      {% endif %}
+    </div>
+  </div>
+{% empty %}
+  <p>No courses available for your account.</p>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>User Sessions</h2>
+
+<h3>Active Users</h3>
+{% for user_obj in users %}
+  <div class="card">
+    <strong>{{ user_obj.username }}</strong> ({{ user_obj.profile.get_role_display }})
+    {% if user_obj.profile.active_session_key %}
+      <p>Active Session: Yes</p>
+      <form method="post" action="{% url 'force_logout' user_obj.id %}">
+        {% csrf_token %}
+        <button class="btn" type="submit">Force Logout</button>
+      </form>
+    {% else %}
+      <p>Active Session: No</p>
+    {% endif %}
+  </div>
+{% endfor %}
+
+<h3>Recent Session Activity</h3>
+{% for activity in activities %}
+  <div class="card">
+    <p><strong>{{ activity.user.username }}</strong> | IP: {{ activity.ip_address|default:'N/A' }}</p>
+    <p>Device: {{ activity.user_agent|truncatechars:120 }}</p>
+    <p>Login: {{ activity.logged_in_at }} | Logout: {{ activity.logged_out_at|default:'Active' }}</p>
+  </div>
+{% empty %}
+  <p>No session activity yet.</p>
+{% endfor %}
+{% endblock %}

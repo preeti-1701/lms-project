@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="protected-content" style="position: relative;">
+  <div class="actions" style="justify-content: space-between; align-items: center;">
+    <h2 style="margin: 0;">{{ course.title }}</h2>
+  </div>
+  <p>{{ course.description }}</p>
+  <div class="card">
+    <h3>Assigned Students</h3>
+    {% for student in course.students.all %}
+      <p>{{ student.username }}{% if student.email %} ({{ student.email }}){% endif %}</p>
+    {% empty %}
+      <p>No students assigned yet.</p>
+    {% endfor %}
+  </div>
+
+  {% if user.profile.role == 'admin' %}
+    <div class="actions">
+      <a class="btn btn-secondary" href="{% url 'enrollment_add' course.id %}">Assign Student</a>
+    </div>
+  {% else %}
+    <p class="muted">Video is added during course creation.</p>
+  {% endif %}
+
+  {% for video in course.videos.all %}
+    <div class="card" style="position: relative; overflow: hidden;">
+      <h3>{{ video.position }}. {{ video.title }}</h3>
+      <p><strong>Brief Detail:</strong> {{ video.brief_detail|default:'No brief detail provided.' }}</p>
+      <div class="actions">
+        <a class="btn" href="{% url 'video_watch' course.id video.id %}">Open Player</a>
+      </div>
+      <div style="position: absolute; top: 10px; right: -40px; transform: rotate(25deg); background: rgba(255,0,0,0.1); color: rgba(120,0,0,0.6); padding: 4px 40px; font-size: 12px; pointer-events: none;">
+        {{ request.user.username }} | {{ request.user.email|default:'student' }}
+      </div>
+    </div>
+  {% empty %}
+    <p>No videos in this course yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}
