@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block title %}{% if mode == 'edit' %}Edit{% else %}New{% endif %} Course | LMS{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-9">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h3 class="card-title mb-3">
+          {% if mode == 'edit' %}Edit course{% else %}Create a new course{% endif %}
+        </h3>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="save_course">
+          <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input type="text" name="title" class="form-control" required
+                   value="{% if course %}{{ course.title }}{% endif %}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea name="description" class="form-control" rows="4">{% if course %}{{ course.description }}{% endif %}</textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Course video URL (optional)</label>
+            <input type="url" name="video_url" class="form-control"
+                   placeholder="https://www.youtube.com/embed/..."
+                   value="{% if course %}{{ course.video_url }}{% endif %}">
+          </div>
+          <button type="submit" class="btn btn-primary">
+            {% if mode == 'edit' %}Save course{% else %}Create course{% endif %}
+          </button>
+          <a href="{% url 'course-list-page' %}" class="btn btn-link">Cancel</a>
+        </form>
+      </div>
+    </div>
+
+    {% if mode == 'edit' %}
+      {# Lesson manager — only available after the course exists #}
+      <div class="card shadow-sm mt-4">
+        <div class="card-body">
+          <h4>Lessons</h4>
+          {% if lessons %}
+            <ul class="list-group mb-3">
+              {% for l in lessons %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <span><strong>{{ forloop.counter }}.</strong> {{ l.title }}
+                    {% if l.video_url %}<a href="{{ l.video_url }}" target="_blank" class="small ms-2">video ↗</a>{% endif %}
+                  </span>
+                  <form method="post" onsubmit="return confirm('Remove this lesson?');" class="m-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_lesson">
+                    <input type="hidden" name="lesson_id" value="{{ l.id }}">
+                    <button class="btn btn-sm btn-outline-danger">Remove</button>
+                  </form>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted">No lessons yet — add the first one below.</p>
+          {% endif %}
+
+          <form method="post" class="border-top pt-3">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_lesson">
+            <h6>Add a lesson</h6>
+            <div class="mb-2">
+              <input type="text" name="lesson_title" class="form-control" placeholder="Lesson title" required>
+            </div>
+            <div class="mb-2">
+              <textarea name="lesson_content" class="form-control" rows="2" placeholder="Lesson notes (optional)"></textarea>
+            </div>
+            <div class="mb-2">
+              <input type="url" name="lesson_video_url" class="form-control" placeholder="Lesson video URL (optional)">
+            </div>
+            <button class="btn btn-success btn-sm">+ Add lesson</button>
+          </form>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

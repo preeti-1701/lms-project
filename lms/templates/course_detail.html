@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block title %}{{ course.title }} | LMS{% endblock %}
+{% block content %}
+<a href="{% url 'course-list-page' %}" class="text-decoration-none">&larr; Back to courses</a>
+<div class="card shadow-sm mt-3">
+  <div class="card-body">
+    <h2>{{ course.title }}</h2>
+    <p class="text-muted">By {{ course.instructor.username }} &middot; {{ course.created_at|date:"M d, Y" }}</p>
+    <p>{{ course.description|linebreaks }}</p>
+
+    {% if course.video_url %}
+      <div class="ratio ratio-16x9 my-3">
+        <iframe src="{{ course.video_url }}" title="Course video" allowfullscreen></iframe>
+      </div>
+    {% endif %}
+
+    <hr>
+    {% if user.is_authenticated %}
+      {% if is_enrolled %}
+        <span class="badge bg-success">✓ Enrolled</span>
+      {% else %}
+        <form method="post" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-primary">Enroll in this course</button>
+        </form>
+      {% endif %}
+    {% else %}
+      <a href="{% url 'login-page' %}" class="btn btn-primary">Login to enroll</a>
+    {% endif %}
+
+    {% if is_admin %}
+      <a class="btn btn-outline-secondary ms-2" href="{% url 'course-edit-page' course.pk %}">Edit course &amp; lessons</a>
+      <a class="btn btn-outline-danger" href="{% url 'course-delete-page' course.pk %}">Delete</a>
+    {% endif %}
+  </div>
+</div>
+
+{# Progress bar visible to enrolled students #}
+{% if is_enrolled and total_lessons > 0 %}
+  <div class="card shadow-sm mt-3">
+    <div class="card-body">
+      <div class="d-flex justify-content-between mb-1">
+        <strong>Your progress</strong>
+        <span id="progress-label">{{ completed_count }} / {{ total_lessons }} lessons ({{ progress_pct }}%)</span>
+      </div>
+      <div class="progress" style="height: 16px;">
+        <div id="progress-bar" class="progress-bar bg-success" role="progressbar"
+             style="width: {{ progress_pct }}%;"
+             aria-valuenow="{{ progress_pct }}" aria-valuemin="0" aria-valuemax="100">
+          {{ progress_pct }}%
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+{# Lesson list #}
+<div class="card shadow-sm mt-3">
+  <div class="card-body">
+    <h4>Lessons</h4>
+    {% if lessons %}
+      <ul class="list-group list-group-flush" id="lesson-list">
+        {% for lesson in lessons %}
+          <li class="list-group-item d-flex align-items-start">
+            {% if is_enrolled %}
+              <input type="checkbox"
+                     class="form-check-input me-3 mt-1 lesson-check"
+                     data-lesson-id="{{ lesson.id }}"
+                     {% if lesson.is_completed %}checked{% endif %}>
+            {% else %}
+              <span class="me-3 mt-1 text-muted">•</span>
+            {% endif %}
+            <div class="flex-grow-1">
+              <div class="d-flex justify-content-between">
+                <strong class="lesson-title {% if lesson.is_completed %}text-decoration-line-through text-muted{% endif %}">
+                  {{ forloop.counter }}. {{ lesson.title }}
+                </strong>
+              </div>
+              {% if lesson.content %}<p class="mb-1 small">{{ lesson.content|linebreaks }}</p>{% endif %}
+              {% if lesson.video_url %}
+                <a href="{{ lesson.video_url }}" target="_blank" class="small">Watch video ↗</a>
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-muted mb-0">No lessons in this course yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+{% if is_enrolled %}
+<script>
+  // Tiny inline script: when a lesson checkbox toggles, POST to the toggle
+  // endpoint and update the progress bar/label without a full page reload.
+  (function () {
+    const csrf = '{{ csrf_token }}';
+    document.querySelectorAll('.lesson-check').forEach(function (cb) {
+      cb.addEventListener('change', function () {
+        const id = cb.dataset.lessonId;
+        const fd = new FormData();
+        fd.append('completed', cb.checked ? 'true' : 'false');
+        fetch('/lessons/' + id + '/toggle/', {
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrf },
+          body: fd,
+          credentials: 'same-origin'
+        }).then(r => r.json()).then(data => {
+          if (data.error) { alert(data.error); cb.checked = !cb.checked; return; }
+          const bar = document.getElementById('progress-bar');
+          const label = document.getElementById('progress-label');
+          if (bar) {
+            bar.style.width = data.progress_percentage + '%';
+            bar.textContent = data.progress_percentage + '%';
+            bar.setAttribute('aria-valuenow', data.progress_percentage);
+          }
+          if (label) {
+            label.textContent = data.completed_lessons + ' / ' + data.total_lessons +
+                                ' lessons (' + data.progress_percentage + '%)';
+          }
+          // Strike through the title for completed lessons
+          const title = cb.parentElement.querySelector('.lesson-title');
+          if (title) {
+            title.classList.toggle('text-decoration-line-through', data.completed);
+            title.classList.toggle('text-muted', data.completed);
+          }
+        }).catch(() => { cb.checked = !cb.checked; });
+      });
+    });
+  })();
+</script>
+{% endif %}
+{% endblock %}

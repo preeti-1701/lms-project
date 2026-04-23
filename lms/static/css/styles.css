@@ -1,0 +1,7 @@
+/* Custom tweaks on top of Bootstrap */
+body { min-height: 100vh; }
+.card { border: none; }
+.navbar-brand { font-weight: 600; }
+.alert-error { background: #f8d7da; color: #842029; border-color: #f5c2c7; }
+.alert-success { background: #d1e7dd; color: #0f5132; border-color: #badbcc; }
+.alert-info { background: #cff4fc; color: #055160; border-color: #b6effb; }
