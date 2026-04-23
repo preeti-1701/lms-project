@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courses</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            color: #1f2937;
+            padding: 24px;
+        }
+
+        h1 {
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .course-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+
+        .course-card {
+            background: #ffffff;
+            border: 1px solid #dbe3ef;
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .course-card h2 {
+            margin: 0 0 10px;
+            font-size: 1.05rem;
+        }
+
+        .course-description {
+            margin: 0 0 12px;
+            color: #4b5563;
+            font-size: 0.95rem;
+        }
+
+        .video-list {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .video-list li {
+            margin-bottom: 8px;
+        }
+
+        .empty {
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <h1>Courses</h1>
+
+    {% if courses %}
+        <section class="course-grid">
+            {% for course in courses %}
+                <article class="course-card">
+                    <h2>{{ course.course }}</h2>
+                    <p class="course-description">{{ course.description|default:"No description available." }}</p>
+
+                    {% if course.videos %}
+                        <ul class="video-list">
+                            {% for video in course.videos %}
+                                <li>
+                                    <strong>{{ video.title }}</strong><br>
+                                    <a href="{{ video.youtube_link }}" target="_blank" rel="noopener noreferrer">{{ video.youtube_link }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="empty">No videos in this course.</p>
+                    {% endif %}
+                </article>
+            {% endfor %}
+        </section>
+    {% else %}
+        <p class="empty">No courses available.</p>
+    {% endif %}
+</body>
+</html>
