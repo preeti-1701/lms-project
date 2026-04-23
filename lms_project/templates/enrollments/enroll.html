@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Enroll Student</h2>
+
+<form method="post">
+    {% csrf_token %}
+
+    Student:<br>
+    <select name="student">
+        {% for s in students %}
+            <option value="{{ s.id }}">{{ s.username }}</option>
+        {% endfor %}
+    </select>
+    <br><br>
+
+    Course:<br>
+    <select name="course">
+        {% for c in courses %}
+            <option value="{{ c.id }}">{{ c.title }}</option>
+        {% endfor %}
+    </select>
+    <br><br>
+
+    <button type="submit">Enroll</button>
+</form>
+
+{% endblock %}

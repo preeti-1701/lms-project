@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Welcome to LMS</h2>
+
+{% if user.is_authenticated and user.role == 'admin' %}
+
+    <h3>All Courses</h3>
+
+    <ul>
+    {% for course in courses %}
+        <li>
+            {{ course.title }} 
+            (Trainer: {{ course.trainer.username }})
+        </li>
+    {% empty %}
+        <li>No courses available</li>
+    {% endfor %}
+    </ul>
+
+{% else %}
+
+    <p>This is a simple Learning Management System</p>
+
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Student Dashboard</h2>
+
+<h3>Your Courses</h3>
+
+<div class="course-grid">
+{% for e in enrollments %}
+    <div class="course-card">
+        <div class="course-title">
+            {{ e.course.title }}
+        </div>
+
+        <div class="course-trainer">
+            Trainer: {{ e.course.trainer.username }}
+        </div>
+    </div>
+{% empty %}
+    <p>No enrolled courses</p>
+{% endfor %}
+</div>
+
+{% endblock %}

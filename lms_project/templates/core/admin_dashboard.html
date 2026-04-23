@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Admin Dashboard</h2>
+
+<h3>All Courses</h3>
+
+<div class="course-grid">
+{% for course in courses %}
+    
+    <a href="/course/{{ course.id }}/" style="text-decoration:none; color:inherit;">
+        <div class="course-card">
+            
+            <div class="course-title">
+                {{ course.title }}
+            </div>
+
+            <div class="course-trainer">
+                Trainer: {{ course.trainer.username }}
+            </div>
+
+        </div>
+    </a>
+
+{% empty %}
+    <p>No courses available</p>
+{% endfor %}
+</div>
+
+{% endblock %}
