@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+	:root {
+		--ink: #1f2a37;
+		--muted: #5a687b;
+		--panel: #ffffff;
+		--line: #d8dce5;
+		--chip-bg: #f4f7fb;
+		--chip-line: #dbe3ef;
+		--brand: #0f4b84;
+		--brand-2: #1b7d73;
+	}
+
+	.dashboard-hero {
+		margin: 0 0 16px;
+		padding: 18px;
+		border-radius: 16px;
+		background: linear-gradient(135deg, #edf6ff 0%, #e8faf6 100%);
+		border: 1px solid #d4e5f8;
+	}
+
+	.dashboard-hero h2 {
+		margin: 0 0 6px;
+		color: var(--ink);
+	}
+
+	.dashboard-hero p {
+		margin: 0;
+		color: var(--muted);
+	}
+
+	.student-wrap {
+		display: grid;
+		gap: 18px;
+	}
+
+	.panel {
+		border: 1px solid var(--line);
+		border-radius: 14px;
+		background: var(--panel);
+		padding: 16px;
+		box-shadow: 0 10px 24px rgba(15, 75, 132, 0.08);
+	}
+
+	.panel h3 {
+		margin: 0 0 10px;
+		color: var(--ink);
+	}
+
+	.profile-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+		gap: 10px;
+	}
+
+	.profile-item {
+		background: var(--chip-bg);
+		border: 1px solid var(--chip-line);
+		border-radius: 10px;
+		padding: 10px;
+	}
+
+	.course-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+		gap: 12px;
+	}
+
+	.course-card {
+		border: 1px solid var(--line);
+		border-radius: 10px;
+		padding: 12px;
+		background: #fcfdff;
+		transition: transform 0.15s ease, box-shadow 0.15s ease;
+	}
+
+	.course-card:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 10px 20px rgba(15, 75, 132, 0.12);
+	}
+
+	.course-title {
+		margin: 0 0 8px;
+	}
+
+	.status-badge {
+		display: inline-block;
+		padding: 4px 9px;
+		border-radius: 999px;
+		font-size: 0.78rem;
+		font-weight: 700;
+		letter-spacing: 0.02em;
+		text-transform: uppercase;
+		margin: 4px 0 8px;
+	}
+
+	.status-active {
+		background: #e8f9f2;
+		color: #0d7a54;
+		border: 1px solid #bfead8;
+	}
+
+	.status-upcoming {
+		background: #fff4e8;
+		color: #b25c10;
+		border: 1px solid #f4d4b3;
+	}
+
+	.enroll-chip {
+		display: inline-block;
+		margin-left: 6px;
+		padding: 3px 8px;
+		font-size: 0.75rem;
+		border-radius: 999px;
+		border: 1px solid #c6dbf7;
+		background: #edf5ff;
+		color: #0f4b84;
+		font-weight: 600;
+	}
+
+	.video-list {
+		margin: 8px 0 0;
+		padding-left: 18px;
+	}
+
+	.video-list li {
+		margin-bottom: 6px;
+	}
+
+	.muted {
+		color: var(--muted);
+	}
+
+	.btn-link {
+		display: inline-block;
+		margin-top: 8px;
+		padding: 8px 10px;
+		border-radius: 8px;
+		text-decoration: none;
+		color: #fff;
+		background: linear-gradient(90deg, var(--brand), var(--brand-2));
+		font-weight: 600;
+	}
+
+	.btn-link:hover {
+		opacity: 0.92;
+	}
+
+	.video-course {
+		padding: 10px 12px;
+		border: 1px solid var(--line);
+		border-radius: 10px;
+		margin-bottom: 12px;
+		background: #fbfdff;
+	}
+
+	.video-list a {
+		color: var(--brand);
+		text-decoration: none;
+	}
+
+	.video-list a:hover {
+		text-decoration: underline;
+	}
+</style>
+
+<section class="dashboard-hero">
+	<h2>Student Dashboard</h2>
+	<p>Track your enrolled courses, open lessons, and continue your learning journey.</p>
+</section>
+
+<div class="student-wrap">
+	<section class="panel">
+		<h3>My Profile</h3>
+		<div class="profile-grid">
+			<div class="profile-item"><strong>Username:</strong> {{ request.user.username }}</div>
+			<div class="profile-item"><strong>Email:</strong> {{ request.user.email|default:'-' }}</div>
+			<div class="profile-item"><strong>Joined:</strong> {{ request.user.date_joined|date:'M d, Y' }}</div>
+		</div>
+	</section>
+
+	<section class="panel">
+		<h3>Enrolled Courses</h3>
+		{% if enrolled_courses %}
+			<div class="course-grid">
+				{% for course in enrolled_courses %}
+					<article class="course-card">
+						<h4 class="course-title">{{ course.title }}</h4>
+						<span class="status-badge status-{{ course.status }}">{{ course.get_status_display }}</span>
+						<p class="muted">{{ course.description }}</p>
+						<p><strong>Trainer:</strong> {{ course.created_by.username }}</p>
+						<a class="btn-link" href="/courses/{{ course.id }}/">Open Course</a>
+					</article>
+				{% endfor %}
+			</div>
+		{% else %}
+			<p class="muted">You are not enrolled in any course yet.</p>
+		{% endif %}
+	</section>
+
+	<section class="panel">
+		<h3>All Courses</h3>
+		{% if all_courses %}
+			<div class="course-grid">
+				{% for course in all_courses %}
+					<article class="course-card">
+						<h4 class="course-title">
+							{{ course.title }}
+							{% if course.id in enrolled_ids %}
+								<span class="enroll-chip">Enrolled</span>
+							{% endif %}
+						</h4>
+						<span class="status-badge status-{{ course.status }}">{{ course.get_status_display }}</span>
+						<p class="muted">{{ course.description }}</p>
+						<p><strong>Trainer:</strong> {{ course.created_by.username }}</p>
+						<a class="btn-link" href="/courses/{{ course.id }}/">Open Course</a>
+					</article>
+				{% endfor %}
+			</div>
+		{% else %}
+			<p class="muted">No courses are available right now.</p>
+		{% endif %}
+	</section>
+
+	<section class="panel">
+		<h3>Watch Videos</h3>
+		{% if enrolled_courses %}
+			{% for course in enrolled_courses %}
+				<div class="video-course">
+					<strong>{{ course.title }}</strong>
+					{% if course.video_set.all %}
+						<ul class="video-list">
+							{% for video in course.video_set.all %}
+								<li>
+									<a href="{{ video.youtube_link }}" target="_blank" rel="noopener noreferrer">{{ video.title }}</a>
+								</li>
+							{% endfor %}
+						</ul>
+					{% else %}
+						<p class="muted">No videos available yet for this course.</p>
+					{% endif %}
+				</div>
+			{% endfor %}
+		{% else %}
+			<p class="muted">Enroll in a course to start watching videos.</p>
+		{% endif %}
+	</section>
+</div>
+{% endblock %}

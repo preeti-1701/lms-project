@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | LLSM</title>
+    <style>
+        :root {
+            --bg: #f5f0e8;
+            --card: #fffdf8;
+            --ink: #1e2a39;
+            --accent: #d9603b;
+            --accent-2: #1d8f8a;
+            --line: #dfd2bd;
+            --error: #bf2f4a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 20% 20%, #ffd9b3 0%, transparent 40%),
+                radial-gradient(circle at 80% 0%, #a7e1de 0%, transparent 45%),
+                linear-gradient(140deg, #f6ecdc 0%, #efe6d6 100%);
+            padding: 24px;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 430px;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            box-shadow: 0 25px 55px rgba(30, 42, 57, 0.18);
+            overflow: hidden;
+            animation: rise 0.5s ease-out;
+        }
+
+        @keyframes rise {
+            from {
+                opacity: 0;
+                transform: translateY(18px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .brand {
+            padding: 28px 28px 16px;
+        }
+
+        .brand h1 {
+            font-size: 1.9rem;
+            letter-spacing: 0.02em;
+            margin-bottom: 8px;
+        }
+
+        .brand p {
+            color: #4d5d70;
+        }
+
+        .content {
+            padding: 0 28px 28px;
+            display: grid;
+            gap: 16px;
+        }
+
+        .flash {
+            list-style: none;
+            display: grid;
+            gap: 8px;
+        }
+
+        .flash li {
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 0.95rem;
+            border: 1px solid #efb8c4;
+            background: #fff2f5;
+            color: var(--error);
+        }
+
+        form {
+            display: grid;
+            gap: 14px;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.92rem;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        input {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 11px 12px;
+            font-size: 0.98rem;
+            background: #fffcf7;
+        }
+
+        input:focus {
+            outline: 2px solid color-mix(in srgb, var(--accent-2) 60%, white);
+            border-color: var(--accent-2);
+        }
+
+        button {
+            border: none;
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            color: #fff;
+            background: linear-gradient(90deg, var(--accent), #e78f3c);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            box-shadow: 0 12px 20px rgba(217, 96, 59, 0.26);
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+        }
+
+        .switch {
+            font-size: 0.95rem;
+            color: #4d5d70;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <main class="auth-card">
+        <section class="brand">
+            <h1>Welcome Back</h1>
+            <p>Log in to continue learning and managing your courses.</p>
+        </section>
+
+        <section class="content">
+            {% if messages %}
+                <ul class="flash">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div>
+                    <label for="username">Username</label>
+                    <input id="username" type="text" name="username" placeholder="Enter your username" required>
+                </div>
+
+                <div>
+                    <label for="password">Password</label>
+                    <input id="password" type="password" name="password" placeholder="Enter your password" required>
+                </div>
+
+                <button type="submit">Login</button>
+            </form>
+
+            <p class="switch">Need an account? Contact your administrator.</p>
+        </section>
+    </main>
+</body>
+</html>

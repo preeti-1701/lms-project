@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>{{ course.title }}</h2>
+
+{% for video in course.video_set.all %}
+    <iframe width="560" height="315"
+        src="{{ video.youtube_link|cut:'watch?v='|add:'embed/' }}"
+        allowfullscreen>
+    </iframe>
+{% endfor %}
+
+{% endblock %}

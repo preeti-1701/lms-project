@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+	.trainer-page {
+		max-width: 1120px;
+		margin: 18px auto 28px;
+		padding: 0 12px;
+		font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+		color: #183046;
+	}
+
+	.hero {
+		padding: 22px;
+		border-radius: 18px;
+		border: 1px solid #d8e4f3;
+		background: linear-gradient(135deg, #eef5ff 0%, #effaf5 100%);
+		box-shadow: 0 12px 28px rgba(11, 79, 138, 0.1);
+		margin-bottom: 18px;
+	}
+
+	.hero h2 {
+		margin: 0 0 8px;
+		font-size: 1.9rem;
+	}
+
+	.hero p {
+		margin: 0;
+		color: #5b6b7f;
+	}
+
+	.grid {
+		display: grid;
+		gap: 18px;
+	}
+
+	.panel {
+		background: #fff;
+		border: 1px solid #d9e1ec;
+		border-radius: 16px;
+		padding: 18px;
+		box-shadow: 0 12px 26px rgba(15, 75, 132, 0.08);
+	}
+
+	.panel h3 {
+		margin: 0 0 12px;
+		color: #162033;
+	}
+
+	.form-grid {
+		display: grid;
+		gap: 12px;
+	}
+
+	.form-grid input,
+	.form-grid textarea,
+	.form-grid select,
+	.course-card input,
+	.course-card textarea {
+		width: 100%;
+		padding: 11px 12px;
+		border-radius: 10px;
+		border: 1px solid #cfd8e6;
+		font: inherit;
+		background: #fbfdff;
+	}
+
+	.form-grid textarea,
+	.course-card textarea {
+		min-height: 96px;
+		resize: vertical;
+	}
+
+	.btn {
+		border: 0;
+		border-radius: 10px;
+		padding: 11px 14px;
+		color: #fff;
+		font-weight: 700;
+		cursor: pointer;
+		background: linear-gradient(90deg, #0b4f8a, #0f8a74);
+	}
+
+	.btn:hover {
+		opacity: 0.95;
+	}
+
+	.messages {
+		list-style: none;
+		padding: 0;
+		margin: 0 0 14px;
+		display: grid;
+		gap: 8px;
+	}
+
+	.messages li {
+		padding: 10px 12px;
+		border-radius: 10px;
+		background: #eef6ff;
+		border: 1px solid #cfe0f6;
+	}
+
+	.course-list {
+		display: grid;
+		gap: 14px;
+	}
+
+	.course-card {
+		border: 1px solid #d9e1ec;
+		border-radius: 14px;
+		padding: 16px;
+		background: #fcfdff;
+	}
+
+	.course-card h4 {
+		margin: 0 0 8px;
+	}
+
+	.video-list {
+		margin: 10px 0 0;
+		padding-left: 18px;
+	}
+
+	.video-list li {
+		margin-bottom: 6px;
+	}
+
+	.muted {
+		color: #5b6b7f;
+	}
+
+	.two-col {
+		display: grid;
+		gap: 18px;
+		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+	}
+
+	@media (max-width: 640px) {
+		.trainer-page {
+			padding: 0 6px;
+		}
+	}
+</style>
+
+<div class="trainer-page">
+	<section class="hero">
+		<h2>Trainer Dashboard</h2>
+		<p>Create courses, add training videos, and manage your teaching content.</p>
+	</section>
+
+	{% if messages %}
+		<ul class="messages">
+			{% for message in messages %}
+				<li>{{ message }}</li>
+			{% endfor %}
+		</ul>
+	{% endif %}
+
+	<div class="grid">
+		<section class="panel">
+			<h3>Create Course</h3>
+			<form method="post" class="form-grid">
+				{% csrf_token %}
+				<input type="hidden" name="action" value="create_course">
+				<input type="text" name="title" placeholder="Course title" required>
+				<textarea name="description" placeholder="Course description" required></textarea>
+				<select name="status" required>
+					<option value="upcoming" selected>Upcoming</option>
+					<option value="active">Active</option>
+				</select>
+				<button type="submit" class="btn">Create Course</button>
+			</form>
+		</section>
+
+		<section class="panel">
+			<h3>Add Videos</h3>
+			{% if trainer_courses %}
+				<div class="course-list">
+					{% for course in trainer_courses %}
+						<article class="course-card">
+							<h4>{{ course.title }}</h4>
+							<p class="muted">{{ course.description }}</p>
+
+							<form method="post" class="form-grid" style="margin-top: 12px;">
+								{% csrf_token %}
+								<input type="hidden" name="action" value="add_video">
+								<input type="hidden" name="course_id" value="{{ course.id }}">
+								<input type="text" name="title" placeholder="Video title" required>
+								<input type="url" name="youtube_link" placeholder="YouTube link" required>
+								<button type="submit" class="btn">Add Video</button>
+							</form>
+
+							{% if course.video_set.all %}
+								<ul class="video-list">
+									{% for video in course.video_set.all %}
+										<li>{{ video.title }}</li>
+									{% endfor %}
+								</ul>
+							{% endif %}
+						</article>
+					{% endfor %}
+				</div>
+			{% else %}
+				<p class="muted">Create a course first, then add videos to it.</p>
+			{% endif %}
+		</section>
+	</div>
+</div>
+{% endblock %}
