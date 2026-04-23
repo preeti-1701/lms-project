@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Create Course{% endblock %}
+{% block breadcrumb %}Courses / New{% endblock %}
+{% block page_heading %}New Course{% endblock %}
+{% block content %}
+<div style="max-width:640px;">
+  <div class="card">
+    <div class="card-header"><span class="card-title">Course Details</span></div>
+    <div class="card-body">
+      <form id="course-form" class="space-y-4" novalidate>
+        <div class="form-group">
+          <label class="form-label">Course Title <span style="color:var(--destructive)">*</span></label>
+          <input class="form-input" id="c-title" placeholder="e.g. Introduction to Python…" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description <span style="color:var(--destructive)">*</span></label>
+          <textarea class="form-input" id="c-description" rows="4" placeholder="What will students learn?" style="resize:vertical;" required></textarea>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <input class="form-input" id="c-category" placeholder="e.g. Programming, Design…" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-input form-select" id="c-status">
+              <option value="DRAFT">Draft</option>
+              <option value="PUBLISHED">Published</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Thumbnail URL</label>
+          <input class="form-input" id="c-thumbnail" placeholder="https://…" type="url" />
+          <div class="form-hint">Optional. Leave empty for default.</div>
+        </div>
+        <div id="form-error" class="form-error hidden"></div>
+        <div class="flex items-center gap-2" style="justify-content:flex-end;">
+          <a href="/courses/" class="btn btn-secondary">Cancel</a>
+          <button type="submit" class="btn btn-primary" id="submit-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            Create Course
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+document.getElementById('course-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const errEl = document.getElementById('form-error');
+  const btn = document.getElementById('submit-btn');
+  errEl.classList.add('hidden');
+  btn.disabled = true;
+  btn.textContent = 'Creating…';
+  const token = localStorage.getItem('lms_access_token');
+  const body = {
+    title: document.getElementById('c-title').value.trim(),
+    description: document.getElementById('c-description').value.trim(),
+    status: document.getElementById('c-status').value,
+    category: document.getElementById('c-category').value.trim() || null,
+    thumbnail_url: document.getElementById('c-thumbnail').value.trim() || null,
+  };
+  if (!body.title || !body.description) {
+    errEl.textContent = 'Title and description are required.';
+    errEl.classList.remove('hidden');
+    btn.disabled = false; btn.textContent = 'Create Course'; return;
+  }
+  try {
+    const data = await fetch('/api/courses/', { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => { if(!r.ok) { const e = await r.json(); throw new Error(JSON.stringify(e)); } return r.json(); });
+    showToast('Course created!', 'success');
+    setTimeout(() => window.location.href = `/courses/${data.id}/`, 800);
+  } catch(err) {
+    errEl.textContent = err.message || 'Failed to create course';
+    errEl.classList.remove('hidden');
+    btn.disabled = false; btn.textContent = 'Create Course';
+  }
+});
+{% endblock %}

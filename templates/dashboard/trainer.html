@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Trainer Dashboard{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+{% block page_heading %}Trainer Dashboard{% endblock %}
+{% block page_actions %}
+<a href="/courses/new/" class="btn btn-primary btn-sm">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  New Course
+</a>
+{% endblock %}
+{% block content %}
+<div class="metric-grid">
+  <div class="metric-card">
+    <div class="metric-card-header"><span class="metric-card-label">My Courses</span>
+      <div class="metric-card-icon" style="background:oklch(0.55 0.22 264/0.15);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+    </div>
+    <div class="metric-card-value" id="t-courses">—</div>
+    <div class="metric-card-desc">Courses created by you</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-card-header"><span class="metric-card-label">Enrolled Students</span>
+      <div class="metric-card-icon" style="background:oklch(0.62 0.2 142/0.15);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+    </div>
+    <div class="metric-card-value" id="t-students">—</div>
+    <div class="metric-card-desc">Students in your courses</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-card-header"><span class="metric-card-label">Published</span>
+      <div class="metric-card-icon" style="background:oklch(0.72 0.18 55/0.15);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+    </div>
+    <div class="metric-card-value" id="t-published">—</div>
+    <div class="metric-card-desc">Live courses</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">My Courses</span>
+    <a href="/courses/" class="btn btn-ghost btn-sm">View all →</a>
+  </div>
+  <div id="trainer-courses">
+    <div style="padding:32px;text-align:center;color:var(--muted-foreground);">Loading courses…</div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+async function loadTrainerDash() {
+  try {
+    const token = localStorage.getItem('lms_access_token');
+    const h = { 'Authorization': `Bearer ${token}` };
+    const [dash, courses] = await Promise.all([
+      fetch('/api/dashboard/trainer/', { headers: h }).then(r => r.json()),
+      fetch('/api/courses/', { headers: h }).then(r => r.json()),
+    ]);
+    document.getElementById('t-courses').textContent = dash.my_courses_count ?? '—';
+    document.getElementById('t-students').textContent = dash.enrolled_students ?? '—';
+    const list = courses.results || [];
+    document.getElementById('t-published').textContent = list.filter(c => c.status === 'PUBLISHED').length;
+    const statusMap = { PUBLISHED: 'badge-green', DRAFT: 'badge-yellow', ARCHIVED: 'badge-neutral' };
+    document.getElementById('trainer-courses').innerHTML = list.length ? `
+      <div class="entity-list">
+        ${list.map(c => `
+          <a class="entity-row" href="/courses/${c.id}/">
+            <div class="entity-row-leading">
+              <div style="width:36px;height:36px;background:var(--secondary);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:1.1rem;">📚</div>
+            </div>
+            <div class="entity-row-body">
+              <div class="entity-row-title">${c.title}</div>
+              <div class="entity-row-subtitle">${c.category || 'No category'} · ${c.videos?.length ?? 0} videos</div>
+            </div>
+            <div class="entity-row-trailing">
+              <span class="badge ${statusMap[c.status] || 'badge-neutral'}">${c.status}</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted-foreground)"><path d="m9 18 6-6-6-6"/></svg>
+            </div>
+          </a>`).join('')}
+      </div>` : `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><div class="empty-state-title">No courses yet</div><div class="empty-state-desc">Create your first course to get started</div></div>`;
+  } catch(err) { showToast('Failed to load trainer dashboard', 'error'); }
+}
+document.addEventListener('DOMContentLoaded', loadTrainerDash);
+{% endblock %}

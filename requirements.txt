@@ -1,0 +1,7 @@
+django>=4.2,<5.0
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+argon2-cffi
+python-decouple
+django-ratelimit

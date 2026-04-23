@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}User Management{% endblock %}
+{% block breadcrumb %}Administration / Users{% endblock %}
+{% block page_heading %}User Management{% endblock %}
+{% block page_actions %}
+<div class="search-wrap" style="width:200px;">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  <input class="form-input search-input" id="user-search" placeholder="Search users…" type="text" />
+</div>
+<select class="form-input form-select" id="role-filter" style="width:130px;" onchange="loadUsers()">
+  <option value="">All Roles</option>
+  <option value="ADMIN">Admin</option>
+  <option value="TRAINER">Trainer</option>
+  <option value="STUDENT">Student</option>
+</select>
+<button class="btn btn-primary btn-sm" onclick="openModal('new-user-modal')">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  New User
+</button>
+{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="table-container" style="border:none;border-radius:0;">
+    <table>
+      <thead>
+        <tr><th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Last Active</th><th style="text-align:right;">Actions</th></tr>
+      </thead>
+      <tbody id="user-table-body">
+        <tr><td colspan="6" style="padding:40px;text-align:center;color:var(--muted-foreground);">Loading users…</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div id="user-pagination" style="padding:12px 16px;border-top:1px solid var(--border);"></div>
+</div>
+
+<!-- New User Modal -->
+<div class="modal-overlay hidden" id="new-user-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Create User</h2>
+      <button class="btn btn-ghost btn-icon btn-sm" data-close-modal><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body space-y-4">
+      <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="nu-name" placeholder="Jane Doe" /></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="nu-email" type="email" placeholder="jane@example.com" /></div>
+      <div class="form-group"><label class="form-label">Mobile</label><input class="form-input" id="nu-mobile" placeholder="+91 9876543210" /></div>
+      <div class="form-group"><label class="form-label">Role</label>
+        <select class="form-input form-select" id="nu-role">
+          <option value="STUDENT">Student</option>
+          <option value="TRAINER">Trainer</option>
+          <option value="ADMIN">Admin</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="nu-password" type="password" placeholder="Min 8 characters" /></div>
+      <div id="nu-error" class="form-error hidden"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-close-modal>Cancel</button>
+      <button class="btn btn-primary" onclick="createUser()">Create User</button>
+    </div>
+  </div>
+</div>
+
+<!-- Force Logout Confirm -->
+<div class="modal-overlay hidden" id="force-logout-modal">
+  <div class="modal">
+    <div class="modal-header"><h2 class="modal-title">Force Logout User</h2></div>
+    <div class="modal-body">
+      <p class="text-sm" style="margin-bottom:8px;">This will immediately invalidate all active sessions for <strong id="fl-user-name"></strong>. They will need to log in again.</p>
+      <input type="hidden" id="fl-user-id" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-close-modal>Cancel</button>
+      <button class="btn btn-destructive" onclick="confirmForceLogout()">Force Logout</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+let searchTimeout;
+const roleColor = { ADMIN: 'badge-indigo', TRAINER: 'badge-violet', STUDENT: 'badge-blue' };
+
+async function loadUsers(page = 1) {
+  const token = localStorage.getItem('lms_access_token');
+  const h = { 'Authorization': `Bearer ${token}` };
+  const search = document.getElementById('user-search')?.value || '';
+  const role = document.getElementById('role-filter')?.value || '';
+  let url = `/api/users/?page=${page}`;
+  if (search) url += `&search=${encodeURIComponent(search)}`;
+  if (role) url += `&role=${role}`;
+  document.getElementById('user-table-body').innerHTML = `<tr><td colspan="6">${skeleton(6, 6)}</td></tr>`;
+  try {
+    const data = await fetch(url, { headers: h }).then(r => r.json());
+    const users = data.results || data || [];
+    document.getElementById('user-table-body').innerHTML = users.length ? users.map(u => `
+      <tr>
+        <td>
+          <div class="flex items-center gap-2">
+            <div class="user-avatar" style="width:28px;height:28px;font-size:0.7rem;flex-shrink:0;">${(u.full_name || u.email || 'U')[0].toUpperCase()}</div>
+            <span style="font-weight:500;">${u.full_name || '—'}</span>
+          </div>
+        </td>
+        <td class="td-mono">${u.email}</td>
+        <td><span class="badge ${roleColor[u.role] || 'badge-neutral'}">${u.role}</span></td>
+        <td>${u.is_active ? '<span class="badge badge-green">Active</span>' : '<span class="badge badge-neutral">Inactive</span>'}</td>
+        <td class="text-xs text-muted">${relativeTime(u.date_joined)}</td>
+        <td style="text-align:right;">
+          <div class="dropdown">
+            <button class="btn btn-ghost btn-sm btn-icon" data-dropdown-toggle="user-dd-${u.id}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+            </button>
+            <div class="dropdown-menu" id="user-dd-${u.id}">
+              <button class="dropdown-item" onclick="toggleActive('${u.id}', ${u.is_active})">${u.is_active ? 'Disable Account' : 'Enable Account'}</button>
+              <button class="dropdown-item" onclick="showForceLogout('${u.id}', '${u.full_name || u.email}')">Force Logout</button>
+            </div>
+          </div>
+        </td>
+      </tr>`).join('') : `<tr><td colspan="6" style="padding:40px;text-align:center;color:var(--muted-foreground);">No users found</td></tr>`;
+  } catch(e) { document.getElementById('user-table-body').innerHTML = `<tr><td colspan="6" style="padding:40px;text-align:center;color:var(--destructive);">Failed to load users</td></tr>`; }
+}
+
+async function createUser() {
+  const token = localStorage.getItem('lms_access_token');
+  const body = { full_name: document.getElementById('nu-name').value.trim(), email: document.getElementById('nu-email').value.trim(), mobile: document.getElementById('nu-mobile').value.trim() || null, role: document.getElementById('nu-role').value, password: document.getElementById('nu-password').value };
+  const errEl = document.getElementById('nu-error');
+  errEl.classList.add('hidden');
+  try {
+    await fetch('/api/users/', { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => { if(!r.ok) { const e = await r.json(); throw new Error(JSON.stringify(e)); } return r.json(); });
+    closeModal('new-user-modal');
+    showToast('User created!', 'success');
+    loadUsers();
+  } catch(e) { errEl.textContent = e.message; errEl.classList.remove('hidden'); }
+}
+
+async function toggleActive(id, current) {
+  const token = localStorage.getItem('lms_access_token');
+  try {
+    await fetch(`/api/users/${id}/`, { method: 'PATCH', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ is_active: !current }) });
+    showToast(!current ? 'Account enabled' : 'Account disabled', 'success');
+    loadUsers();
+  } catch(e) { showToast('Failed to update user', 'error'); }
+}
+
+function showForceLogout(id, name) {
+  document.getElementById('fl-user-id').value = id;
+  document.getElementById('fl-user-name').textContent = name;
+  openModal('force-logout-modal');
+}
+
+async function confirmForceLogout() {
+  const id = document.getElementById('fl-user-id').value;
+  const token = localStorage.getItem('lms_access_token');
+  try {
+    await fetch(`/api/users/${id}/force_logout/`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+    closeModal('force-logout-modal');
+    showToast('User logged out of all sessions', 'success');
+  } catch(e) { showToast('Failed to force logout', 'error'); }
+}
+
+document.getElementById('user-search')?.addEventListener('input', () => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => loadUsers(1), 400);
+});
+
+document.addEventListener('DOMContentLoaded', () => loadUsers());
+{% endblock %}

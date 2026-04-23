@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+{% block page_heading %}Admin Dashboard{% endblock %}
+{% block page_actions %}
+<button class="btn btn-secondary btn-sm" onclick="loadDashboard()">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+  Refresh
+</button>
+{% endblock %}
+{% block content %}
+
+<!-- Metric cards -->
+<div class="metric-grid" id="metric-grid">
+  <div class="metric-card">
+    <div class="metric-card-header">
+      <span class="metric-card-label">Total Users</span>
+      <div class="metric-card-icon" style="background:oklch(0.55 0.22 264/0.15);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+    </div>
+    <div class="metric-card-value" id="metric-users">—</div>
+    <div class="metric-card-desc" id="metric-users-desc">Loading…</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-card-header">
+      <span class="metric-card-label">Active Sessions</span>
+      <div class="metric-card-icon" style="background:oklch(0.72 0.15 200/0.15);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>
+      </div>
+    </div>
+    <div class="metric-card-value" id="metric-sessions">—</div>
+    <div class="metric-card-desc">Live sessions now</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-card-header">
+      <span class="metric-card-label">Total Courses</span>
+      <div class="metric-card-icon" style="background:oklch(0.62 0.2 142/0.15);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      </div>
+    </div>
+    <div class="metric-card-value" id="metric-courses">—</div>
+    <div class="metric-card-desc" id="metric-courses-desc">Loading…</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-card-header">
+      <span class="metric-card-label">Enrollments</span>
+      <div class="metric-card-icon" style="background:oklch(0.72 0.18 55/0.15);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+      </div>
+    </div>
+    <div class="metric-card-value" id="metric-enrollments">—</div>
+    <div class="metric-card-desc">Total active enrollments</div>
+  </div>
+</div>
+
+<!-- Two-column layout -->
+<div class="grid-2" style="gap:20px;margin-bottom:24px;">
+  <!-- Recent Users -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Recent Users</span>
+      <a href="/admin-panel/users/" class="btn btn-ghost btn-sm">View all →</a>
+    </div>
+    <div id="recent-users-body">
+      <div style="padding:20px;text-align:center;color:var(--muted-foreground);font-size:0.8rem;">Loading…</div>
+    </div>
+  </div>
+
+  <!-- Active Sessions -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Active Sessions</span>
+      <a href="/security/logs/" class="btn btn-ghost btn-sm">Logs →</a>
+    </div>
+    <div id="sessions-body">
+      <div style="padding:20px;text-align:center;color:var(--muted-foreground);font-size:0.8rem;">Loading…</div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Security Logs -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Recent Security Events</span>
+    <a href="/security/logs/" class="btn btn-ghost btn-sm">View all →</a>
+  </div>
+  <div id="security-log-body">
+    <div style="padding:20px;text-align:center;color:var(--muted-foreground);font-size:0.8rem;">Loading…</div>
+  </div>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+async function loadDashboard() {
+  try {
+    const token = localStorage.getItem('lms_access_token');
+    const h = { 'Authorization': `Bearer ${token}` };
+
+    // Metrics
+    const [dash, enrollData, usersData] = await Promise.all([
+      fetch('/api/dashboard/admin/', { headers: h }).then(r => r.json()),
+      fetch('/api/enrollments/', { headers: h }).then(r => r.json()),
+      fetch('/api/users/', { headers: h }).then(r => r.json()),
+    ]);
+
+    document.getElementById('metric-users').textContent = dash.total_users ?? usersData.count ?? '—';
+    document.getElementById('metric-sessions').textContent = dash.active_sessions ?? '—';
+    document.getElementById('metric-courses').textContent = dash.total_courses ?? '—';
+    document.getElementById('metric-enrollments').textContent = enrollData.count ?? '—';
+
+    // Recent users
+    const users = (usersData.results || []).slice(0, 6);
+    const userRoleColor = { ADMIN: 'badge-indigo', TRAINER: 'badge-violet', STUDENT: 'badge-blue' };
+    document.getElementById('recent-users-body').innerHTML = users.length ? `
+      <div class="entity-list">
+        ${users.map(u => `
+          <a class="entity-row" href="/admin-panel/users/">
+            <div class="user-avatar" style="width:28px;height:28px;font-size:0.7rem;flex-shrink:0;">${(u.full_name || u.email || 'U')[0].toUpperCase()}</div>
+            <div class="entity-row-body">
+              <div class="entity-row-title">${u.full_name || '—'}</div>
+              <div class="entity-row-subtitle">${u.email}</div>
+            </div>
+            <div class="entity-row-trailing">
+              <span class="badge ${userRoleColor[u.role] || 'badge-neutral'}">${u.role}</span>
+              ${u.is_active ? '<span class="status-dot dot-green"></span>' : '<span class="status-dot dot-neutral"></span>'}
+            </div>
+          </a>`).join('')}
+      </div>` : '<div style="padding:32px;text-align:center;color:var(--muted-foreground)">No users yet</div>';
+
+    // Active sessions
+    const sessionsRes = await fetch('/api/security/sessions/', { headers: h }).catch(() => null);
+    if (sessionsRes && sessionsRes.ok) {
+      const sessData = await sessionsRes.json();
+      const sessions = (sessData.results || sessData || []).slice(0, 5);
+      document.getElementById('sessions-body').innerHTML = sessions.length ? `
+        <div class="entity-list">
+          ${sessions.map(s => `
+            <div class="entity-row">
+              <div class="status-dot dot-cyan" style="flex-shrink:0;"></div>
+              <div class="entity-row-body">
+                <div class="entity-row-title">${s.user_email || s.user || '—'}</div>
+                <div class="entity-row-subtitle font-mono" style="font-size:0.7rem;">${s.ip_address || '—'}</div>
+              </div>
+              <div class="entity-row-trailing"><span class="text-xs text-muted">${relativeTime(s.created_at)}</span></div>
+            </div>`).join('')}
+        </div>` : '<div style="padding:32px;text-align:center;color:var(--muted-foreground)">No active sessions</div>';
+    } else {
+      document.getElementById('sessions-body').innerHTML = '<div style="padding:32px;text-align:center;color:var(--muted-foreground)">—</div>';
+    }
+
+    // Security logs
+    const logsRes = await fetch('/api/security/logs/?page_size=8', { headers: h }).catch(() => null);
+    if (logsRes && logsRes.ok) {
+      const logsData = await logsRes.json();
+      const logs = logsData.results || [];
+      const logColor = { LOGIN:'badge-green', LOGOUT:'badge-neutral', LOGIN_FAILED:'badge-red', VIDEO_VIEW:'badge-cyan', FORCE_LOGOUT:'badge-orange' };
+      document.getElementById('security-log-body').innerHTML = logs.length ? `
+        <div class="table-container" style="border:none;border-radius:0;">
+          <table>
+            <thead><tr><th>Event</th><th>User</th><th>IP Address</th><th>Time</th></tr></thead>
+            <tbody>${logs.map(l => `
+              <tr>
+                <td><span class="badge ${logColor[l.event_type] || 'badge-neutral'}">${l.event_type}</span></td>
+                <td>${l.user || '<span class="text-muted">anonymous</span>'}</td>
+                <td class="td-mono">${l.ip_address || '—'}</td>
+                <td class="text-xs text-muted">${relativeTime(l.timestamp)}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>` : '<div style="padding:32px;text-align:center;color:var(--muted-foreground)">No security events</div>';
+    } else {
+      document.getElementById('security-log-body').innerHTML = '<div style="padding:32px;text-align:center;color:var(--muted-foreground)">—</div>';
+    }
+  } catch(err) {
+    console.error(err);
+    showToast('Failed to load dashboard data', 'error');
+  }
+}
+document.addEventListener('DOMContentLoaded', loadDashboard);
+{% endblock %}

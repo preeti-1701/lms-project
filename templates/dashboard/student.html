@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}My Courses{% endblock %}
+{% block breadcrumb %}Student{% endblock %}
+{% block page_heading %}My Courses{% endblock %}
+{% block content %}
+<div class="metric-grid">
+  <div class="metric-card">
+    <div class="metric-card-header"><span class="metric-card-label">Enrolled Courses</span>
+      <div class="metric-card-icon" style="background:oklch(0.62 0.2 142/0.15);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+    </div>
+    <div class="metric-card-value" id="s-enrolled">—</div>
+    <div class="metric-card-desc">Active enrollments</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-card-header"><span class="metric-card-label">Completed</span>
+      <div class="metric-card-icon" style="background:oklch(0.55 0.22 264/0.15);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+    </div>
+    <div class="metric-card-value" id="s-completed">—</div>
+    <div class="metric-card-desc">Courses finished</div>
+  </div>
+</div>
+
+<div id="course-cards" class="course-grid">
+  <div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--muted-foreground)">Loading your courses…</div>
+</div>
+{% endblock %}
+{% block extra_js %}
+async function loadStudentDash() {
+  try {
+    const token = localStorage.getItem('lms_access_token');
+    const h = { 'Authorization': `Bearer ${token}` };
+    const [dash, enrollments] = await Promise.all([
+      fetch('/api/dashboard/student/', { headers: h }).then(r => r.json()),
+      fetch('/api/enrollments/', { headers: h }).then(r => r.json()),
+    ]);
+    document.getElementById('s-enrolled').textContent = dash.enrolled_courses ?? '—';
+    const list = enrollments.results || [];
+    document.getElementById('s-completed').textContent = list.filter(e => e.progress >= 100).length;
+    const coursesRes = await Promise.all(list.map(e => fetch(`/api/courses/${e.course}/`, { headers: h }).then(r => r.ok ? r.json() : null)));
+    const courses = coursesRes.filter(Boolean);
+    const pct = Math.floor(Math.random() * 100); // placeholder until progress API wired
+    document.getElementById('course-cards').innerHTML = courses.length ? courses.map(c => `
+      <a class="course-card" href="/courses/${c.id}/">
+        <div class="course-card-thumb">📚</div>
+        <div class="course-card-body">
+          <div class="course-card-title">${c.title}</div>
+          <p class="text-xs text-muted" style="margin-bottom:10px;">${(c.description || '').slice(0,80)}…</p>
+          <div style="margin-bottom:6px;">
+            <div class="flex items-center justify-between mb-2" style="margin-bottom:4px;">
+              <span class="text-xs text-muted">Progress</span>
+              <span class="text-xs" style="font-weight:600;">${pct}%</span>
+            </div>
+            <div class="progress-wrap"><div class="progress-bar progress-green" style="width:${pct}%"></div></div>
+          </div>
+          <div class="course-card-meta">
+            <span>${c.videos?.length ?? 0} videos</span>
+            <span>·</span>
+            <span>${c.category || 'General'}</span>
+          </div>
+        </div>
+      </a>`).join('') : `<div class="empty-state" style="grid-column:1/-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><div class="empty-state-title">No courses enrolled</div><div class="empty-state-desc">Ask your admin to enroll you in a course</div></div>`;
+  } catch(err) { showToast('Failed to load courses', 'error'); }
+}
+document.addEventListener('DOMContentLoaded', loadStudentDash);
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Courses{% endblock %}
+{% block breadcrumb %}Courses{% endblock %}
+{% block page_heading %}Course Library{% endblock %}
+{% block page_actions %}
+<div class="search-wrap" style="width:220px;">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  <input class="form-input search-input" type="text" id="course-search" placeholder="Search courses…" />
+</div>
+<select class="form-input form-select" id="status-filter" style="width:140px;" onchange="loadCourses()">
+  <option value="">All Status</option>
+  <option value="PUBLISHED">Published</option>
+  <option value="DRAFT">Draft</option>
+  <option value="ARCHIVED">Archived</option>
+</select>
+<a href="/courses/new/" class="btn btn-primary btn-sm" id="btn-new-course">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  New Course
+</a>
+{% endblock %}
+{% block content %}
+<div id="courses-container">
+  <div class="course-grid" id="course-grid">
+    <div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--muted-foreground)">Loading courses…</div>
+  </div>
+  <div id="pagination"></div>
+</div>
+{% endblock %}
+{% block extra_js %}
+let currentPage = 1;
+let searchTimeout;
+
+async function loadCourses(page = 1) {
+  currentPage = page;
+  const token = localStorage.getItem('lms_access_token');
+  const h = { 'Authorization': `Bearer ${token}` };
+  const search = document.getElementById('course-search')?.value || '';
+  const status = document.getElementById('status-filter')?.value || '';
+  let url = `/api/courses/?page=${page}`;
+  if (search) url += `&search=${encodeURIComponent(search)}`;
+  if (status) url += `&status=${status}`;
+
+  const grid = document.getElementById('course-grid');
+  grid.innerHTML = `<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--muted-foreground)">Loading…</div>`;
+
+  try {
+    const data = await fetch(url, { headers: h }).then(r => r.json());
+    const list = data.results || data || [];
+    const statusMap = { PUBLISHED: 'badge-green', DRAFT: 'badge-yellow', ARCHIVED: 'badge-neutral' };
+    grid.innerHTML = list.length ? list.map(c => `
+      <a class="course-card" href="/courses/${c.id}/">
+        <div class="course-card-thumb" style="background:linear-gradient(135deg,var(--secondary),var(--accent))">
+          <span style="font-size:2.5rem;">📚</span>
+          <div style="position:absolute;top:10px;right:10px;"><span class="badge ${statusMap[c.status] || 'badge-neutral'}">${c.status}</span></div>
+        </div>
+        <div class="course-card-body">
+          <div class="course-card-title">${c.title}</div>
+          <p class="text-xs text-muted" style="margin:4px 0 10px;">${(c.description || '').slice(0,90)}${c.description?.length > 90 ? '…' : ''}</p>
+          <div class="course-card-meta">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            <span>${c.videos?.length ?? 0} videos</span>
+            ${c.category ? `<span>·</span><span>${c.category}</span>` : ''}
+          </div>
+        </div>
+      </a>`).join('') : `
+      <div class="empty-state" style="grid-column:1/-1">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <div class="empty-state-title">No courses found</div>
+        <div class="empty-state-desc">Try adjusting your filters or create a new course</div>
+      </div>`;
+  } catch(err) { grid.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--destructive)">Failed to load courses</div>`; }
+}
+
+// Hide new course button for students
+const user = JSON.parse(localStorage.getItem('lms_user') || '{}');
+if (user.role === 'STUDENT') { document.getElementById('btn-new-course')?.remove(); }
+
+document.getElementById('course-search')?.addEventListener('input', () => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => loadCourses(1), 400);
+});
+
+document.addEventListener('DOMContentLoaded', () => loadCourses(1));
+{% endblock %}

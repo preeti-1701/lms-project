@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Security Logs{% endblock %}
+{% block breadcrumb %}Administration / Security{% endblock %}
+{% block page_heading %}Security Audit Logs{% endblock %}
+{% block page_actions %}
+<select class="form-input form-select" id="event-filter" style="width:160px;" onchange="loadLogs()">
+  <option value="">All Events</option>
+  <option value="LOGIN">Login</option>
+  <option value="LOGOUT">Logout</option>
+  <option value="LOGIN_FAILED">Failed Login</option>
+  <option value="VIDEO_VIEW">Video View</option>
+  <option value="FORCE_LOGOUT">Force Logout</option>
+</select>
+<input class="form-input" id="date-from" type="date" style="width:140px;" onchange="loadLogs()" />
+<button class="btn btn-secondary btn-sm" onclick="loadLogs()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+  Refresh
+</button>
+{% endblock %}
+{% block content %}
+
+<!-- Stats row -->
+<div class="metric-grid" style="margin-bottom:20px;" id="log-stats">
+  <div class="metric-card">
+    <div class="metric-card-header"><span class="metric-card-label">Total Events</span>
+      <div class="metric-card-icon" style="background:oklch(0.55 0.22 264/0.15);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+    </div>
+    <div class="metric-card-value" id="stat-total">—</div>
+    <div class="metric-card-desc">All time log entries</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-card-header"><span class="metric-card-label">Login Failures</span>
+      <div class="metric-card-icon" style="background:oklch(0.62 0.22 25/0.12);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+    </div>
+    <div class="metric-card-value" id="stat-failures" style="color:var(--red);">—</div>
+    <div class="metric-card-desc">Failed login attempts</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-card-header"><span class="metric-card-label">Video Views</span>
+      <div class="metric-card-icon" style="background:oklch(0.72 0.15 200/0.12);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+    </div>
+    <div class="metric-card-value" id="stat-views">—</div>
+    <div class="metric-card-desc">Content view events</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-container" style="border:none;border-radius:0;">
+    <table>
+      <thead>
+        <tr><th>Event</th><th>User</th><th>IP Address</th><th>User Agent</th><th>Time</th><th>Extra</th></tr>
+      </thead>
+      <tbody id="log-table-body">
+        <tr><td colspan="6" style="padding:40px;text-align:center;color:var(--muted-foreground)">Loading logs…</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div id="log-pagination" style="padding:12px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+    <span id="log-count" class="text-xs text-muted"></span>
+    <div id="log-pages" class="flex items-center gap-2"></div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+const logEventColor = {
+  LOGIN: 'badge-green',
+  LOGOUT: 'badge-neutral',
+  LOGIN_FAILED: 'badge-red',
+  VIDEO_VIEW: 'badge-cyan',
+  FORCE_LOGOUT: 'badge-orange',
+};
+let logPage = 1;
+
+async function loadLogs(page = 1) {
+  logPage = page;
+  const token = localStorage.getItem('lms_access_token');
+  const h = { 'Authorization': `Bearer ${token}` };
+  const evt = document.getElementById('event-filter')?.value || '';
+  const from = document.getElementById('date-from')?.value || '';
+  let url = `/api/security/logs/?page=${page}`;
+  if (evt) url += `&event_type=${evt}`;
+  if (from) url += `&timestamp__date__gte=${from}`;
+
+  document.getElementById('log-table-body').innerHTML = `<tr><td colspan="6" style="padding:32px;text-align:center;color:var(--muted-foreground);">Loading…</td></tr>`;
+
+  try {
+    const data = await fetch(url, { headers: h }).then(r => r.json());
+    const logs = data.results || data || [];
+    const count = data.count || logs.length;
+
+    document.getElementById('stat-total').textContent = count;
+    document.getElementById('stat-failures').textContent = logs.filter(l => l.event_type === 'LOGIN_FAILED').length;
+    document.getElementById('stat-views').textContent = logs.filter(l => l.event_type === 'VIDEO_VIEW').length;
+    document.getElementById('log-count').textContent = `${count} total events`;
+
+    document.getElementById('log-table-body').innerHTML = logs.length ? logs.map(l => `
+      <tr>
+        <td><span class="badge ${logEventColor[l.event_type] || 'badge-neutral'}">${l.event_type}</span></td>
+        <td>${l.user ? `<span style="font-weight:500;">${l.user}</span>` : '<span class="text-muted">anonymous</span>'}</td>
+        <td class="td-mono">${l.ip_address || '—'}</td>
+        <td class="text-xs text-muted" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${l.user_agent || ''}">${(l.user_agent || '—').slice(0, 40)}</td>
+        <td class="text-xs text-muted" title="${l.timestamp}">${relativeTime(l.timestamp)}</td>
+        <td class="text-xs text-muted">${l.extra_data ? `<span class="font-mono" style="font-size:0.7rem;">${JSON.stringify(l.extra_data).slice(0,40)}</span>` : '—'}</td>
+      </tr>`).join('') : `<tr><td colspan="6" style="padding:40px;text-align:center;color:var(--muted-foreground);">No log entries found</td></tr>`;
+
+    // Pagination
+    const totalPages = Math.ceil(count / 20);
+    document.getElementById('log-pages').innerHTML = totalPages > 1 ? `
+      <button class="btn btn-secondary btn-sm" ${page <= 1 ? 'disabled' : ''} onclick="loadLogs(${page - 1})">← Prev</button>
+      <span class="text-xs text-muted">Page ${page} / ${totalPages}</span>
+      <button class="btn btn-secondary btn-sm" ${page >= totalPages ? 'disabled' : ''} onclick="loadLogs(${page + 1})">Next →</button>` : '';
+  } catch(e) { document.getElementById('log-table-body').innerHTML = `<tr><td colspan="6" style="padding:40px;text-align:center;color:var(--destructive);">Failed to load logs</td></tr>`; }
+}
+
+document.addEventListener('DOMContentLoaded', () => loadLogs());
+{% endblock %}

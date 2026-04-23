@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Course Detail{% endblock %}
+{% block breadcrumb %}Courses / Detail{% endblock %}
+{% block page_heading %}<span id="course-name">Loading…</span>{% endblock %}
+{% block page_actions %}
+<span id="course-status-badge"></span>
+<div id="course-actions"></div>
+{% endblock %}
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;">
+  <!-- Left: videos -->
+  <div>
+    <div class="card mb-4">
+      <div class="card-header">
+        <span class="card-title">Course Videos</span>
+        <button class="btn btn-primary btn-sm" id="add-video-btn" onclick="openModal('add-video-modal')" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Video
+        </button>
+      </div>
+      <div id="video-list">
+        <div style="padding:32px;text-align:center;color:var(--muted-foreground)">Loading videos…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: properties -->
+  <div class="card" style="position:sticky;top:76px;">
+    <div class="card-header"><span class="card-title">Details</span></div>
+    <div class="card-body space-y-1">
+      <div class="prop-row"><span class="prop-label">Status</span><span id="prop-status">—</span></div>
+      <div class="prop-row"><span class="prop-label">Category</span><span class="text-sm" id="prop-category">—</span></div>
+      <div class="prop-row"><span class="prop-label">Created by</span><span class="text-sm" id="prop-created-by">—</span></div>
+      <div class="prop-row"><span class="prop-label">Created</span><span class="text-xs text-muted" id="prop-created-at">—</span></div>
+      <div class="prop-row"><span class="prop-label">Videos</span><span class="text-sm" id="prop-video-count">—</span></div>
+      <div class="divider"></div>
+      <div id="prop-description" class="text-sm text-muted" style="line-height:1.6;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Video Modal -->
+<div class="modal-overlay hidden" id="add-video-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Add Video</h2>
+      <button class="btn btn-ghost btn-icon btn-sm" data-close-modal><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body space-y-4">
+      <div class="form-group"><label class="form-label">Video Title</label><input class="form-input" id="v-title" placeholder="Introduction to the course…" /></div>
+      <div class="form-group"><label class="form-label">YouTube URL</label><input class="form-input" id="v-url" placeholder="https://youtube.com/watch?v=…" /><div class="form-hint">Supports youtu.be, watch?v=, and embed/ formats</div></div>
+      <div class="form-group"><label class="form-label">Position</label><input class="form-input" id="v-position" type="number" min="1" value="1" /></div>
+      <div class="form-group"><label class="form-label">Duration (seconds)</label><input class="form-input" id="v-duration" type="number" placeholder="Optional" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-close-modal>Cancel</button>
+      <button class="btn btn-primary" onclick="addVideo()">Add Video</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+const courseId = window.location.pathname.split('/').filter(Boolean)[1];
+let courseData = null;
+
+async function loadCourse() {
+  const token = localStorage.getItem('lms_access_token');
+  const h = { 'Authorization': `Bearer ${token}` };
+  try {
+    courseData = await fetch(`/api/courses/${courseId}/`, { headers: h }).then(r => { if(!r.ok) throw new Error(); return r.json(); });
+    document.getElementById('course-name').textContent = courseData.title;
+    document.getElementById('prop-status').innerHTML = statusBadge(courseData.status);
+    document.getElementById('prop-category').textContent = courseData.category || '—';
+    document.getElementById('prop-created-at').textContent = fmtDate(courseData.created_at);
+    document.getElementById('prop-description').textContent = courseData.description || '';
+    const user = JSON.parse(localStorage.getItem('lms_user') || '{}');
+    const canEdit = user.role === 'ADMIN' || user.role === 'TRAINER';
+    if (canEdit) {
+      document.getElementById('add-video-btn').style.display = '';
+      document.getElementById('course-actions').innerHTML = `
+        <div class="dropdown">
+          <button class="btn btn-secondary btn-sm" data-dropdown-toggle="course-dd">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          </button>
+          <div class="dropdown-menu" id="course-dd">
+            <button class="dropdown-item" onclick="openModal('edit-status-modal')">Change Status</button>
+            <div class="dropdown-sep"></div>
+            <button class="dropdown-item danger" onclick="archiveCourse()">Archive Course</button>
+          </div>
+        </div>`;
+    }
+    renderVideos(courseData.videos || []);
+    document.getElementById('prop-video-count').textContent = (courseData.videos || []).length + ' videos';
+  } catch(e) { showToast('Failed to load course', 'error'); }
+}
+
+function renderVideos(videos) {
+  const user = JSON.parse(localStorage.getItem('lms_user') || '{}');
+  document.getElementById('video-list').innerHTML = videos.length ? `
+    <div class="entity-list">
+      ${videos.map((v, i) => `
+        <div class="entity-row">
+          <div style="width:28px;height:28px;background:var(--secondary);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:var(--muted-foreground);flex-shrink:0;">${v.position || i+1}</div>
+          <div class="entity-row-body">
+            <div class="entity-row-title">${v.title}</div>
+            <div class="entity-row-subtitle font-mono">${(v.duration_seconds ? Math.floor(v.duration_seconds/60)+'m '+v.duration_seconds%60+'s' : 'Duration unknown')}</div>
+          </div>
+          <div class="entity-row-trailing">
+            ${user.role === 'STUDENT' ? `<a href="/courses/${courseId}/watch/${v.id}/" class="btn btn-primary btn-sm">▶ Watch</a>` : `<a href="/courses/${courseId}/watch/${v.id}/" class="btn btn-ghost btn-sm" title="Preview">▶</a>`}
+            ${user.role !== 'STUDENT' ? `<button class="btn btn-ghost btn-sm" style="color:var(--destructive)" onclick="deleteVideo('${v.id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            </button>` : ''}
+          </div>
+        </div>`).join('')}
+    </div>` : `
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+      <div class="empty-state-title">No videos yet</div>
+      <div class="empty-state-desc">Add your first YouTube video to this course</div>
+    </div>`;
+}
+
+async function addVideo() {
+  const token = localStorage.getItem('lms_access_token');
+  const body = { course: courseId, title: document.getElementById('v-title').value, youtube_url: document.getElementById('v-url').value, position: parseInt(document.getElementById('v-position').value) || 1 };
+  const dur = document.getElementById('v-duration').value;
+  if (dur) body.duration_seconds = parseInt(dur);
+  try {
+    await fetch(`/api/courses/${courseId}/videos/`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(r => { if(!r.ok) throw new Error(); return r.json(); });
+    closeModal('add-video-modal');
+    showToast('Video added!', 'success');
+    loadCourse();
+  } catch(e) { showToast('Failed to add video', 'error'); }
+}
+
+async function deleteVideo(id) {
+  if (!confirm('Delete this video?')) return;
+  const token = localStorage.getItem('lms_access_token');
+  try {
+    await fetch(`/api/videos/${id}/`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+    showToast('Video removed', 'success');
+    loadCourse();
+  } catch(e) { showToast('Failed to delete video', 'error'); }
+}
+
+async function archiveCourse() {
+  if (!confirm('Archive this course?')) return;
+  const token = localStorage.getItem('lms_access_token');
+  try {
+    await fetch(`/api/courses/${courseId}/`, { method: 'PATCH', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'ARCHIVED' }) });
+    showToast('Course archived', 'success');
+    loadCourse();
+  } catch(e) { showToast('Failed to archive', 'error'); }
+}
+
+document.addEventListener('DOMContentLoaded', loadCourse);
+{% endblock %}

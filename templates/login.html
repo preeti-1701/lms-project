@@ -1,0 +1,123 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — NewGen LMS</title>
+  <meta name="description" content="Sign in to your NewGen LMS account to access your courses." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'css/main.css' %}" />
+</head>
+<body>
+<div class="login-page">
+  <div class="login-bg"></div>
+  <!-- Grid pattern overlay -->
+  <div style="position:absolute;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:48px 48px;opacity:0.25;pointer-events:none;"></div>
+
+  <div class="login-card">
+    <div class="login-header">
+      <div class="login-logo">N</div>
+      <h1 class="login-title">Welcome back</h1>
+      <p class="login-subtitle">Sign in to continue to NewGen LMS</p>
+    </div>
+
+    <div class="login-form">
+      {% if error %}
+      <div class="toast toast-error" style="position:static;animation:none;margin-bottom:16px;">
+        <span style="font-weight:700;color:var(--destructive)">✕</span>
+        <span>{{ error }}</span>
+      </div>
+      {% endif %}
+
+      <form id="login-form" class="space-y-4" novalidate>
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label" for="email">Email address</label>
+          <input class="form-input" type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <div style="position:relative;">
+            <input class="form-input" type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password" required style="padding-right:42px;" />
+            <button type="button" id="toggle-pw" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted-foreground);padding:4px;">
+              <svg id="pw-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="login-error" class="form-error hidden"></div>
+
+        <button type="submit" class="btn btn-primary w-full" id="login-btn" style="justify-content:center;padding:10px;">
+          <span id="login-btn-text">Sign in</span>
+          <span id="login-spinner" class="hidden" style="width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.6s linear infinite;"></span>
+        </button>
+      </form>
+
+      <p class="text-xs text-muted" style="text-align:center;margin-top:16px;">
+        Protected by JWT authentication &amp; session enforcement
+      </p>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<script src="{% static 'js/app.js' %}"></script>
+<script>
+// Redirect if already logged in
+if (localStorage.getItem('lms_access_token')) {
+  const user = JSON.parse(localStorage.getItem('lms_user') || '{}');
+  const redirects = { ADMIN: '/dashboard/admin/', TRAINER: '/dashboard/trainer/', STUDENT: '/my-courses/' };
+  window.location.href = redirects[user.role] || '/courses/';
+}
+
+// Toggle password visibility
+document.getElementById('toggle-pw').addEventListener('click', () => {
+  const input = document.getElementById('password');
+  input.type = input.type === 'password' ? 'text' : 'password';
+});
+
+// Login form submit
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+  const btnText = document.getElementById('login-btn-text');
+  const spinner = document.getElementById('login-spinner');
+
+  errEl.classList.add('hidden');
+  btn.disabled = true;
+  btnText.textContent = 'Signing in…';
+  spinner.classList.remove('hidden');
+
+  try {
+    const data = await fetch('/api/auth/login/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+      body: JSON.stringify({ email, password })
+    });
+    const json = await data.json();
+    if (!data.ok) throw new Error(json.detail || 'Invalid credentials');
+
+    localStorage.setItem('lms_access_token', json.access);
+    localStorage.setItem('lms_refresh_token', json.refresh);
+    localStorage.setItem('lms_user', JSON.stringify(json.user));
+
+    const redirects = { ADMIN: '/dashboard/admin/', TRAINER: '/dashboard/trainer/', STUDENT: '/my-courses/' };
+    window.location.href = redirects[json.user.role] || '/courses/';
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.classList.remove('hidden');
+    btn.disabled = false;
+    btnText.textContent = 'Sign in';
+    spinner.classList.add('hidden');
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Enrollments{% endblock %}
+{% block breadcrumb %}Administration / Enrollments{% endblock %}
+{% block page_heading %}Enrollment Management{% endblock %}
+{% block page_actions %}
+<button class="btn btn-primary btn-sm" onclick="openModal('enroll-modal')">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  Enroll Student
+</button>
+{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">All Enrollments</span>
+    <div class="flex items-center gap-2">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="form-input search-input" id="enroll-search" placeholder="Filter…" style="width:180px;" />
+      </div>
+    </div>
+  </div>
+  <div class="table-container" style="border:none;border-radius:0;">
+    <table>
+      <thead>
+        <tr><th>Student</th><th>Course</th><th>Enrolled</th><th>Expires</th><th>Status</th><th style="text-align:right;">Actions</th></tr>
+      </thead>
+      <tbody id="enroll-table-body">
+        <tr><td colspan="6" style="padding:40px;text-align:center;color:var(--muted-foreground)">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div id="enroll-pagination" style="padding:12px 16px;border-top:1px solid var(--border);"></div>
+</div>
+
+<!-- Enroll Modal -->
+<div class="modal-overlay hidden" id="enroll-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Enroll Student</h2>
+      <button class="btn btn-ghost btn-icon btn-sm" data-close-modal><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body space-y-4">
+      <div class="form-group">
+        <label class="form-label">Student</label>
+        <select class="form-input form-select" id="e-student"><option value="">Loading students…</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Course</label>
+        <select class="form-input form-select" id="e-course"><option value="">Loading courses…</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Expiry Date <span class="text-muted">(optional, leave blank for lifetime)</span></label>
+        <input class="form-input" id="e-expires" type="date" />
+      </div>
+      <div id="e-error" class="form-error hidden"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-close-modal>Cancel</button>
+      <button class="btn btn-primary" onclick="doEnroll()">Enroll</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+async function loadEnrollments(page = 1) {
+  const token = localStorage.getItem('lms_access_token');
+  const h = { 'Authorization': `Bearer ${token}` };
+  try {
+    const data = await fetch(`/api/enrollments/?page=${page}`, { headers: h }).then(r => r.json());
+    const list = data.results || data || [];
+    document.getElementById('enroll-table-body').innerHTML = list.length ? list.map(e => `
+      <tr>
+        <td><span style="font-weight:500;">${e.student_email || e.student || '—'}</span></td>
+        <td>${e.course_title || e.course || '—'}</td>
+        <td class="text-xs text-muted">${fmtDate(e.enrolled_at)}</td>
+        <td class="text-xs text-muted">${e.expires_at ? fmtDate(e.expires_at) : '<span style="color:var(--green)">Lifetime</span>'}</td>
+        <td>${e.is_active ? '<span class="badge badge-green">Active</span>' : '<span class="badge badge-neutral">Inactive</span>'}</td>
+        <td style="text-align:right;">
+          <button class="btn btn-ghost btn-sm" style="color:var(--destructive);" onclick="removeEnrollment('${e.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            Remove
+          </button>
+        </td>
+      </tr>`).join('') : `<tr><td colspan="6" style="padding:40px;text-align:center;color:var(--muted-foreground);">No enrollments found</td></tr>`;
+  } catch(e) {}
+}
+
+async function populateSelects() {
+  const token = localStorage.getItem('lms_access_token');
+  const h = { 'Authorization': `Bearer ${token}` };
+  try {
+    const [users, courses] = await Promise.all([
+      fetch('/api/users/?role=STUDENT', { headers: h }).then(r => r.json()),
+      fetch('/api/courses/', { headers: h }).then(r => r.json()),
+    ]);
+    const studentList = users.results || users || [];
+    const courseList = courses.results || courses || [];
+    document.getElementById('e-student').innerHTML = `<option value="">Select student…</option>` + studentList.map(u => `<option value="${u.id}">${u.full_name} (${u.email})</option>`).join('');
+    document.getElementById('e-course').innerHTML = `<option value="">Select course…</option>` + courseList.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
+  } catch(e) {}
+}
+
+async function doEnroll() {
+  const token = localStorage.getItem('lms_access_token');
+  const body = { student: document.getElementById('e-student').value, course: document.getElementById('e-course').value };
+  const exp = document.getElementById('e-expires').value;
+  if (exp) body.expires_at = exp;
+  const errEl = document.getElementById('e-error');
+  errEl.classList.add('hidden');
+  if (!body.student || !body.course) { errEl.textContent = 'Please select a student and course'; errEl.classList.remove('hidden'); return; }
+  try {
+    await fetch('/api/enrollments/', { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => { if(!r.ok) { const e = await r.json(); throw new Error(JSON.stringify(e)); } return r.json(); });
+    closeModal('enroll-modal');
+    showToast('Student enrolled!', 'success');
+    loadEnrollments();
+  } catch(e) { errEl.textContent = e.message; errEl.classList.remove('hidden'); }
+}
+
+async function removeEnrollment(id) {
+  if (!confirm('Remove this enrollment?')) return;
+  const token = localStorage.getItem('lms_access_token');
+  try {
+    await fetch(`/api/enrollments/${id}/`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+    showToast('Enrollment removed', 'success');
+    loadEnrollments();
+  } catch(e) { showToast('Failed to remove enrollment', 'error'); }
+}
+
+document.addEventListener('DOMContentLoaded', () => { loadEnrollments(); populateSelects(); });
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Watch Video{% endblock %}
+{% block breadcrumb %}Courses / Watch{% endblock %}
+{% block page_heading %}<span id="video-title">Loading…</span>{% endblock %}
+{% block extra_css %}
+<style>
+.video-page { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
+@media (max-width: 900px) { .video-page { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+{% block content %}
+<div class="video-page">
+  <!-- Player -->
+  <div>
+    <div class="video-container" id="video-wrapper">
+      <iframe id="yt-player" src="" allowfullscreen sandbox="allow-scripts allow-same-origin" title="Course video"></iframe>
+      <!-- Watermark -->
+      <div class="watermark" id="watermark">
+        <div class="watermark-text" id="wm-text"></div>
+        <div class="watermark-text" id="wm-text-2" style="position:absolute;bottom:20%;right:10%;"></div>
+      </div>
+      <!-- Blur on focus loss -->
+      <div class="video-blur-overlay" id="blur-overlay">
+        <div style="text-align:center;color:#fff;">
+          <div style="font-size:1.4rem;margin-bottom:8px;">⏸</div>
+          <div style="font-size:0.9rem;font-weight:600;">Click to resume</div>
+          <div style="font-size:0.75rem;opacity:0.7;margin-top:4px;">Video paused for security</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Video info -->
+    <div style="margin-top:14px;">
+      <h2 id="video-detail-title" style="font-size:1.1rem;font-weight:700;margin-bottom:6px;"></h2>
+      <div class="flex items-center gap-3 text-xs text-muted">
+        <span id="video-duration"></span>
+        <span id="video-course-link"></span>
+      </div>
+      <div class="divider"></div>
+      <div class="flex items-center gap-2 text-xs text-muted" style="padding:8px 0;background:oklch(0.22 0.03 264/0.3);border-radius:var(--radius-md);padding:10px 14px;margin-top:8px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>This content is protected. Right-click, screenshots, and recording are monitored.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar: playlist -->
+  <div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Course Playlist</span></div>
+      <div id="playlist" style="max-height:500px;overflow-y:auto;">
+        <div style="padding:20px;text-align:center;color:var(--muted-foreground);">Loading…</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+const pathParts = window.location.pathname.split('/').filter(Boolean);
+const courseId = pathParts[1];
+const videoId = pathParts[3];
+let userEmail = '';
+let watermarkInterval;
+
+async function loadVideo() {
+  const token = localStorage.getItem('lms_access_token');
+  const h = { 'Authorization': `Bearer ${token}` };
+  const user = JSON.parse(localStorage.getItem('lms_user') || '{}');
+  userEmail = user.email || user.full_name || 'student';
+
+  try {
+    const [course, video] = await Promise.all([
+      fetch(`/api/courses/${courseId}/`, { headers: h }).then(r => r.json()),
+      fetch(`/api/videos/${videoId}/`, { headers: h }).then(r => r.json()),
+    ]);
+
+    // Set iframe
+    document.getElementById('yt-player').src = video.embed_url || '';
+    document.getElementById('video-title').textContent = video.title;
+    document.getElementById('video-detail-title').textContent = video.title;
+    document.getElementById('video-duration').textContent = video.duration_seconds ? Math.floor(video.duration_seconds/60) + 'm ' + video.duration_seconds%60 + 's' : '';
+    document.getElementById('video-course-link').innerHTML = `<a href="/courses/${courseId}/" style="color:var(--primary);">${course.title}</a>`;
+
+    // Playlist
+    const videos = course.videos || [];
+    document.getElementById('playlist').innerHTML = videos.map(v => `
+      <a href="/courses/${courseId}/watch/${v.id}/" class="entity-row ${v.id === videoId ? 'active' : ''}" style="${v.id === videoId ? 'background:var(--accent);' : ''}">
+        <div style="width:24px;height:24px;background:${v.id===videoId?'var(--primary)':'var(--secondary)'};border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:${v.id===videoId?'var(--primary-foreground)':'var(--muted-foreground)'};flex-shrink:0;">${v.position}</div>
+        <div class="entity-row-body">
+          <div class="entity-row-title" style="font-size:0.8rem;">${v.title}</div>
+          <div class="entity-row-subtitle">${v.duration_seconds ? Math.floor(v.duration_seconds/60)+'m' : ''}</div>
+        </div>
+        ${v.id === videoId ? '<span style="color:var(--primary);">▶</span>' : ''}
+      </a>`).join('');
+
+    // Start watermark
+    startWatermark();
+    // Log view
+    logVideoView(videoId);
+  } catch(e) { showToast('Failed to load video', 'error'); }
+}
+
+function startWatermark() {
+  function updateWM() {
+    const ts = new Date().toLocaleTimeString();
+    const text = `${userEmail} · ${ts}`;
+    document.getElementById('wm-text').textContent = text;
+    document.getElementById('wm-text-2').textContent = text;
+  }
+  updateWM();
+  watermarkInterval = setInterval(updateWM, 30000);
+}
+
+// Security: right-click prevention
+document.getElementById('video-wrapper').addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('contextmenu', e => { if(e.target.closest('#video-wrapper')) e.preventDefault(); });
+
+// Blur on focus loss
+window.addEventListener('blur', () => {
+  document.getElementById('blur-overlay').classList.add('active');
+});
+window.addEventListener('focus', () => {
+  document.getElementById('blur-overlay').classList.remove('active');
+});
+document.getElementById('blur-overlay').addEventListener('click', () => {
+  document.getElementById('blur-overlay').classList.remove('active');
+});
+
+async function logVideoView(vid) {
+  // This would call a security log endpoint
+  const token = localStorage.getItem('lms_access_token');
+  try { await fetch(`/api/security/logs/`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ event_type: 'VIDEO_VIEW', video: vid }) }); } catch(e){}
+}
+
+document.addEventListener('DOMContentLoaded', loadVideo);
+{% endblock %}
