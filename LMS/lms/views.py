@@ -1,8 +1,9 @@
 from datetime import timedelta
 from django.utils import timezone
+from django.conf import settings
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
@@ -22,22 +23,38 @@ class LoginView(APIView):
             ip_address = self.get_client_ip(request)
             device = request.META.get("HTTP_USER_AGENT", "")[:255]
 
-            LoginSession.objects.filter(user=user, is_active=True).update(
-                is_active=False
-            )
-
-            session = LoginSession.objects.create(
-                user=user,
-                ip_address=ip_address,
-                device=device,
-                is_active=True,
-                expires_at=timezone.now() + timedelta(hours=24),
-            )
-
             auth_login(request, user)
 
+            session_key = request.session.session_key
+
+            existing_session = LoginSession.objects.filter(
+                user=user, session_key=session_key, is_active=True
+            ).first()
+
+            if existing_session:
+                LoginSession.objects.filter(user=user, is_active=True).exclude(
+                    session_key=session_key
+                ).update(is_active=False)
+            else:
+                LoginSession.objects.filter(user=user, is_active=True).update(
+                    is_active=False
+                )
+                LoginSession.objects.create(
+                    user=user,
+                    ip_address=ip_address,
+                    device=device,
+                    session_key=session_key,
+                    is_active=True,
+                    expires_at=timezone.now()
+                    + timedelta(days=settings.SESSION_EXPIRY_DAYS),
+                )
+
             return Response(
-                {"message": "login successful", "user": UserSerializer(user).data}
+                {
+                    "message": "login successful",
+                    "user": UserSerializer(user).data,
+                    "token": session_key,
+                }
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -48,14 +65,17 @@ class LoginView(APIView):
         return request.META.get("REMOTE_ADDR", "")
 
 
-class LogoutView(APIView):
-    def post(self, request):
-        if request.user.is_authenticated:
-            LoginSession.objects.filter(user=request.user, is_active=True).update(
-                is_active=False
-            )
-            auth_logout(request)
-        return Response({"message": "logout successful"})
+from rest_framework.views import APIView
+from rest_framework.authentication import SessionAuthentication
+
+
+@api_view(["POST"])
+def logout_view(request):
+    LoginSession.objects.filter(user=request.user, is_active=True).update(
+        is_active=False
+    )
+    auth_logout(request)
+    return Response({"message": "logout successful"})
 
 
 class UserViewSet(viewsets.ModelViewSet):

@@ -30,7 +30,7 @@ class User(AbstractUser, PermissionsMixin):
     ]
     username = None
     email = models.EmailField(unique=True)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="STUDENT")
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="student")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -48,6 +48,7 @@ class LoginSession(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="login_sessions"
     )
+    session_key = models.CharField(max_length=100, unique=True, null=True)
     ip_address = models.GenericIPAddressField()
     device = models.CharField(max_length=255, blank=True)
     login_time = models.DateTimeField(auto_now_add=True)
