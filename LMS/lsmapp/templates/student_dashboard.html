@@ -1,126 +1,54 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Student Dashboard</title>
+{% extends 'layout.html' %}
 
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f4f6f9;
-        }
+{% block content %}
 
-        .navbar {
-            background: #4facfe;
-            padding: 15px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+<h2>Learning Dashboard 🚀</h2>
+<p>Welcome, <b>{{ request.user.username }}</b></p>
 
-        .navbar h2 {
-            margin: 0;
-        }
+<div class="row mt-4">
 
-        .logout-btn {
-            background: white;
-            color: #4facfe;
-            padding: 8px 15px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: bold;
-        }
+    <div class="col-md-4">
+        <div class="card p-3">
+            <h5>My Courses</h5>
+            <p>View enrolled courses</p>
+            <a href="/courses/my-courses/" class="btn btn-primary">View</a>
+        </div>
+    </div>
 
-        .logout-btn:hover {
-            background: #e6f0ff;
-        }
+    <div class="col-md-4">
+        <div class="card p-3">
+            <h5>Watch Videos</h5>
+            <p>Continue learning</p>
+            <a href="/courses/my-courses/" class="btn btn-success">Go</a>
+        </div>
+    </div>
 
-        .container {
-            padding: 30px;
-        }
+    <div class="col-md-4">
+        <div class="card p-3">
+            <h5>Profile</h5>
+            <p>Your details</p>
+            <a href="/profile/" class="btn btn-dark">View</a>
+        </div>
+    </div>
 
-        .welcome {
-            font-size: 22px;
-            margin-bottom: 20px;
-        }
-
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        .card h3 {
-            margin-top: 0;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 10px 15px;
-            background: #4facfe;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            margin-top: 10px;
-        }
-
-        .btn:hover {
-            background: #007bff;
-        }
-    </style>
-</head>
-
-<body>
-
-<div class="navbar">
-    <h2> LMS - Student</h2>
-    <a href="/logout/" class="logout-btn">Logout</a>
 </div>
 
-<div class="container">
-    <div class="welcome">
-         Welcome, <b>{{ request.user.username }}</b>
+<div class="row mt-4">
+
+    <div class="col-md-6">
+        <div class="card p-3">
+            <h5>Take Quiz</h5>
+            <a href="/courses/quiz-courses/" class="btn btn-primary">Start Quiz</a>
+        </div>
     </div>
 
-    <div class="card">
-        <h3> My Courses</h3>
-        <p>View all courses assigned to you.</p>
-       <!-- <a href="#" class="btn">View Courses</a> -->
-        <a href="/courses/my-courses/" class="btn">View Courses</a>
+    <div class="col-md-6">
+        <div class="card p-3">
+            <h5>Browse Courses</h5>
+            <a href="/courses/all/" class="btn btn-success">Explore</a>
+        </div>
     </div>
 
-    <div class="card">
-        <h3> Watch Videos</h3>
-        <p>Access course videos securely.</p>
-       <a href="/courses/my-courses/" class="btn">Go to Videos</a>
-        
-    </div>
-
-    <div class="card">
-        <h3> Profile</h3>
-        <p>Check your account details.</p>
-       <a href="/profile/" class="btn">View Profile</a>
-     
-    </div>
-    <div class="card">
-        <h3>Take Quiz</h3>
-        <p>Check your account details.</p>
-      <!---<a href="/courses/quiz/1/" class="btn">Take Quiz</a> -->
-       <a href="/courses/quiz-courses/" class="btn">Take Quiz</a>
-         
-     
-    </div>
-    <div class="card">
-        <h3>Course Enrollment</h3>
-        <p>Enroll to Your Interested Course</p>
-        <a href="/courses/all/" class="btn">Browse Courses</a>
-         
-     
-    </div>
 </div>
 
-</body>
-</html>
+{% endblock %}
