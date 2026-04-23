@@ -2,8 +2,10 @@ from datetime import timedelta
 from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth import login as auth_login, logout as auth_logout
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from rest_framework import viewsets, status
-from rest_framework.decorators import action, api_view
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
@@ -65,17 +67,14 @@ class LoginView(APIView):
         return request.META.get("REMOTE_ADDR", "")
 
 
-from rest_framework.views import APIView
-from rest_framework.authentication import SessionAuthentication
-
-
-@api_view(["POST"])
-def logout_view(request):
-    LoginSession.objects.filter(user=request.user, is_active=True).update(
-        is_active=False
-    )
-    auth_logout(request)
-    return Response({"message": "logout successful"})
+class LogoutAPIView(APIView):
+    @method_decorator(csrf_exempt)
+    def post(self, request):
+        LoginSession.objects.filter(user=request.user, is_active=True).update(
+            is_active=False
+        )
+        auth_logout(request)
+        return Response({"message": "logout successful"})
 
 
 class UserViewSet(viewsets.ModelViewSet):

@@ -57,3 +57,47 @@ class LoginSession(models.Model):
 
     class Meta:
         db_table = "lms_login_session"
+
+
+class Course(models.Model):
+    STATUS_CHOICES = [
+        ("active", "Active"),
+        ("inactive", "Inactive"),
+        ("upcoming", "Upcoming"),
+    ]
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    trainer = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, related_name="courses"
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="active")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "lms_course"
+
+
+class Video(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="videos")
+    title = models.CharField(max_length=255)
+    youtube_link = models.URLField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "lms_video"
+
+
+class StudentEnrollment(models.Model):
+    student = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="enrollments"
+    )
+    course = models.ForeignKey(
+        Course, on_delete=models.CASCADE, related_name="enrollments"
+    )
+    enrolled_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "lms_student_enrollment"
+        unique_together = [["student", "course"]]
