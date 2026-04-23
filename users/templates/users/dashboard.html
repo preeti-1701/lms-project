@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+
+    <h1>Welcome {{ user.name }} 🎉</h1>
+    <h3>Your Role: {{ user.role }}</h3>
+
+    <hr>
+
+    {% if user.role == "admin" %}
+        <h2>Admin Panel</h2>
+        <p>✔ Manage Users</p>
+        <p>✔ View Reports</p>
+
+    {% elif user.role == "student" %}
+        <h2>Student Dashboard</h2>
+        <p><a href="/courses/?email={{email}}">✔ View Courses</a></p>
+        <p>✔ Enroll Courses</p>
+
+    {% elif user.role == "trainer" %}
+        <h2>Trainer Dashboard</h2>
+        <p><a href="/add-course/?email={{ user.email }}">✔ Add Courses</a></p>
+        <p>✔ Manage Students</p>
+
+    {% endif %}
+
+</body>
+</html>

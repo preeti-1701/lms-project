@@ -1,0 +1,7 @@
+<h2>My Courses</h2>
+
+{% for e in enrollments %}
+    <p><b>{{ e.course.title }}</b></p>
+{% empty %}
+    <p>No courses enrolled yet</p>
+{% endfor %}

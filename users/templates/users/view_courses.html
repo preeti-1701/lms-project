@@ -1,0 +1,12 @@
+<h2>Available Courses</h2>
+{% for course in courses %}
+    <h3>{{ course.title }}</h3>
+    <p>{{ course.description }}</p>
+    <p><b>Trainer:</b> {{ course.trainer.name }}</p>
+    <p><b>Topics:</b> {{ course.topics }}</p>
+    <p><b>Duration:</b> {{ course.duration }}</p>
+    <p><b>Status:</b> {{ course.status }}</p>
+
+    <a href="/enroll/?course_id={{ course.id }}&email={{ email }}">Enroll</a>
+    <hr>
+{% endfor %}

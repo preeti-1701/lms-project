@@ -1,0 +1,27 @@
+<html>
+<body>
+
+<h2>Add Course</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Title:</label><br>
+    <input type="text" name="title"><br><br>
+
+    <label>Description:</label><br>
+    <textarea name="description"></textarea><br><br>
+
+    <button type="submit">Add Course</button>
+</form>
+
+</body>
+</html>
+
+Topics: <input type="text" name="topics"><br><br>
+Duration: <input type="text" name="duration"><br><br>
+Status:
+<select name="status">
+    <option value="active">Active</option>
+    <option value="upcoming">Upcoming</option>
+</select><br><br>
