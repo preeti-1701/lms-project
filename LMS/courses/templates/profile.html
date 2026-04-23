@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 350px;
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        p {
+            font-size: 16px;
+            margin: 10px 0;
+            color: #555;
+        }
+
+        b {
+            color: #333;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 15px;
+            background: #764ba2;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+        }
+
+        .btn:hover {
+            background: #5a3d8a;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h2>Profile</h2>
+
+<p><b>Username:</b> {{ request.user.username }}</p>
+<p><b>Role:</b> {{ request.user.role }}</p>
+<p><b>Email:</b> {{ request.user.email }}</p>
+
+<a href="/dashboard/" class="btn">Back to Dashboard</a>
+
+</div>
+
+</body>
+</html>

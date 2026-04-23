@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Courses</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f9;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+
+        a {
+            text-decoration: none;
+            color: white;
+            background: #4facfe;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2> My Courses</h2>
+
+{% for e in enrollments %}
+    <div class="card">
+        <h3>{{ e.course.title }}</h3>
+        <p>{{ e.course.description }}</p>
+        <a href="/courses/course/{{ e.course.id }}/">View Videos</a>
+    </div>
+{% empty %}
+    <p>No courses assigned yet.</p>
+{% endfor %}
+
+</body>
+</html>

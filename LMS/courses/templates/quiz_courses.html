@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Select Course</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #36d1dc, #5b86e5);
+        }
+
+        .container {
+            padding: 40px;
+            text-align: center;
+        }
+
+        h2 {
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            width: 300px;
+            margin: 15px auto;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .course-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 15px;
+            background: #5b86e5;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            background: #3b6cd4;
+        }
+
+        .no-course {
+            color: white;
+            font-size: 18px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Select Course for Quiz</h2>
+
+{% if enrollments %}
+    {% for e in enrollments %}
+        <div class="card">
+            <div class="course-title">{{ e.course.title }}</div>
+
+            <a href="/courses/start-quiz/{{ e.course.id }}/" class="btn">
+                Start Quiz
+            </a>
+        </div>
+    {% endfor %}
+{% else %}
+    <p class="no-course">No enrolled courses found</p>
+{% endif %}
+
+</div>
+
+</body>
+</html>

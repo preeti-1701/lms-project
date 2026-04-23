@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Students</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            width: 350px;
+            text-align: center;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        button {
+            padding: 10px;
+            width: 100%;
+            background: #764ba2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+        }
+        .btn-back {
+    display: block;
+    margin-top: 15px;
+    padding: 10px;
+    background: #eee;
+    color: #333;
+    border-radius: 8px;
+    text-decoration: none;
+}
+
+.btn-back:hover {
+    background: #ddd;
+}
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2> Assign Students</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <select name="student">
+            {% for s in students %}
+                <option value="{{ s.id }}">{{ s.username }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="course">
+            {% for c in courses %}
+                <option value="{{ c.id }}">{{ c.title }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Assign</button>
+    </form>
+    <a href="/dashboard/" class="dashboard-link">← Go to Dashboard</a>
+</div>
+
+</body>
+</html>

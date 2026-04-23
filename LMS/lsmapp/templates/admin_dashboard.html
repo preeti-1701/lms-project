@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+        }
+
+        .navbar {
+            background: #ff6a00;
+            padding: 15px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h2 {
+            margin: 0;
+        }
+
+        .logout-btn {
+            background: white;
+            color: #ff6a00;
+            padding: 8px 15px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .logout-btn:hover {
+            background: #eee;
+        }
+
+        .container {
+            padding: 30px;
+        }
+
+        .welcome {
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            margin-top: 0;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 15px;
+            background: #ff6a00;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background: #e65c00;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <h2> LMS - Admin</h2>
+    <a href="/logout/" class="logout-btn">Logout</a>
+</div>
+
+<div class="container">
+    <div class="welcome">
+         Welcome, <b>{{ request.user.username }}</b>
+    </div>
+
+    <div class="card">
+        <h3> Manage Users</h3>
+        <p>Create, assign roles, and disable users.</p>
+        <a href="/admin/" class="btn">Go to Admin Panel</a>
+    </div>
+
+    <div class="card">
+        <h3> Manage Courses</h3>
+        <p>View and control all courses in the system.</p>
+       <!-- <a href="#" class="btn">Manage Courses</a> -->
+        <a href="/courses/my-courses/" class="btn">Manage Courses</a>
+    </div>
+
+    <div class="card">
+        <h3> Session Control</h3>
+        <p>Monitor user sessions and force logout if needed.</p>
+        <a href="/sessions/" class="btn">View Sessions</a>
+      <!--  <a href="#" class="btn">View Sessions</a> -->
+    </div>
+</div>
+
+</body>
+</html>

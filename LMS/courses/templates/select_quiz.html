@@ -1,0 +1,10 @@
+<h2>Select Quiz</h2>
+
+<form method="POST">
+  {% csrf_token %}
+
+  <label>How many questions?</label><br><br>
+  <input type="number" name="count" placeholder="Enter number"><br><br>
+
+  <button type="submit">Start Quiz</button>
+</form>

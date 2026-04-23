@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Trainer Dashboard</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+        }
+
+        .navbar {
+            background: #764ba2;
+            padding: 15px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h2 {
+            margin: 0;
+        }
+
+        .logout-btn {
+            background: white;
+            color: #764ba2;
+            padding: 8px 15px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .logout-btn:hover {
+            background: #eee;
+        }
+
+        .container {
+            padding: 30px;
+        }
+
+        .welcome {
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            margin-top: 0;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 15px;
+            background: #764ba2;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background: #5a3d8a;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <h2>LMS - Trainer</h2>
+    <a href="/logout/" class="logout-btn">Logout</a>
+</div>
+
+<div class="container">
+    <div class="welcome">
+         Welcome, <b>{{ request.user.username }}</b>
+    </div>
+
+    <div class="card">
+        <h3> Create Course</h3>
+        <p>Create and manage your courses.</p>
+      <!---  <a href="#" class="btn">Create Course</a>-->
+        <a href="/courses/create-course/" class="btn">Create Course</a>
+    </div>
+
+    <div class="card">
+        <h3> Add Videos</h3>
+        <p>Upload YouTube video links to courses.</p>
+       <!-- <a href="#" class="btn">Add Videos</a> -->
+        <a href="/courses/add-video/" class="btn">Add Videos</a>
+    </div>
+
+   <!-- <div class="card">
+        <h3> Manage Students</h3>
+        <p>View and manage enrolled students.</p>
+        
+        <a href="/courses/manage-students/" class="btn">Manage Students</a>
+    </div>
+     -->
+    <div class="card">
+    <h3> Add Quiz Questions</h3>
+    <p>Create questions for your courses.</p>
+
+    <a href="/courses/create-quiz/" class="btn">
+        Add Questions
+    </a>
+</div>
+</div>
+
+</body>
+</html>

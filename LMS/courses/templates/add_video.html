@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Video</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #5f2c82, #49a09d);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .form-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            width: 360px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: #5f2c82;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #5f2c82;
+            border: none;
+            color: white;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #4a2169;
+            transform: scale(1.05);
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 15px;
+            text-decoration: none;
+            color: #5f2c82;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="form-container">
+    <h2> Add Video</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <input type="text" name="title" placeholder="Video Title" required>
+
+        <input type="text" name="link" placeholder="YouTube Link" required>
+
+        <select name="course" required>
+            <option value="">Select Course</option>
+            {% for c in courses %}
+                <option value="{{ c.id }}">{{ c.title }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit"> Add Video</button>
+    </form>
+
+    <a href="/dashboard/" class="back-link">← Back to Dashboard</a>
+</div>
+
+</body>
+</html>

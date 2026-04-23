@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verify OTP</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #36d1dc, #5b86e5);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            width: 320px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            text-align: center;
+            letter-spacing: 4px;
+        }
+
+        input:focus {
+            border-color: #5b86e5;
+            outline: none;
+            box-shadow: 0 0 5px rgba(91,134,229,0.3);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #5b86e5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #3b6cd4;
+        }
+
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+
+        .back {
+            display: block;
+            margin-top: 15px;
+            text-decoration: none;
+            color: #5b86e5;
+        }
+
+        .back:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Enter OTP</h2>
+
+<form method="POST">
+  {% csrf_token %}
+  <input type="text" name="otp" placeholder="Enter OTP" required>
+  <button type="submit">Verify OTP</button>
+</form>
+
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+
+<a href="/login/" class="back">⬅ Back to Login</a>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sessions</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f9;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            background: red;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2> Active Sessions</h2>
+
+{% for s in sessions %}
+    <div class="card">
+        <p><b>User ID:</b> {{ s.user_id }}</p>
+        <p><b>Session:</b> {{ s.session_key }}</p>
+
+        <a href="/logout-user/{{ s.session_key }}/" class="btn">
+             Force Logout
+        </a>
+    </div>
+{% endfor %}
+
+<a href="/dashboard/">← Back</a>
+
+</body>
+</html>

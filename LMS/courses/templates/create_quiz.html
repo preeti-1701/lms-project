@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Quiz</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 350px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 15px;
+        }
+
+        select:focus, input:focus {
+            border-color: #764ba2;
+            outline: none;
+            box-shadow: 0 0 5px rgba(118,75,162,0.3);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #764ba2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #5a3d8a;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h2>Create Quiz</h2>
+
+<form method="POST">
+  {% csrf_token %}
+
+  <select name="course" required>
+    <option value="">Select Course</option>
+    {% for c in courses %}
+      <option value="{{ c.id }}">{{ c.title }}</option>
+    {% endfor %}
+  </select>
+
+  <input type="number" name="duration" placeholder="Duration (minutes)" required>
+
+  <button type="submit">Next</button>
+</form>
+
+</div>
+
+</body>
+</html>
