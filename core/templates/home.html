@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row align-items-center min-vh-75 mt-5">
+    <div class="col-md-6 text-md-start text-center mb-5">
+        <h1 class="display-3 fw-bold mb-4">
+            <span class="text-gradient">Learn Smarter</span><br>
+            <span class="text-white">Learn Faster</span><br>
+            <span class="text-muted fs-2">Grow Your Skills</span>
+        </h1>
+        <p class="lead mb-5 text-muted">Join the modern learning platform designed to help you achieve your goals with engaging content and a beautiful interface.</p>
+        <div class="d-flex gap-3 justify-content-md-start justify-content-center">
+            <a href="{% url 'login' %}" class="btn btn-custom btn-lg px-5">Login</a>
+            <a href="{% url 'signup' %}" class="btn btn-outline-light rounded-pill btn-lg px-5" style="border: 2px solid rgba(255,255,255,0.2); transition: all 0.3s; background: var(--glass-bg); backdrop-filter: blur(10px)">Sign Up</a>
+        </div>
+    </div>
+    <div class="col-md-6 text-center">
+        <!-- Floating placeholder or icon to make it dynamic -->
+        <div class="glass-card d-inline-block p-5" style="animation: float 6s ease-in-out infinite;">
+            <i class="fa-solid fa-rocket fa-4x text-gradient mb-3"></i>
+            <h3 class="fw-bold mt-3">Start Your Journey</h3>
+            <p class="text-muted">Explore courses, track progress,<br>and earn certificates.</p>
+        </div>
+        <style>
+            @keyframes float {
+                0% { transform: translateY(0px); }
+                50% { transform: translateY(-20px); }
+                100% { transform: translateY(0px); }
+            }
+        </style>
+    </div>
+</div>
+{% endblock %}

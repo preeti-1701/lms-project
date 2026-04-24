@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center min-vh-75 align-items-center mt-5">
+    <div class="col-md-5">
+        <div class="glass-card p-5 text-center">
+            <i class="fa-solid fa-user-lock fa-3x text-gradient mb-3"></i>
+            <h2 class="fw-bold mb-4">Welcome Back</h2>
+            
+            {% if error %}
+            <div class="alert alert-danger bg-danger text-white border-0 opacity-75">{{ error }}</div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-4 text-start">
+                    <label class="form-label text-muted ms-2 small fw-bold">Username or Email</label>
+                    <input type="text" name="username" class="form-control glass-input" placeholder="Enter username" required>
+                </div>
+                <div class="mb-4 text-start position-relative">
+                    <label class="form-label text-muted ms-2 small fw-bold">Password</label>
+                    <input type="password" name="password" id="id_password" class="form-control glass-input pe-5" placeholder="Enter password" required>
+                    <i class="fa-solid fa-eye position-absolute text-muted" id="togglePassword" style="right: 15px; top: 40px; cursor: pointer;"></i>
+                </div>
+                <button type="submit" class="btn btn-custom w-100 py-3 mt-2 fs-5">Login <i class="fa-solid fa-arrow-right ms-2"></i></button>
+            </form>
+            <p class="mt-4 text-muted">Don't have an account? <a href="{% url 'signup' %}" class="text-white fw-bold text-decoration-none">Sign up</a></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('togglePassword').addEventListener('click', function (e) {
+        const password = document.getElementById('id_password');
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+        this.classList.toggle('fa-eye-slash');
+    });
+</script>
+{% endblock %}

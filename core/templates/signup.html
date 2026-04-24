@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center min-vh-75 align-items-center mt-4">
+    <div class="col-md-5">
+        <div class="glass-card p-5 text-center">
+            <i class="fa-solid fa-user-plus fa-3x text-gradient mb-3"></i>
+            <h2 class="fw-bold mb-4">Create Account</h2>
+            
+            {% if error %}
+            <div class="alert alert-danger bg-danger text-white border-0 opacity-75">{{ error }}</div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3 text-start">
+                    <input type="text" name="username" class="form-control glass-input" placeholder="Username" required>
+                </div>
+                <div class="mb-3 text-start">
+                    <input type="email" name="email" class="form-control glass-input" placeholder="Email Address" required>
+                </div>
+                <div class="mb-3 text-start position-relative">
+                    <input type="password" name="password" id="id_password_signup" class="form-control glass-input pe-5" placeholder="Password" required>
+                    <i class="fa-solid fa-eye position-absolute text-muted" id="togglePasswordSignup" style="right: 15px; top: 15px; cursor: pointer;"></i>
+                </div>
+                <div class="mb-4 text-start">
+                    <select name="role" class="form-select glass-select" required>
+                        <option value="" disabled selected>Select your role...</option>
+                        <option value="student">Student</option>
+                        <option value="trainer">Trainer</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-custom w-100 py-3 mt-2 fs-5">Sign Up <i class="fa-solid fa-rocket ms-2"></i></button>
+            </form>
+            <p class="mt-4 text-muted">Already have an account? <a href="{% url 'login' %}" class="text-white fw-bold text-decoration-none">Login</a></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('togglePasswordSignup').addEventListener('click', function (e) {
+        const password = document.getElementById('id_password_signup');
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+        this.classList.toggle('fa-eye-slash');
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern LMS</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7e22ce 100%);
+            --secondary-gradient: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--secondary-gradient);
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Navbar */
+        .navbar-custom {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px); border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 2rem; transition: all 0.3s ease;
+        }
+
+        .navbar-brand {
+            font-weight: 800; font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+        }
+
+        .nav-link {
+            color: var(--text-main) !important;
+            font-weight: 500; margin: 0 10px; position: relative; transition: color 0.3s ease;
+        }
+
+        .nav-link:hover { color: #a78bfa !important; }
+
+        .nav-link::after {
+            content: ''; position: absolute; width: 0; height: 2px;
+            bottom: -5px; left: 0; background: #a78bfa; transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after { width: 100%; }
+
+        .btn-custom {
+            background: var(--primary-gradient); border: none; color: white;
+            padding: 0.6rem 1.8rem; border-radius: 30px; font-weight: 600;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .btn-custom:hover {
+            transform: translateY(-2px); box-shadow: 0 10px 20px rgba(126, 34, 206, 0.3); color: white;
+        }
+
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: var(--glass-bg); backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border); border-radius: 20px;
+            padding: 2rem; transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        /* Inputs */
+        .glass-input, .glass-select {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white; border-radius: 10px; padding: 0.8rem 1rem; transition: all 0.3s ease;
+        }
+
+        .glass-input:focus, .glass-select:focus {
+            background: rgba(255, 255, 255, 0.1); border-color: #a78bfa;
+            box-shadow: 0 0 0 0.25rem rgba(167, 139, 250, 0.25); color: white; outline: none;
+        }
+        
+        .glass-input::placeholder { color: rgba(255,255,255,0.5); }
+        
+        .glass-select option { background: var(--secondary-gradient); color: white; }
+
+        /* Progress Bar */
+        .progress-custom { background: rgba(255,255,255,0.1); border-radius: 20px; height: 10px; overflow: visible; }
+        .progress-bar-custom { background: var(--primary-gradient); border-radius: 20px; position: relative; }
+        .progress-bar-custom::after {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            border-radius: 20px; animation: shine 2s infinite;
+        }
+
+        @keyframes shine { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+        /* Container Fade In */
+        .main-container { flex-grow: 1; animation: fadeIn 0.8s ease-out; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Utility */
+        .text-gradient { background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'home' %}"><i class="fa-solid fa-graduation-cap me-2"></i>LMS</a>
+        <button class="navbar-toggler outline-none shadow-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <i class="fa-solid fa-bars text-white"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'home' %}">Home</a>
+                </li>
+                {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% if user.role == 'admin' %}{% url 'admin_panel' %}{% elif user.role == 'trainer' %}{% url 'trainer_dashboard' %}{% else %}{% url 'dashboard' %}{% endif %}">Dashboard</a>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <a class="btn btn-custom btn-sm" href="{% url 'logout' %}">Logout</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">Login</a>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <a class="btn btn-custom btn-sm" href="{% url 'signup' %}">Sign Up</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container main-container mt-5 mb-5">
+    {% block content %}
+    {% endblock %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

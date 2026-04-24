@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="fa-solid fa-shield-halved me-2 text-gradient"></i> Admin Panel</h2>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Stat Cards -->
+    <div class="col-md-4">
+        <div class="glass-card p-4 text-center">
+            <h1 class="display-4 fw-bold text-gradient mb-0">{{ users|length }}</h1>
+            <p class="text-muted fw-bold mt-2 mb-0 text-uppercase" style="letter-spacing: 1px;">Total Users</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="glass-card p-4 text-center">
+            <h1 class="display-4 fw-bold text-gradient mb-0">{{ courses|length }}</h1>
+            <p class="text-muted fw-bold mt-2 mb-0 text-uppercase" style="letter-spacing: 1px;">Total Courses</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="glass-card p-4 text-center">
+            <h1 class="display-4 fw-bold text-gradient mb-0">{{ enrollments|length }}</h1>
+            <p class="text-muted fw-bold mt-2 mb-0 text-uppercase" style="letter-spacing: 1px;">Enrollments</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Users Table -->
+    <div class="col-12">
+        <div class="glass-card p-4">
+            <h4 class="fw-bold mb-4"><i class="fa-solid fa-users text-primary me-2"></i> Platform Users</h4>
+            <div class="table-responsive">
+                <table class="table table-dark table-hover table-borderless align-middle" style="background: transparent;">
+                    <thead style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <tr>
+                            <th class="text-muted pb-3">Username</th>
+                            <th class="text-muted pb-3">Email</th>
+                            <th class="text-muted pb-3">Role</th>
+                            <th class="text-muted pb-3 text-end">Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users %}
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td class="py-3 fw-bold">{{ u.username }}</td>
+                            <td class="py-3 text-muted">{{ u.email }}</td>
+                            <td class="py-3">
+                                {% if u.role == 'admin' %}
+                                <span class="badge bg-danger rounded-pill px-3">Admin</span>
+                                {% elif u.role == 'trainer' %}
+                                <span class="badge bg-warning text-dark rounded-pill px-3">Trainer</span>
+                                {% else %}
+                                <span class="badge bg-success rounded-pill px-3">Student</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3 text-muted text-end">{{ u.date_joined|date:"M d, Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enrollments -->
+    <div class="col-12 mt-4">
+        <div class="glass-card p-4">
+            <h4 class="fw-bold mb-4"><i class="fa-solid fa-graduation-cap text-success me-2"></i> Recent Enrollments</h4>
+            <div class="table-responsive">
+                <table class="table table-dark table-hover table-borderless align-middle" style="background: transparent;">
+                    <thead style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <tr>
+                            <th class="text-muted pb-3">Student</th>
+                            <th class="text-muted pb-3">Course</th>
+                            <th class="text-muted pb-3">Trainer</th>
+                            <th class="text-muted pb-3">Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for e in enrollments %}
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td class="py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary rounded-circle d-flex text-white fw-bold align-items-center justify-content-center me-3" style="width: 35px; height: 35px; font-size: 0.9rem;">
+                                        {{ e.student.username|make_list|first|upper }}
+                                    </div>
+                                    {{ e.student.username }}
+                                </div>
+                            </td>
+                            <td class="py-3 fw-bold">{{ e.course.title }}</td>
+                            <td class="py-3 text-muted">{{ e.course.trainer.username }}</td>
+                            <td class="py-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress flex-grow-1" style="height: 6px; background: rgba(255,255,255,0.1);">
+                                        <div class="progress-bar bg-success" style="width: {{ e.progress }}%"></div>
+                                    </div>
+                                    <span class="small fw-bold">{{ e.progress }}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted">No enrollments yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

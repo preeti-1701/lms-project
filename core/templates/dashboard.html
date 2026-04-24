@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="fa-solid fa-layer-group me-2 text-gradient"></i> My Learning</h2>
+</div>
+
+<div class="row g-4">
+    {% for enroll in enrollments %}
+    <div class="col-md-4">
+        <a href="{% url 'course_detail' enroll.course.id %}" class="text-decoration-none text-white">
+            <div class="glass-card h-100 p-4 d-flex flex-column">
+                <h4 class="fw-bold mb-3">{{ enroll.course.title }}</h4>
+                <p class="text-muted small mb-4 flex-grow-1">{{ enroll.course.description|default:"No description provided."|truncatechars:100 }}</p>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between text-muted small mb-1">
+                        <span>Progress</span>
+                        <span>{{ enroll.progress }}%</span>
+                    </div>
+                    <div class="progress progress-custom">
+                        <div class="progress-bar progress-bar-custom" style="width: {{ enroll.progress }}%"></div>
+                    </div>
+                </div>
+
+                {% if enroll.progress == 0 %}
+                    <span class="badge bg-secondary opacity-75 align-self-start">Not Started</span>
+                {% elif enroll.progress >= 50 and enroll.progress < 100 %}
+                    <span class="badge bg-primary align-self-start">Certificate Available!</span>
+                {% elif enroll.progress == 100 %}
+                    <span class="badge bg-success align-self-start"><i class="fa-solid fa-check-circle me-1"></i> Completed</span>
+                {% else %}
+                    <span class="badge bg-info align-self-start text-dark">In Progress</span>
+                {% endif %}
+            </div>
+        </a>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5 glass-card">
+        <h4 class="text-muted mb-0">You are not enrolled in any courses yet.</h4>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
