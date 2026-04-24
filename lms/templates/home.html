@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>📚 LMS Courses</h1>
+
+<hr>
+
+{% for course in courses %}
+    <div style="
+        border:1px solid #ddd;
+        padding:15px;
+        margin-bottom:15px;
+        border-radius:10px;
+        box-shadow:2px 2px 8px #eee;
+    ">
+
+        <h2>{{ course.title }}</h2>
+        <p>{{ course.description }}</p>
+
+        {% if user.is_authenticated %}
+
+            {% if user.role == 'student' %}
+                <a href="{% url 'course_detail' course.id %}"
+                   style="padding:8px 12px; background:blue; color:white; text-decoration:none; border-radius:5px;">
+                    ▶ Start Learning
+                </a>
+            {% elif user.role == 'trainer' %}
+                <a href="{% url 'trainer_dashboard' %}"
+                   style="padding:8px 12px; background:orange; color:white; text-decoration:none; border-radius:5px;">
+                    Manage Course
+                </a>
+            {% else %}
+                <a href="{% url 'course_detail' course.id %}"
+                   style="padding:8px 12px; background:green; color:white; text-decoration:none; border-radius:5px;">
+                    View Course
+                </a>
+            {% endif %}
+
+        {% else %}
+            <a href="{% url 'course_detail' course.id %}"
+               style="padding:8px 12px; background:gray; color:white; text-decoration:none; border-radius:5px;">
+                View Course
+            </a>
+        {% endif %}
+
+    </div>
+
+{% empty %}
+    <p>No courses available</p>
+{% endfor %}
+
+{% endblock %}

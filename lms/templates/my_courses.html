@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>🎓 My Courses</h1>
+
+{% for e in enrollments %}
+    <div style="border:1px solid #ccc; padding:10px; margin:10px;">
+        <h3>{{ e.course.title }}</h3>
+        <p>{{ e.course.description }}</p>
+
+        <a href="{% url 'course_detail' e.course.id %}">▶ View Course</a>
+    </div>
+{% empty %}
+    <p>❌ You are not enrolled in any courses</p>
+{% endfor %}
+
+{% endblock %}

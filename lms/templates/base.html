@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LMS</title>
+</head>
+
+<body>
+
+<nav style="background:#222; padding:10px; color:white; display:flex; justify-content:space-between;">
+
+    <div>
+        <a href="{% url 'home' %}" style="color:white;">🏠 Home</a>
+
+        {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" style="color:white; margin-left:10px;">📊 Dashboard</a>
+        {% endif %}
+    </div>
+
+    <div>
+
+        {% if user.is_authenticated %}
+
+            👋 Welcome to LMS, <b>{{ user.username }}</b>
+
+            {% if user.role == 'trainer' %}
+                <a href="{% url 'trainer_dashboard' %}" style="color:yellow;"> 🧑‍🏫 Trainer </a>
+            {% endif %}
+
+            {% if user.role == 'student' %}
+                <a href="{% url 'my_courses' %}" style="color:lightgreen;"> 🎓 My Courses </a>
+            {% endif %}
+
+            <a href="{% url 'logout' %}" style="color:white;"> 🚪 Logout </a>
+
+        {% else %}
+            <a href="{% url 'login' %}" style="color:white;">Login</a>
+        {% endif %}
+
+    </div>
+
+</nav>
+
+<hr>
+
+{% block content %}
+{% endblock %}
+
+</body>
+</html>

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>🎓 Student Dashboard</h1>
+
+<h2>👋 Welcome, {{ user.username }}</h2>
+
+<hr>
+
+<!-- 📊 STATS -->
+<div style="display:flex; gap:20px; flex-wrap:wrap;">
+
+    <div style="border:1px solid #ccc; padding:15px; border-radius:8px; min-width:200px;">
+        <h3>📚 Enrolled Courses</h3>
+        <p style="font-size:20px;">{{ total_courses }}</p>
+    </div>
+
+</div>
+
+<hr>
+
+<!-- 📖 COURSE LIST -->
+<h2>📖 Your Courses</h2>
+
+{% for item in course_data %}
+    <div style="border:1px solid #ddd; padding:15px; margin:10px 0; border-radius:10px;">
+
+        <h3>{{ item.course.title }}</h3>
+        <p>{{ item.course.description }}</p>
+
+        <!-- 🔥 PROGRESS BAR -->
+        <div style="width:100%; background:#eee; border-radius:20px; height:20px; overflow:hidden;">
+            <div style="
+                width: {{ item.progress }}%;
+                background:green;
+                height:20px;
+                text-align:center;
+                color:white;
+                font-size:12px;
+                line-height:20px;
+            ">
+                {{ item.progress }}%
+            </div>
+        </div>
+
+        <br>
+
+        <a href="{% url 'course_detail' item.course.id %}" style="color:blue;">
+            ▶ Continue Learning
+        </a>
+
+    </div>
+
+{% empty %}
+    <p>❌ No courses enrolled yet</p>
+{% endfor %}
+
+{% endblock %}

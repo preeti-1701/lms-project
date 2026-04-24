@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    body {
+        background: #f6f7fb;
+    }
+
+    .container {
+        max-width: 1100px;
+        margin: auto;
+        padding: 20px;
+        font-family: Arial, sans-serif;
+    }
+
+    /* HEADER */
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+
+    .header h1 {
+        font-size: 26px;
+        margin: 0;
+    }
+
+    .btn-primary {
+        background: #4f46e5;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .btn-primary:hover {
+        background: #3730a3;
+    }
+
+    /* STATS */
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        text-align: center;
+    }
+
+    .stat-card h3 {
+        margin: 0;
+        font-size: 14px;
+        color: #666;
+    }
+
+    .stat-card p {
+        font-size: 22px;
+        font-weight: bold;
+        margin-top: 8px;
+    }
+
+    /* COURSE GRID */
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 15px;
+    }
+
+    .card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 6px 15px rgba(0,0,0,0.06);
+        transition: 0.3s;
+        border: 1px solid #eee;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    .title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .desc {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 15px;
+    }
+
+    .actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .manage {
+        background: #10b981;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 13px;
+    }
+
+    .manage:hover {
+        background: #059669;
+    }
+
+    .empty {
+        text-align: center;
+        color: #777;
+        margin-top: 40px;
+    }
+</style>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="header">
+        <h1>🧑‍🏫 Trainer Dashboard</h1>
+        <a class="btn-primary" href="{% url 'create_course' %}">➕ Create Course</a>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats">
+        <div class="stat-card">
+            <h3>Total Courses</h3>
+            <p>{{ courses|length }}</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Active Courses</h3>
+            <p>{{ courses|length }}</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Total Students</h3>
+            <p>--</p>
+        </div>
+    </div>
+
+    <!-- COURSES -->
+    <h2>📚 Your Courses</h2>
+
+    <div class="grid">
+
+        {% for course in courses %}
+        <div class="card">
+
+            <div class="title">{{ course.title }}</div>
+            <div class="desc">{{ course.description }}</div>
+
+            <div class="actions">
+                <a class="manage" href="#">
+                    ⚙ Manage
+                </a>
+
+                <small style="color:#888;">
+                    ID: {{ course.id }}
+                </small>
+            </div>
+
+        </div>
+        {% empty %}
+            <p class="empty">No courses created yet</p>
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}
