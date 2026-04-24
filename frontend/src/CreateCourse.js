@@ -3,6 +3,10 @@ import api from './api';
 
 function CreateCourse() {
     const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [category, setCategory] = useState('');
+    const [level, setLevel] = useState('');
+    const [duration, setDuration] = useState('');
 
     const handleCreate = async () => {
         // ✅ validation
@@ -13,7 +17,11 @@ function CreateCourse() {
 
         try {
             const response = await api.post('/api/create-course/', {   // ✅ FIXED
-                title
+                title,
+                description,
+                category,
+                level,
+                duration
             });
 
             alert(response.data.message);
@@ -30,7 +38,7 @@ function CreateCourse() {
     return (
         <div tyle={{
             padding: "20px",
-            maxWidth: "500px",
+            maxWidth: "100px",
             margin: "auto",
             border: "1px solid #ddd",
             borderRadius: "10px",
@@ -44,6 +52,58 @@ function CreateCourse() {
                 onChange={(e) => setTitle(e.target.value)}
             />
 
+            <br /><br />
+
+            <textarea
+                placeholder="Course Description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+            />
+
+            <br /><br />
+
+            <select
+                value={category}
+                onChange={(e) => setCategory(
+                    e.target.value
+                )}
+            >
+                <option value="">Select Category</option>
+                <option>Programming</option>
+                <option>Web Development</option>
+                <option>Data Science</option>
+                <option>Computer Networks</option>
+            </select>
+
+            <br /><br />
+
+            <select
+                value={level}
+                onChange={(e) => setLevel(
+                    e.target.value
+                )}
+            >
+
+                <option value="">Select Level</option>
+                <option>Beginner</option>
+                <option>Intermediate</option>
+                <option>Advanced</option>
+
+            </select>
+
+            <br /><br />
+
+            <input
+                placeholder="Duration (e.g 8 Weeks)"
+                value={duration}
+                onChange={(e) => setDuration(
+                    e.target.value
+                )}
+            />
+
+            <br /><br />
+
+
             <button
                 onClick={handleCreate}
                 style={{
@@ -56,7 +116,7 @@ function CreateCourse() {
                     cursor: "pointer"
                 }}
             >
-                Create
+                Create Course
             </button>
         </div>
     );

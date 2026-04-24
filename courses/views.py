@@ -2,12 +2,13 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .models import Course
+from .models import Course, VideoProgress
 from .models import Video, Course
 from .models import Enrollment, User
 from django.contrib.auth import get_user_model
-User = get_user_model()
 from accounts.utils import validate_session
+User = get_user_model()
+from django.utils import timezone
 
 
 @api_view(['POST'])
@@ -22,16 +23,25 @@ def create_course(request):
         return Response({'error': 'Unauthorized'}, status=403)
 
     title = request.data.get('title')
+    description = request.data.get('description')
+    category = request.data.get('category')
+    level = request.data.get('level')
+    duration = request.data.get('duration')
+
 
     if not title:
         return Response({'error': 'Title required'}, status=400)
 
     course = Course.objects.create(
         title=title,
+        description=description,
+        category=category,
+        level=level,
+        duration=duration,
         created_by=request.user
     )
 
-    return Response({'message': 'Course created'})
+    return Response({'message': 'Course created successfully'})
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -138,33 +148,77 @@ def enroll_student(request):
 @permission_classes([IsAuthenticated])
 def student_courses(request):
 
+    # 🔐 Validate active session
     session_check = validate_session(request)
     if session_check:
         return session_check
 
+    # Only students allowed
     if request.user.role != 'student':
-        return Response({'error': 'Unauthorized'}, status=403)
+        return Response(
+            {'error':'Unauthorized'},
+            status=403
+        )
 
-    enrollments = Enrollment.objects.filter(student=request.user)
+    enrollments = Enrollment.objects.filter(
+        student=request.user
+    )
 
-    data = []
+    data=[]
 
     for enroll in enrollments:
         course = enroll.course
-        videos = Video.objects.filter(course=course)
+        videos = Video.objects.filter(
+            course=course
+        )
+
+        # 🔥 Progress calculation
+        total_videos = videos.count()
+
+        completed_videos = VideoProgress.objects.filter(
+            student=request.user,
+            video__course=course,
+            completed=True
+        ).count()
+
+        progress = 0
+
+        if total_videos > 0:
+            progress = round(
+               (completed_videos / total_videos) * 100
+            )
 
         data.append({
             'course': course.title,
+            # optional metadata
+            'description': course.description,
+            'category': course.category,
+            'level': course.level,
+            'duration': course.duration,
+            # progress %
+            'progress': progress,
+
             'videos': [
                 {
+                    'id': v.id,
                     'title': v.title,
                     'description': v.description,
-                    'link': v.youtube_link
-                } for v in videos
+                    'link': v.youtube_link,
+
+                    # whether this video completed
+                    'completed':
+                    VideoProgress.objects.filter(
+                       student=request.user,
+                       video=v,
+                       completed=True
+                    ).exists()
+                }
+                for v in videos
             ]
         })
 
     return Response(data)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -176,3 +230,24 @@ def list_courses(request):
     
     courses = Course.objects.all().values('id', 'title')
     return Response(list(courses))
+
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def mark_video_complete(request):
+    video_id=request.data.get('video_id')
+    video=Video.objects.get(id=video_id)
+
+    progress,created = VideoProgress.objects.get_or_create(
+       student=request.user,
+       video=video
+    )
+
+    progress.completed=True
+    progress.completed_at=timezone.now()
+    progress.save()
+
+    return Response({
+      'message':'Completed'
+    })

@@ -30,6 +30,8 @@ def create_user(request):
     if request.user.role != 'admin':
         return Response({'error': 'Unauthorized'}, status=403)
     
+    first_name = request.data.get('first_name')
+    last_name = request.data.get('last_name')
     username = request.data.get('username')
     password = request.data.get('password')
     role = request.data.get('role')
@@ -39,6 +41,10 @@ def create_user(request):
         password=password,
         role=role
     )
+
+    user.first_name = first_name
+    user.last_name = last_name
+    user.save()
 
     return Response({'message': 'User created successfully'},)
 
@@ -143,3 +149,155 @@ def force_logout(request):
         'message': 'User logged out',
         'affected_sessions': updated
     })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def disable_user(request):
+
+    # 🔐 validate active session
+    session_check = validate_session(request)
+    if session_check:
+        return session_check
+
+    # 👮 admin only
+    if request.user.role != 'admin':
+        return Response(
+            {'error':'Unauthorized'},
+            status=403
+        )
+
+    user_id = request.data.get('user_id')
+
+    if not user_id:
+        return Response(
+            {'error':'user_id required'},
+            status=400
+        )
+
+    try:
+        user = User.objects.get(id=int(user_id))
+
+    except User.DoesNotExist:
+        return Response(
+            {'error':'User not found'},
+            status=404
+        )
+
+    # optional safety: don't disable self
+    if user == request.user:
+        return Response(
+            {'error':'Admin cannot disable self'},
+            status=400
+        )
+
+    # 🔥 Disable user
+    user.is_active = False
+    user.save()
+
+    return Response({
+        'message':'User disabled successfully'
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def enable_user(request):
+
+    session_check = validate_session(request)
+    if session_check:
+        return session_check
+
+    if request.user.role != 'admin':
+        return Response(
+            {'error':'Unauthorized'},
+            status=403
+        )
+
+    user_id = request.data.get('user_id')
+
+    try:
+        user = User.objects.get(id=user_id)
+
+    except User.DoesNotExist:
+        return Response(
+          {'error':'User not found'},
+          status=404
+        )
+
+    user.is_active = True
+    user.save()
+
+    return Response({
+       'message':'User enabled successfully'
+    })
+
+# ✅ NEW: Edit user details (Admin only)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def edit_user(request):
+
+    session_check = validate_session(request)
+    if session_check:
+        return session_check
+
+    if request.user.role != 'admin':
+        return Response(
+            {'error':'Unauthorized'},
+            status=403
+        )
+
+    user_id = request.data.get('user_id')
+
+    try:
+        user = User.objects.get(
+           id=int(user_id)
+        )
+
+    except User.DoesNotExist:
+        return Response(
+          {'error':'User not found'},
+          status=404
+        )
+
+
+    first_name = request.data.get('first_name')
+    last_name = request.data.get('last_name')
+    role = request.data.get('role')
+
+    if first_name:
+        user.first_name = first_name
+
+    if last_name:
+        user.last_name = last_name
+
+    if role:
+        user.role = role
+
+    user.save()
+
+    return Response({
+      'message':'User updated successfully'
+    })
+
+# ✅ NEW: List active sessions (Admin only)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def active_sessions(request):
+
+ if request.user.role!='admin':
+   return Response(
+    {'error':'Unauthorized'},
+    status=403
+   )
+
+ sessions=UserSession.objects.filter(
+   is_active=True
+ ).values(
+ 'user__username',
+ 'ip_address',
+ 'device_info',
+ 'login_time'
+ )
+
+ return Response(list(sessions))

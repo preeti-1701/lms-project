@@ -5,6 +5,10 @@ User = settings.AUTH_USER_MODEL
 
 class Course(models.Model):
     title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    category = models.CharField(max_length=100, blank=True)
+    level = models.CharField(max_length=50, blank=True)
+    duration = models.CharField(max_length=50, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -27,3 +31,10 @@ class Enrollment(models.Model):
 
     def __str__(self):
         return f"{self.student} enrolled in {self.course}"
+    
+
+class VideoProgress(models.Model):
+    student = models.ForeignKey(User, on_delete=models.CASCADE)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE)
+    completed = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(null=True, blank=True)

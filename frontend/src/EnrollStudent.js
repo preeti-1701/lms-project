@@ -59,6 +59,57 @@ function EnrollStudent() {
     }
   };
 
+  const handleDisableUser = async (userId) => {
+    try {
+      await api.post(
+        '/api/disable-user/',
+        { user_id: userId }
+      );
+
+      alert("User disabled");
+
+    } catch (error) {
+      console.error(error.response);
+      alert("Error disabling user");
+    }
+  };
+
+  const handleEnableUser = async (userId) => {
+    try {
+      await api.post(
+        '/api/enable-user/',
+        { user_id: userId }
+      );
+
+      alert("User enabled");
+
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleEditUser = async (userId) => {
+
+    const firstName = prompt("Enter new first name:");
+    const lastName = prompt("Enter new last name:");
+
+    try {
+      await api.post(
+        '/api/edit-user/',
+        {
+          user_id: userId,
+          first_name: firstName,
+          last_name: lastName
+        }
+      );
+
+      alert("User updated");
+
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <div style={{
       padding: "20px",
@@ -146,7 +197,45 @@ function EnrollStudent() {
           >
             Force Logout
           </button>
-            
+
+          {/* Disable User */}
+          <button
+            onClick={() => handleDisableUser(s.id)}
+            style={{
+              marginLeft: "10px",
+              background: "orange",
+              color: "white",
+              border: "none",
+              padding: "8px"
+            }}
+          >
+            Disable User
+          </button>
+
+          {/* Enable User */}
+          <button
+            onClick={() => handleEnableUser(s.id)}
+            style={{
+              background: "green",
+              color: "white",
+              marginLeft: "10px"
+            }}
+          >
+            Enable User
+          </button>
+
+            {/* Edit User */}
+          <button
+            onClick={() => handleEditUser(s.id)}
+            style={{
+              marginLeft: "10px",
+              background: "blue",
+              color: "white"
+            }}
+          >
+            Edit User
+          </button>
+
         </div>
       ))}
     </div>
