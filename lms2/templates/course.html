@@ -1,0 +1,15 @@
+<h2>Courses</h2>
+
+<form method="POST">
+    <input name="name" placeholder="Course Name">
+    <button>Add Course</button>
+</form>
+
+<hr>
+
+{% for course in courses %}
+<p>
+    {{ course.name }}
+    <a href="/add_video/{{ course.id }}">Add Video</a>
+</p>
+{% endfor %}
