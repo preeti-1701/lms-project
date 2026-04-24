@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="row justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="col-md-6 col-lg-5 text-center">
+        <div class="mb-4">
+            <div class="display-4 fw-bold text-dark mb-2">Welcome to LMS</div>
+            <p class="lead text-muted">A secure, streamlined platform for modern learning and course management.</p>
+        </div>
+
+        <div class="card border-0 shadow-sm p-4 bg-white">
+            <div class="d-grid gap-3">
+                <a href="{% url 'login' %}" class="btn btn-primary btn-lg shadow-sm">
+                    Sign In to Your Account
+                </a>
+                <div class="d-flex align-items-center my-2">
+                    <hr class="flex-grow-1">
+                    <span class="mx-2 text-muted small">OR</span>
+                    <hr class="flex-grow-1">
+                </div>
+                <a href="{% url 'register' %}" class="btn btn-outline-success btn-lg">
+                    Create New Account
+                </a>
+            </div>
+            
+            <p class="mt-4 mb-0 text-muted small">
+                Join our community of trainers and students today.
+            </p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

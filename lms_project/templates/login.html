@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5 col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <h3 class="fw-bold">Login</h3>
+                    <p class="text-muted small">Access your LMS dashboard</p>
+                </div>
+
+                {% if error %}
+                <div class="alert alert-danger py-2 small">{{error}}</div>
+
+                {% endif %}
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Email Address</label>
+                        <input type="email" name="email" class="form-control" placeholder="name@example.com" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Password</label>
+                        <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary py-2 fw-bold">Sign In</button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-4">
+                    <p class="mb-0 text-muted small">
+                        Don't have an account? 
+                        <a href="{% url 'register' %}" class="text-decoration-none fw-bold">Create one</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

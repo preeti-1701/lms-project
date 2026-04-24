@@ -1,0 +1,29 @@
+body {
+    font-family: Arial;
+    background: #f4f4f4;
+}
+
+nav {
+    background: #333;
+    color: white;
+    padding: 10px;
+}
+
+.container {
+    padding: 20px;
+}
+
+button {
+    padding: 8px 12px;
+    background: #007bff;
+    color: white;
+    border: none;
+}
+
+.watermark {
+    position:fixed;
+    opacity: 0.2;
+    font-size: 30px;
+    top: 50%;
+    left: 40%;
+}
