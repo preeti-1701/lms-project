@@ -1,182 +1,231 @@
-import React, { createContext, useState, useCallback } from 'react';
+import React, { createContext, useState, useCallback, useEffect } from 'react';
+import {
+  apiLogin, apiLogout, apiMe,
+  apiRegisterStudent, apiRegisterTrainer,
+  apiGetCourses,
+  apiCreateCourse, apiUpdateCourse, apiDeleteCourse,
+  apiAddVideo, apiDeleteVideo,
+  apiGetEnrollments, apiEnroll, apiUnenroll,
+  apiGetProgress, apiMarkWatched,
+  apiGetAllUsers, apiCreateUser, apiToggleUserStatus, apiAssignCourses,
+  apiGetAuditLog,
+} from '../api';
 
 const AppContext = createContext(null);
 
-// ── helpers ──────────────────────────────────────────────────────────────────
-const load = (key, fallback) => {
-  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
-  catch { return fallback; }
-};
-const save = (key, val) => localStorage.setItem(key, JSON.stringify(val));
-
-const genId = () => Math.random().toString(36).substr(2, 9).toUpperCase();
-const now = () => new Date().toISOString();
-const fmtDate = (iso) => new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-const fmtDateTime = (iso) => new Date(iso).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-
-const SEED_USERS = [
-  { id:'USR001', name:'Aarav Sharma', email:'student@eduverse.com', mobile:'9876543210', password:'Student@123', role:'student', status:'active', joined: now(), lastLogin: now(), interests:['web','ai'], assignedCourses:['CRS001','CRS002'] },
-  { id:'USR002', name:'Priya Mehta', email:'trainer@eduverse.com', mobile:'9123456780', password:'Trainer@123', role:'trainer', status:'active', joined: now(), lastLogin: now(), subject:'Python & Data Science', bio:'Experienced Python developer.', assignedCourses:[] },
-  { id:'ADM001', name:'System Admin', email:'admin@eduverse.com', mobile:'9000000001', password:'Admin@123', role:'admin', status:'active', joined: now(), lastLogin: now(), assignedCourses:[] },
-];
-const SEED_COURSES = [
-  { id:'CRS001', title:'Python Fundamentals', description:'Learn Python from scratch.', category:'Data Science', icon:'🐍', trainerId:'USR002', trainerName:'Priya Mehta', created: now(), videos:[
-    { id:'VID001', title:'Introduction to Python', url:'https://www.youtube.com/watch?v=rfscVS0vtbw', duration:'4:26:52' },
-    { id:'VID002', title:'Python Data Types', url:'https://www.youtube.com/watch?v=gfDE2a7MKjA', duration:'15:42' },
-    { id:'VID003', title:'Control Flow', url:'https://www.youtube.com/watch?v=NE97ylAnrz4', duration:'22:10' },
-  ]},
-  { id:'CRS002', title:'React JS Masterclass', description:'Build modern web apps with React.', category:'Web Development', icon:'⚛️', trainerId:'USR002', trainerName:'Priya Mehta', created: now(), videos:[
-    { id:'VID004', title:'React Basics', url:'https://www.youtube.com/watch?v=Tn6-PIqc4UM', duration:'1:07:35' },
-    { id:'VID005', title:'Hooks Deep Dive', url:'https://www.youtube.com/watch?v=O6P86uwfdR0', duration:'35:20' },
-  ]},
-];
+// ── tiny helpers (kept for UI formatting) ─────────────────────────────────────
+const fmtDate     = (iso) => new Date(iso).toLocaleDateString('en-IN',  { day:'2-digit', month:'short', year:'numeric' });
+const fmtDateTime = (iso) => new Date(iso).toLocaleString('en-IN',      { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
 
 function getYouTubeId(url) {
   if (!url) return null;
-  const match = url.match(/(?:v=|youtu\.be\/|\/embed\/)([A-Za-z0-9_-]{11})/);
-  return match ? match[1] : null;
+  const m = url.match(/(?:v=|youtu\.be\/|\/embed\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
 }
 
-// ── Provider ──────────────────────────────────────────────────────────────────
+// ── Provider ───────────────────────────────────────────────────────────────────
 export function AppProvider({ children }) {
-  const [users, setUsersRaw] = useState(() => load('lms_users', SEED_USERS));
-  const [courses, setCoursesRaw] = useState(() => load('lms_courses', SEED_COURSES));
-  const [sessions, setSessionsRaw] = useState(() => load('lms_sessions', []));
-  const [auditLog, setAuditRaw] = useState(() => load('lms_audit', []));
-  const [currentUser, setCurrentUserRaw] = useState(() => load('lms_current_user', null));
-  const [toast, setToast] = useState({ msg: '', type: '', show: false });
+  const [currentUser, setCurrentUser]   = useState(null);
+  const [users,       setUsers]         = useState([]);
+  const [courses,     setCourses]       = useState([]);
+  const [enrollments, setEnrollments]   = useState([]);   // student's enrolled courses
+  const [auditLog,    setAuditLog]      = useState([]);
+  const [progress,    setProgress]      = useState({});   // { courseId: { progress, watched, total } }
+  const [loading,     setLoading]       = useState(true);
+  const [toast,       setToast]         = useState({ msg:'', type:'', show: false });
 
-  const setUsers = useCallback((v) => { const val = typeof v === 'function' ? v(load('lms_users', SEED_USERS)) : v; save('lms_users', val); setUsersRaw(val); }, []);
-  const setCourses = useCallback((v) => { const val = typeof v === 'function' ? v(load('lms_courses', SEED_COURSES)) : v; save('lms_courses', val); setCoursesRaw(val); }, []);
-  const setSessions = useCallback((v) => { const val = typeof v === 'function' ? v(load('lms_sessions', [])) : v; save('lms_sessions', val); setSessionsRaw(val); }, []);
-  const setAudit = useCallback((v) => { const val = typeof v === 'function' ? v(load('lms_audit', [])) : v; save('lms_audit', val); setAuditRaw(val); }, []);
-  const setCurrentUser = useCallback((user) => { save('lms_current_user', user); setCurrentUserRaw(user); }, []);
-
+  // ── Toast ──────────────────────────────────────────────────────────────────
   const showToast = useCallback((msg, type = 'success') => {
     setToast({ msg, type, show: true });
     setTimeout(() => setToast(t => ({ ...t, show: false })), 3500);
   }, []);
 
-  // ── Auth ──
-  const login = useCallback((identifier, password, role) => {
-    const user = users.find(u => {
-      const matchId = role === 'admin' ? u.id === identifier : (u.email === identifier || u.mobile === identifier);
-      return matchId && u.password === password && u.role === role && u.status === 'active';
+  // ── Bootstrap: restore session from stored token ───────────────────────────
+  useEffect(() => {
+    const token = localStorage.getItem('lms_token');
+    if (!token) { setLoading(false); return; }
+
+    apiMe().then(res => {
+      if (res.ok) {
+        setCurrentUser(res.data);
+        loadRoleData(res.data);
+      } else {
+        localStorage.removeItem('lms_token');
+      }
+      setLoading(false);
     });
-    if (!user) return { ok: false, msg: 'Invalid credentials. Please try again.' };
-    const session = { id: genId(), userId: user.id, name: user.name, role: user.role, ip: '192.168.' + Math.floor(Math.random()*255) + '.' + Math.floor(Math.random()*255), device: navigator.userAgent.includes('Mac') ? 'Mac / Chrome' : 'Windows / Chrome', loginTime: now() };
-    setSessions(s => [session, ...s]);
-    setAudit(a => [{ id: genId(), userId: user.id, name: user.name, action: 'LOGIN', timestamp: now(), ip: session.ip, details: `Role: ${role}` }, ...a]);
-    setUsers(u => u.map(x => x.id === user.id ? { ...x, lastLogin: now() } : x));
-    const cu = { ...user, sessionId: session.id };
-    setCurrentUser(cu);
-    return { ok: true, user: cu };
-  }, [users, setSessions, setAudit, setUsers, setCurrentUser]);
+  }, []); // eslint-disable-line
 
-  const logout = useCallback(() => {
-    if (!currentUser) return;
-    setAudit(a => [{ id: genId(), userId: currentUser.id, name: currentUser.name, action: 'LOGOUT', timestamp: now(), ip: '—', details: 'User logged out' }, ...a]);
-    setSessions(s => s.filter(x => x.id !== currentUser.sessionId));
+  // ── Load shared courses ────────────────────────────────────────────────────
+  useEffect(() => {
+    apiGetCourses().then(res => {
+      if (res.ok) setCourses(res.data);
+    });
+  }, []);
+
+  // ── Load role-specific data after login ────────────────────────────────────
+  async function loadRoleData(user) {
+    if (!user) return;
+    if (user.role === 'student') {
+      const [enrollRes] = await Promise.all([apiGetEnrollments()]);
+      if (enrollRes.ok) setEnrollments(enrollRes.data);
+    }
+    if (user.role === 'admin') {
+      const [usersRes, auditRes] = await Promise.all([apiGetAllUsers(), apiGetAuditLog()]);
+      if (usersRes.ok) setUsers(usersRes.data);
+      if (auditRes.ok) setAuditLog(auditRes.data);
+    }
+  }
+
+  // ── Auth ───────────────────────────────────────────────────────────────────
+  const login = useCallback(async (identifier, password, role) => {
+    const res = await apiLogin(identifier, password, role);
+    if (!res.ok) return { ok: false, msg: res.msg };
+    localStorage.setItem('lms_token', res.data.token);
+    const user = res.data.user;
+    setCurrentUser(user);
+    // Refresh global courses after login
+    const coursesRes = await apiGetCourses();
+    if (coursesRes.ok) setCourses(coursesRes.data);
+    await loadRoleData(user);
+    return { ok: true, user };
+  }, []);
+
+  const logout = useCallback(async () => {
+    await apiLogout();
+    localStorage.removeItem('lms_token');
     setCurrentUser(null);
-  }, [currentUser, setAudit, setSessions, setCurrentUser]);
+    setUsers([]);
+    setEnrollments([]);
+    setAuditLog([]);
+    setProgress({});
+  }, []);
 
-  const registerStudent = useCallback((data) => {
-    if (users.find(u => u.email === data.email)) return { ok: false, msg: 'Email already registered.' };
-    const newUser = { id: 'USR' + genId(), name: data.name, email: data.email, mobile: data.mobile, password: data.password, role: 'student', status: 'active', joined: now(), lastLogin: null, interests: data.interests || [], assignedCourses: [] };
-    setUsers(u => [...u, newUser]);
+  const registerStudent = useCallback(async (data) => {
+    const res = await apiRegisterStudent(data);
+    if (!res.ok) return { ok: false, msg: res.msg };
     showToast('Account created! Please sign in.', 'success');
     return { ok: true };
-  }, [users, setUsers, showToast]);
+  }, [showToast]);
 
-  const registerTeacher = useCallback((data) => {
-    if (users.find(u => u.email === data.email)) return { ok: false, msg: 'Email already registered.' };
-    const newUser = { id: 'USR' + genId(), name: data.firstName + ' ' + data.lastName, email: data.email, mobile: data.phone, password: data.password, role: 'trainer', status: 'active', joined: now(), lastLogin: null, subject: data.subject, qualification: data.qualification, experience: data.experience, bio: data.bio, assignedCourses: [] };
-    setUsers(u => [...u, newUser]);
-    showToast('Application submitted! Await verification email.', 'success');
+  const registerTeacher = useCallback(async (data) => {
+    const res = await apiRegisterTrainer(data);
+    if (!res.ok) return { ok: false, msg: res.msg };
+    showToast('Application submitted! Await verification.', 'success');
     return { ok: true };
-  }, [users, setUsers, showToast]);
+  }, [showToast]);
 
-  // ── Progress ──
+  // ── Progress ───────────────────────────────────────────────────────────────
+  const getCourseProgress = useCallback(async (userId, courseId) => {
+    // userId kept for API signature compatibility with existing components
+    if (progress[courseId] !== undefined) return progress[courseId].progress ?? 0;
+    const res = await apiGetProgress(courseId);
+    if (!res.ok) return 0;
+    setProgress(p => ({ ...p, [courseId]: res.data }));
+    return res.data.progress ?? 0;
+  }, [progress]);
+
+  const markVideoWatched = useCallback(async (userId, courseId, videoId) => {
+    const res = await apiMarkWatched(videoId);
+    if (res.ok) {
+      // Refresh progress for this course
+      const pres = await apiGetProgress(courseId);
+      if (pres.ok) setProgress(p => ({ ...p, [courseId]: pres.data }));
+    }
+  }, []);
+
+  // Synchronous version for VideoPlayer (falls back to cached value)
   const getProgress = useCallback((userId) => {
-    return load('lms_progress_' + userId, {});
-  }, []);
+    // Returns the cached progress map
+    return Object.fromEntries(
+      Object.entries(progress).map(([cid, v]) => [cid, v])
+    );
+  }, [progress]);
 
-  const markVideoWatched = useCallback((userId, courseId, videoId) => {
-    const prog = load('lms_progress_' + userId, {});
-    if (!prog[courseId]) prog[courseId] = {};
-    prog[courseId][videoId] = true;
-    save('lms_progress_' + userId, prog);
-  }, []);
-
-  const getCourseProgress = useCallback((userId, courseId) => {
-    const prog = load('lms_progress_' + userId, {});
-    const course = courses.find(c => c.id === courseId);
-    if (!course || !course.videos.length) return 0;
-    const watched = prog[courseId] ? Object.keys(prog[courseId]).length : 0;
-    return Math.round((watched / course.videos.length) * 100);
-  }, [courses]);
-
-  // ── Courses ──
-  const createCourse = useCallback((trainerId, trainerName, data) => {
-    const course = { id: 'CRS' + genId(), trainerId, trainerName, title: data.title, description: data.description, category: data.category, icon: data.icon || '📚', created: now(), videos: [] };
-    setCourses(c => [...c, course]);
+  // ── Courses ────────────────────────────────────────────────────────────────
+  const createCourse = useCallback(async (trainerId, trainerName, data) => {
+    const res = await apiCreateCourse(data);
+    if (!res.ok) { showToast(res.msg, 'error'); return null; }
+    const refreshed = await apiGetCourses();
+    if (refreshed.ok) setCourses(refreshed.data);
     showToast('Course created!', 'success');
-    return course;
-  }, [setCourses, showToast]);
+    return res.data;
+  }, [showToast]);
 
-  const addVideo = useCallback((courseId, data) => {
-    setCourses(c => c.map(course => course.id === courseId ? { ...course, videos: [...course.videos, { id: 'VID' + genId(), title: data.title, url: data.url, duration: data.duration || '—' }] } : course));
+  const addVideo = useCallback(async (courseId, data) => {
+    const res = await apiAddVideo(courseId, data);
+    if (!res.ok) { showToast(res.msg, 'error'); return; }
+    const refreshed = await apiGetCourses();
+    if (refreshed.ok) setCourses(refreshed.data);
     showToast('Video added!', 'success');
-  }, [setCourses, showToast]);
+  }, [showToast]);
 
-  const deleteVideo = useCallback((courseId, videoId) => {
-    setCourses(c => c.map(course => course.id === courseId ? { ...course, videos: course.videos.filter(v => v.id !== videoId) } : course));
-  }, [setCourses]);
+  const deleteVideo = useCallback(async (courseId, videoId) => {
+    const res = await apiDeleteVideo(videoId);
+    if (!res.ok) { showToast(res.msg, 'error'); return; }
+    const refreshed = await apiGetCourses();
+    if (refreshed.ok) setCourses(refreshed.data);
+  }, [showToast]);
 
-  // ── Admin ──
-  const createUser = useCallback((data) => {
-    if (users.find(u => u.email === data.email)) return { ok: false, msg: 'Email already exists.' };
-    const newUser = { id: 'USR' + genId(), name: data.name, email: data.email, mobile: '', password: data.password, role: data.role, status: 'active', joined: now(), lastLogin: null, assignedCourses: [] };
-    setUsers(u => [...u, newUser]);
-    setAudit(a => [{ id: genId(), userId: newUser.id, name: newUser.name, action: 'CREATED', timestamp: now(), ip: '—', details: `Role: ${data.role}` }, ...a]);
+  // ── Enrollments ────────────────────────────────────────────────────────────
+  const enrollCourse = useCallback(async (courseId) => {
+    const res = await apiEnroll(courseId);
+    if (!res.ok) { showToast(res.msg, 'error'); return; }
+    const refreshed = await apiGetEnrollments();
+    if (refreshed.ok) setEnrollments(refreshed.data);
+    showToast('Enrolled successfully!', 'success');
+  }, [showToast]);
+
+  const unenrollCourse = useCallback(async (courseId) => {
+    const res = await apiUnenroll(courseId);
+    if (!res.ok) { showToast(res.msg, 'error'); return; }
+    setEnrollments(e => e.filter(en => en.course.id !== courseId));
+  }, [showToast]);
+
+  // ── Admin ──────────────────────────────────────────────────────────────────
+  const createUser = useCallback(async (data) => {
+    const res = await apiCreateUser(data);
+    if (!res.ok) return { ok: false, msg: res.msg };
+    const refreshed = await apiGetAllUsers();
+    if (refreshed.ok) setUsers(refreshed.data);
     showToast('User created!', 'success');
     return { ok: true };
-  }, [users, setUsers, setAudit, showToast]);
+  }, [showToast]);
 
-  const toggleUserStatus = useCallback((userId) => {
-    let action = '';
-    setUsers(u => u.map(x => { if (x.id === userId) { action = x.status === 'active' ? 'DISABLED' : 'active'; return { ...x, status: action === 'DISABLED' ? 'disabled' : 'active' }; } return x; }));
-    setAudit(a => {
-      const user = users.find(u => u.id === userId);
-      return [{ id: genId(), userId, name: user?.name || userId, action: user?.status === 'active' ? 'DISABLED' : 'LOGIN', timestamp: now(), ip: '—', details: 'Status toggled by admin' }, ...a];
-    });
-  }, [setUsers, setAudit, users]);
+  const toggleUserStatus = useCallback(async (userId) => {
+    const res = await apiToggleUserStatus(userId);
+    if (!res.ok) { showToast(res.msg, 'error'); return; }
+    setUsers(u => u.map(x => x.id === userId ? { ...x, status: res.data.status } : x));
+    showToast('User status updated.', 'success');
+  }, [showToast]);
 
-  const forceLogout = useCallback((sessionId) => {
-    const session = sessions.find(s => s.id === sessionId);
-    setSessions(s => s.filter(x => x.id !== sessionId));
-    if (session) setAudit(a => [{ id: genId(), userId: session.userId, name: session.name, action: 'FORCED', timestamp: now(), ip: session.ip, details: 'Force logout by admin' }, ...a]);
-  }, [sessions, setSessions, setAudit]);
-
-  const forceLogoutAll = useCallback(() => {
-    const toLogout = sessions.filter(s => s.userId !== currentUser?.id);
-    toLogout.forEach(session => setAudit(a => [{ id: genId(), userId: session.userId, name: session.name, action: 'FORCED', timestamp: now(), ip: session.ip, details: 'Force logout all by admin' }, ...a]));
-    setSessions(s => s.filter(x => x.userId === currentUser?.id));
-    showToast(`Force logged out ${toLogout.length} session(s).`, 'info');
-  }, [sessions, setSessions, setAudit, currentUser, showToast]);
-
-  const assignCourses = useCallback((userId, courseIds) => {
-    setUsers(u => u.map(x => x.id === userId ? { ...x, assignedCourses: courseIds } : x));
+  const assignCourses = useCallback(async (userId, courseIds) => {
+    const res = await apiAssignCourses(userId, courseIds);
+    if (!res.ok) { showToast(res.msg, 'error'); return; }
     showToast('Courses assigned!', 'success');
-  }, [setUsers, showToast]);
+  }, [showToast]);
 
+  // Stubs kept so existing Admin dashboard code doesn't break
+  const forceLogout    = useCallback(() => showToast('Session management handled server-side.', 'info'), [showToast]);
+  const forceLogoutAll = useCallback(() => showToast('Session management handled server-side.', 'info'), [showToast]);
+  const sessions       = [];  // No longer managed client-side
+
+  // ── Context value ──────────────────────────────────────────────────────────
   const value = {
-    users, courses, sessions, auditLog, currentUser,
+    // State
+    currentUser, users, courses, enrollments, sessions, auditLog, loading,
     toast, showToast,
+    // Auth
     login, logout, registerStudent, registerTeacher,
+    // Progress
     getProgress, markVideoWatched, getCourseProgress,
+    // Courses
     createCourse, addVideo, deleteVideo,
+    // Enrollments
+    enrollCourse, unenrollCourse,
+    // Admin
     createUser, toggleUserStatus, forceLogout, forceLogoutAll, assignCourses,
+    // Formatters
     fmtDate, fmtDateTime, getYouTubeId,
   };
 

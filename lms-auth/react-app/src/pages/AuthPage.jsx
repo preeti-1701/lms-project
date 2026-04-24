@@ -113,7 +113,7 @@ function StudentPanel({ onLogin }) {
     if (!lEmail || !lPw) return showToast('Please fill all fields.', 'error');
     setLoading(true);
     await new Promise(r => setTimeout(r, 800));
-    const res = login(lEmail, lPw, 'student');
+    const res = await login(lEmail, lPw, 'student');
     setLoading(false);
     if (res.ok) { showToast(`Welcome back, ${res.user.name}! 🎉`, 'success'); navigate('/student'); }
     else showToast(res.msg, 'error');
@@ -124,7 +124,7 @@ function StudentPanel({ onLogin }) {
     if (rPw.length < 8) return showToast('Password must be at least 8 characters.', 'error');
     setLoading(true);
     await new Promise(r => setTimeout(r, 800));
-    const res = registerStudent({ name: rName, email: rEmail, mobile: rMobile, password: rPw, interests: rInterests });
+    const res = await registerStudent({ name: rName, email: rEmail, mobile: rMobile, password: rPw, interests: rInterests });
     setLoading(false);
     if (res.ok) setView('login');
     else showToast(res.msg, 'error');
@@ -219,7 +219,7 @@ function TeacherPanel({ onLogin }) {
     if (!lEmail || !lPw) return showToast('Please fill all fields.', 'error');
     setLoading(true);
     await new Promise(r => setTimeout(r, 800));
-    const res = login(lEmail, lPw, 'trainer');
+    const res = await login(lEmail, lPw, 'trainer');
     setLoading(false);
     if (res.ok) { showToast(`Welcome, ${res.user.name}! 👨‍🏫`, 'success'); navigate('/trainer'); }
     else showToast(res.msg, 'error');
@@ -238,7 +238,16 @@ function TeacherPanel({ onLogin }) {
     if (!terms) return showToast('Please accept Terms of Service.', 'error');
     setLoading(true);
     await new Promise(r => setTimeout(r, 800));
-    const res = registerTeacher({ firstName: fName, lastName: lName, email: tEmail, phone: tPhone, qualification: qual, subject, experience: exp, bio, password: rPw });
+    const res = await registerTeacher({
+      name: `${fName} ${lName}`.trim(),
+      email: tEmail,
+      mobile: tPhone,
+      qualification: qual,
+      subject,
+      experience: exp,
+      bio,
+      password: rPw,
+    });
     setLoading(false);
     if (res.ok) setView('login');
     else showToast(res.msg, 'error');
@@ -366,7 +375,7 @@ function AdminPanel({ onLogin }) {
     if (captchaVal.toUpperCase() !== captcha) return showToast('Incorrect security code.', 'error');
     setLoading(true);
     await new Promise(r => setTimeout(r, 800));
-    const res = login(adminId, pw, 'admin');
+    const res = await login(adminId, pw, 'admin');
     setLoading(false);
     if (res.ok) { showToast(`Welcome, ${res.user.name}! 🛡️`, 'success'); navigate('/admin'); }
     else showToast(res.msg, 'error');
