@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+.container {
+    padding: 20px;
+}
+
+.video-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+video {
+    width: 60%;
+    border-radius: 8px;
+    margin-top: 8px;
+}
+
+.progress-container {
+    margin-top: 20px;
+}
+
+.progress-bar {
+    background: #ddd;
+    height: 12px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    background: #22c55e;
+    height: 100%;
+    width: 0%;
+    transition: 0.5s;
+}
+
+.course-title {
+    margin-bottom: 10px;
+}
+
+.course-desc {
+    color: #555;
+}
+
+.certificate-btn {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 15px;
+    background: gold;
+    color: black;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+}
+</style>
+
+<div class="container">
+
+    <!-- 🎓 Course Info -->
+    <h2 class="course-title">{{ course.title }}</h2>
+    <p class="course-desc">{{ course.description }}</p>
+
+    <hr>
+
+    <!-- 📺 Videos -->
+    <h3>📺 Course Videos</h3>
+
+    {% for video in videos %}
+        <div class="video-card">
+            <h4>{{ video.title }}</h4>
+
+            <video controls class="course-video">
+                <source src="{{ video.video_file.url }}" type="video/mp4">
+                Your browser does not support video.
+            </video>
+        </div>
+    {% empty %}
+        <p>No videos available.</p>
+    {% endfor %}
+
+    <hr>
+
+    <!-- 📊 Progress -->
+    <div class="progress-container">
+        <h3>📊 Progress: <span id="progress-text">{{ enrollment.progress }}</span>%</h3>
+
+        <div class="progress-bar">
+            <div id="progress-fill"
+                 class="progress-fill"
+                 style="width: {{ enrollment.progress }}%;">
+            </div>
+        </div>
+    </div>
+
+    <!-- 🎓 Certificate Button -->
+    {% if enrollment.progress == 100 %}
+        <a href="{% url 'certificate' course.id %}" class="certificate-btn">
+            🎓 Download Certificate
+        </a>
+    {% endif %}
+
+</div>
+
+<!-- ⚡ AUTO PROGRESS SCRIPT -->
+<script>
+    const videos = document.querySelectorAll(".course-video");
+
+    videos.forEach(video => {
+        video.addEventListener("ended", function () {
+
+            fetch("{% url 'update_progress' course.id %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+
+                    // update text
+                    document.getElementById("progress-text").innerText = data.progress;
+
+                    // update bar
+                    document.getElementById("progress-fill").style.width = data.progress + "%";
+
+                    // reload page if 100% to show certificate button
+                    if (data.progress == 100) {
+                        location.reload();
+                    }
+                }
+            })
+            .catch(error => console.log("Error:", error));
+
+        });
+    });
+</script>
+
+{% endblock %}
