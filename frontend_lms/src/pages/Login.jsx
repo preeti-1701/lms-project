@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
 
 const Login = () => {
@@ -104,6 +104,12 @@ const Login = () => {
               </span>
             )}
           </button>
+
+          <div className="text-center pt-4">
+             <p className="text-sm text-gray-400">
+               Don't have an account? <Link to="/signup" className="text-cyan-400 hover:text-cyan-300 font-bold transition-colors">Sign up here</Link>
+             </p>
+          </div>
         </form>
       </div>
     </div>
