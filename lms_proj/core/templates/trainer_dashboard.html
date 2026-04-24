@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Trainer Dashboard</title>
+    <style>
+        body { font-family: Arial; background:#f4f6f9; }
+
+        .header {
+            background:#0f172a;
+            color:white;
+            padding:15px;
+            text-align:center;
+        }
+
+        .container {
+            padding:20px;
+        }
+
+        .card {
+            background:white;
+            padding:15px;
+            margin:10px 0;
+            border-radius:10px;
+        }
+
+        .btn {
+            background:#10b981;
+            color:white;
+            padding:8px 12px;
+            text-decoration:none;
+            border-radius:5px;
+            margin-right:10px;
+        }
+
+        .btn2 {
+            background:#3b82f6;
+            color:white;
+            padding:8px 12px;
+            text-decoration:none;
+            border-radius:5px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>👨‍🏫 Trainer Dashboard</h1>
+</div>
+
+<div class="container">
+
+    <a class="btn" href="/trainer/add-course/">➕ Add Course</a>
+    <a class="btn2" href="/trainer/add-video/">🎥 Add Video</a>
+
+    <h2>Your Courses</h2>
+
+    {% for course in courses %}
+        <div class="card">
+            <h3>{{ course.title }}</h3>
+            <p>{{ course.description }}</p>
+            <p>Status: {{ course.status }}</p>
+        </div>
+    {% empty %}
+        <p>No courses yet.</p>
+    {% endfor %}
+
+</div>
+
+</body>
+</html>
