@@ -53,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'lms_project.middleware.ActiveSessionMiddleware',
 ]
 
 ROOT_URLCONF = 'lms_project.urls'

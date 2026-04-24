@@ -36,7 +36,15 @@ class LoginSerializer(serializers.Serializer):
         ip_address = request.META.get('REMOTE_ADDR','0.0.0.0')
         device_info = request.META.get('HTTP_USER_AGENT','unknown Device')
 
-        ## Enforce SIngle Active session
+        # existing_sessions = UserSession.objects.filter(user=user, is_active=True)
+
+        # for session in existing_sessions:
+        #     if session.ip_address != ip_address:
+        #         session.is_active = False
+        #         session.save()
+
+
+        ## Enforce Single Active session
         UserSession.objects.filter(user = user , is_active=True).update(is_active=False)
 
         UserSession.objects.create(

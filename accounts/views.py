@@ -56,3 +56,13 @@ class StudentView(APIView):
     permission_classes = [IsStudent]
     def get(self, request):
         return Response({"message": "Student Access"})
+
+class ForceLogoutView(APIView):
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def post(self, request):
+        user_id = request.data.get("user_id")
+
+        UserSession.objects.filter(user_id=user_id).update(is_active=False)
+
+        return Response({"message": "User logged out from all devices"})
