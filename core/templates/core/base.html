@@ -1,0 +1,52 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}LMS{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'core/styles.css' %}">
+</head>
+<body>
+  <div class="shell">
+    {% if user.is_authenticated %}
+      <aside class="sidebar">
+        <a class="brand" href="{% url 'dashboard' %}">
+          <span class="brand-mark">L</span>
+          <span>LearnSpace</span>
+        </a>
+        <nav>
+          <a href="{% url 'dashboard' %}">Dashboard</a>
+          <a href="{% url 'course_list' %}">Courses</a>
+          {% if user.is_admin_role %}
+            <a href="{% url 'user_list' %}">Users</a>
+          {% endif %}
+          {% if user.is_admin_role or user.is_trainer_role %}
+            <a href="{% url 'course_create' %}">New course</a>
+            <a href="{% url 'lesson_create' %}">Add lesson</a>
+          {% endif %}
+        </nav>
+        <div class="profile-chip">
+          <strong>{{ user.get_full_name|default:user.username }}</strong>
+          <span>{{ user.get_role_display }}</span>
+        </div>
+        <a class="logout" href="{% url 'logout' %}">Logout</a>
+      </aside>
+    {% endif %}
+    <main class="{% if user.is_authenticated %}content{% else %}auth-content{% endif %}">
+      {% if messages %}
+        <div class="messages">
+          {% for message in messages %}
+            <div class="message {{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

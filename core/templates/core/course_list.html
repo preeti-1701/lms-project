@@ -1,0 +1,20 @@
+{% extends 'core/base.html' %}
+{% block title %}Courses | LearnSpace{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <span class="eyebrow">Course library</span>
+    <h1>Courses</h1>
+  </div>
+  {% if user.is_admin_role or user.is_trainer_role %}
+    <a class="button primary" href="{% url 'course_create' %}">New course</a>
+  {% endif %}
+</div>
+<div class="course-grid">
+  {% for course in courses %}
+    {% include 'core/partials/course_card.html' %}
+  {% empty %}
+    <p class="empty">No courses available.</p>
+  {% endfor %}
+</div>
+{% endblock %}

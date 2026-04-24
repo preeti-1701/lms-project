@@ -1,0 +1,30 @@
+{% extends 'core/base.html' %}
+{% block title %}Users | LearnSpace{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <span class="eyebrow">Access control</span>
+    <h1>Users</h1>
+  </div>
+  <a class="button primary" href="{% url 'user_create' %}">Create user</a>
+</div>
+<div class="table-card">
+  <table>
+    <thead><tr><th>Name</th><th>Contact</th><th>Role</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      {% for account in users %}
+        <tr>
+          <td><strong>{{ account.get_full_name|default:account.username }}</strong><small>{{ account.username }}</small></td>
+          <td>{{ account.email }}<small>{{ account.mobile|default:'No mobile' }}</small></td>
+          <td><span class="pill">{{ account.get_role_display }}</span></td>
+          <td>{% if account.is_active %}Active{% else %}Disabled{% endif %}</td>
+          <td class="row-actions">
+            <a class="button ghost" href="{% url 'user_edit' account.pk %}">Edit</a>
+            <a class="button subtle" href="{% url 'force_logout' account.pk %}">Force logout</a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

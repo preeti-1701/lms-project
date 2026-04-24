@@ -1,0 +1,46 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ course.title }} | LearnSpace{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <span class="eyebrow">{{ course.trainer.get_full_name|default:course.trainer.username|default:'Course' }}</span>
+    <h1>{{ course.title }}</h1>
+    <p class="lead">{{ course.summary }}</p>
+  </div>
+  {% if user.is_admin_role or user == course.trainer %}
+    <a class="button primary" href="{% url 'lesson_create' %}">Add lesson</a>
+  {% endif %}
+</div>
+<section class="lesson-stack">
+  {% for lesson in course.lessons.all %}
+    <article class="lesson-card">
+      <div class="lesson-copy">
+        <span class="pill">Lesson {{ lesson.order }}</span>
+        <h2>{{ lesson.title }}</h2>
+        <p>{{ lesson.description|default:'Watch the assigned training video securely inside the LMS.' }}</p>
+        {% if user.is_admin_role or user == course.trainer %}
+          <a class="button ghost" href="{% url 'lesson_edit' lesson.pk %}">Edit lesson</a>
+        {% endif %}
+      </div>
+      <div class="video-frame protected-video" data-watermark="{{ user.email }} | {{ request.META.REMOTE_ADDR }}">
+        <iframe src="{{ lesson.embed_url }}" title="{{ lesson.title }}" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        <div class="watermark">{{ user.email }}<br>{{ request.META.REMOTE_ADDR }}</div>
+      </div>
+    </article>
+  {% empty %}
+    <p class="empty">No lessons have been added to this course.</p>
+  {% endfor %}
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener('contextmenu', function (event) { event.preventDefault(); });
+document.addEventListener('keydown', function (event) {
+  const key = event.key.toLowerCase();
+  if (key === 'printscreen' || (event.ctrlKey && ['p', 's', 'u'].includes(key))) {
+    event.preventDefault();
+    alert('This content is protected inside LearnSpace.');
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'core/base.html' %}
+{% block title %}Admin Dashboard | LearnSpace{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <span class="eyebrow">Admin control center</span>
+    <h1>Student management overview</h1>
+  </div>
+  <a class="button primary" href="{% url 'user_create' %}">Create user</a>
+</div>
+<section class="stats-grid">
+  <article><span>Total users</span><strong>{{ user_count }}</strong></article>
+  <article><span>Students</span><strong>{{ student_count }}</strong></article>
+  <article><span>Courses</span><strong>{{ course_count }}</strong></article>
+  <article><span>Active sessions</span><strong>{{ session_count }}</strong></article>
+</section>
+<section class="split">
+  <div>
+    <div class="section-title"><h2>Courses</h2><a href="{% url 'course_list' %}">View all</a></div>
+    <div class="course-grid compact">
+      {% for course in courses %}
+        {% include 'core/partials/course_card.html' %}
+      {% empty %}
+        <p class="empty">No courses yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+  <div>
+    <div class="section-title"><h2>Recent sessions</h2><a href="{% url 'user_list' %}">Manage</a></div>
+    <div class="table-card">
+      {% for session in sessions %}
+        <div class="session-row">
+          <strong>{{ session.user.username }}</strong>
+          <span>{{ session.ip_address|default:'No IP' }}</span>
+          <small>{{ session.last_seen|date:'M d, H:i' }}</small>
+        </div>
+      {% empty %}
+        <p class="empty">No sessions tracked.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'core/base.html' %}
+{% block title %}Login | LearnSpace{% endblock %}
+{% block content %}
+<section class="login-page">
+  <div class="login-visual">
+    <div>
+      <span class="eyebrow">Secure student learning</span>
+      <h1>LearnSpace</h1>
+      <p>Manage students, trainers, assigned courses, and protected YouTube lessons from one calm, responsive dashboard.</p>
+    </div>
+  </div>
+  <form class="login-panel" method="post">
+    {% csrf_token %}
+    <span class="eyebrow">Welcome back</span>
+    <h2>Sign in</h2>
+    {{ form.non_field_errors }}
+    <label>Email or mobile{{ form.identifier }}</label>
+    <label>Password{{ form.password }}</label>
+    <button class="button primary" type="submit">Sign in</button>
+  </form>
+</section>
+{% endblock %}

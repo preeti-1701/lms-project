@@ -1,0 +1,18 @@
+{% extends 'core/base.html' %}
+{% block title %}Trainer Dashboard | LearnSpace{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <span class="eyebrow">Trainer workspace</span>
+    <h1>Your courses</h1>
+  </div>
+  <a class="button primary" href="{% url 'lesson_create' %}">Add lesson</a>
+</div>
+<div class="course-grid">
+  {% for course in courses %}
+    {% include 'core/partials/course_card.html' %}
+  {% empty %}
+    <p class="empty">No courses assigned to you yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}

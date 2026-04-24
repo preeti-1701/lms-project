@@ -1,0 +1,23 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ title }} | LearnSpace{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <span class="eyebrow">Management</span>
+    <h1>{{ title }}</h1>
+  </div>
+</div>
+<form class="editor-form" method="post">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  {% for field in form %}
+    <label class="{% if field.field.widget.input_type == 'checkbox' or field.name == 'students' %}choice-field{% endif %}">
+      <span>{{ field.label }}</span>
+      {{ field }}
+      {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+      {{ field.errors }}
+    </label>
+  {% endfor %}
+  <button class="button primary" type="submit">Save</button>
+</form>
+{% endblock %}

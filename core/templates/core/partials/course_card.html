@@ -1,0 +1,14 @@
+<article class="course-card" style="--accent: {{ course.cover_color }}">
+  <div class="course-accent"></div>
+  <div>
+    <span class="pill">{{ course.lesson_count|default:course.lessons.count }} lessons</span>
+    <h3>{{ course.title }}</h3>
+    <p>{{ course.summary|truncatewords:20 }}</p>
+  </div>
+  <div class="card-actions">
+    <a class="button subtle" href="{% url 'course_detail' course.pk %}">Open</a>
+    {% if user.is_admin_role or user == course.trainer %}
+      <a class="button ghost" href="{% url 'course_edit' course.pk %}">Edit</a>
+    {% endif %}
+  </div>
+</article>

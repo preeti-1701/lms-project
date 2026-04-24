@@ -1,0 +1,17 @@
+{% extends 'core/base.html' %}
+{% block title %}Student Dashboard | LearnSpace{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <span class="eyebrow">My learning</span>
+    <h1>Assigned courses</h1>
+  </div>
+</div>
+<div class="course-grid">
+  {% for course in courses %}
+    {% include 'core/partials/course_card.html' %}
+  {% empty %}
+    <p class="empty">You do not have assigned courses yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}
