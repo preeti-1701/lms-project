@@ -1,0 +1,37 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Trainer Dashboard - LMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Trainer Dashboard</h2>
+</div>
+
+<p class="text-muted">Welcome, <strong>{{ user.username }}</strong>. Here are your assigned courses.</p>
+
+{% if courses %}
+    <div class="row g-4">
+        {% for course in courses %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow">
+                <div class="card-body">
+                    <h5 class="card-title">{{ course.title }}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ course.course_id }}</h6>
+                    <p class="card-text">{{ course.description|truncatewords:20 }}</p>
+                    <p><strong>Status:</strong> <span class="badge status-badge status-{{ course.status }}">{{ course.get_status_display }}</span></p>
+                    <p><strong>Version:</strong> {{ course.version }}</p>
+                    <p><strong>Lessons:</strong> {{ course.lessons.count }}</p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'course_detail' course.course_id %}" class="btn btn-primary btn-sm">View Details</a>
+                    <a href="{% url 'trainer_add_lesson' course.course_id %}" class="btn btn-success btn-sm">+ Lesson</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info">No courses assigned to you yet.</div>
+{% endif %}
+{% endblock %}
+

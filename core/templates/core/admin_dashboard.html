@@ -1,0 +1,74 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Admin Dashboard - LMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Admin Dashboard</h2>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Total Users</h5>
+                <p class="card-text display-6">{{ total_users }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">Trainers</h5>
+                <p class="card-text display-6">{{ total_trainers }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Students</h5>
+                <p class="card-text display-6">{{ total_students }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">Courses</h5>
+                <p class="card-text display-6">{{ total_courses }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'create_course' %}" class="btn btn-outline-primary">+ Create Course</a>
+                    <a href="{% url 'create_user' %}" class="btn btn-outline-success">+ Create User (Trainer/Student)</a>
+                    <a href="{% url 'manage_users' %}" class="btn btn-outline-dark">Manage Users</a>
+                    <a href="{% url 'view_enrollments' %}" class="btn btn-outline-info">View Enrollments</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">Total Enrollments</h5>
+            </div>
+            <div class="card-body text-center">
+                <p class="display-4 text-primary">{{ total_enrollments }}</p>
+                <a href="{% url 'view_enrollments' %}" class="btn btn-sm btn-primary">View All</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

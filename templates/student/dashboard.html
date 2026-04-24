@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard - LMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="bi bi-speedometer2 me-2"></i>Student Dashboard</h2>
+    <a href="{% url 'course_list' %}" class="btn btn-primary btn-lg">
+        <i class="bi bi-search me-2"></i>Browse Courses
+    </a>
+</div>
+
+<div class="alert alert-info">
+    <i class="bi bi-person-circle me-2"></i>Welcome, <strong>{{ user.username }}</strong>! Explore and enroll in courses.
+</div>
+
+<h4 class="fw-bold mb-3"><i class="bi bi-collection me-2"></i>Available Courses</h4>
+
+{% if courses %}
+    <div class="row g-4">
+        {% for course in courses %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <span class="text-muted fw-bold">{{ course.course_id }}</span>
+                    <span class="badge status-badge status-{{ course.status }}">{{ course.get_status_display }}</span>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">{{ course.title }}</h5>
+                    <p class="card-text text-muted">{{ course.description|truncatewords:20 }}</p>
+                    <ul class="list-unstyled small mb-0">
+                        <li><i class="bi bi-clock me-2"></i><strong>Duration:</strong> {{ course.duration }} hours</li>
+                        <li><i class="bi bi-tag me-2"></i><strong>Version:</strong> {{ course.version }}</li>
+                        <li><i class="bi bi-person-workspace me-2"></i><strong>Trainer:</strong> {{ course.trainer.username|default:"Not assigned" }}</li>
+                        <li><i class="bi bi-play-btn me-2"></i><strong>Lessons:</strong> {{ course.lessons.count }}</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent">
+                    {% if course.id in enrolled_course_ids %}
+                        <a href="{% url 'course_detail' course.course_id %}" class="btn btn-success w-100">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Go to Course
+                        </a>
+                    {% else %}
+                        <a href="{% url 'enroll_course' course.course_id %}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-plus-circle me-2"></i>Enroll
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>No courses available yet.
+    </div>
+{% endif %}
+
+{% if enrollments %}
+<hr class="my-5">
+<h4 class="fw-bold mb-3"><i class="bi bi-journal-check me-2"></i>My Enrolled Courses</h4>
+<div class="row g-4">
+    {% for enrollment in enrollments %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm border-success border-2">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <span class="fw-bold">{{ enrollment.course.course_id }}</span>
+                <span class="badge bg-light text-dark">{{ enrollment.course.get_status_display }}</span>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title fw-bold">{{ enrollment.course.title }}</h5>
+                <p class="text-muted small mb-2">Enrolled on {{ enrollment.enrolled_at|date:"M d, Y" }}</p>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="{% url 'course_detail' enrollment.course.course_id %}" class="btn btn-success w-100">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Continue Learning
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
+

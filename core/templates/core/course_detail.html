@@ -1,0 +1,104 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ course.title }} - LMS{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'course_list' %}" class="btn btn-outline-secondary btn-sm mb-2">&larr; Back to Courses</a>
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h2>{{ course.title }}</h2>
+            <h5 class="text-muted">{{ course.course_id }}</h5>
+        </div>
+        <span class="badge status-badge status-{{ course.status }}">{{ course.get_status_display }}</span>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                <h5>Description</h5>
+                <p>{{ course.description|linebreaks }}</p>
+
+                <h5>Topics</h5>
+                {% if course.topics %}
+                    <ul>
+                        {% for topic in course.topics %}
+                            <li>{{ topic }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No topics listed.</p>
+                {% endif %}
+
+                <div class="row small text-muted mt-3">
+                    <div class="col-md-4"><strong>Version:</strong> {{ course.version }}</div>
+                    <div class="col-md-4"><strong>Duration:</strong> {{ course.duration }} hours</div>
+                    <div class="col-md-4"><strong>Lessons:</strong> {{ lessons.count }}</div>
+                </div>
+                {% if course.trainer %}
+                    <p class="small text-muted mt-2"><strong>Trainer:</strong> {{ course.trainer.username }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <h4>Lessons</h4>
+        {% if lessons %}
+            <div class="list-group">
+                {% for lesson in lessons %}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">{{ forloop.counter }}. {{ lesson.title }}</h6>
+                    </div>
+                    <div>
+                        {% if user.role == 'student' and is_enrolled %}
+                            <a href="{% url 'video_player' lesson.id %}" class="btn btn-primary btn-sm">Watch</a>
+                        {% elif user.role == 'student' %}
+                            <span class="text-muted small">Enroll to watch</span>
+                        {% else %}
+                            <a href="{% url 'video_player' lesson.id %}" class="btn btn-primary btn-sm">Watch</a>
+                        {% endif %}
+
+                        {% if can_edit %}
+                            {% if user.role == 'admin' %}
+                                <a href="{% url 'edit_lesson' lesson.id %}" class="btn btn-warning btn-sm ms-1">Edit</a>
+                                <a href="{% url 'delete_lesson' lesson.id %}" class="btn btn-danger btn-sm ms-1">Delete</a>
+                            {% elif user.role == 'trainer' %}
+                                <a href="{% url 'trainer_edit_lesson' lesson.id %}" class="btn btn-warning btn-sm ms-1">Edit</a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">No lessons available yet.</div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                Actions
+            </div>
+            <div class="card-body">
+                {% if user.role == 'student' %}
+                    {% if is_enrolled %}
+                        <div class="alert alert-success">You are enrolled in this course.</div>
+                    {% else %}
+                        <a href="{% url 'enroll_course' course.course_id %}" class="btn btn-success w-100">Enroll Now</a>
+                    {% endif %}
+                {% elif user.role == 'admin' %}
+                    <a href="{% url 'edit_course' course.course_id %}" class="btn btn-warning w-100 mb-2">Edit Course</a>
+                    <a href="{% url 'add_lesson' course.course_id %}" class="btn btn-success w-100 mb-2">+ Add Lesson</a>
+                    <a href="{% url 'delete_course' course.course_id %}" class="btn btn-danger w-100">Delete Course</a>
+                {% elif user.role == 'trainer' and can_edit %}
+                    <a href="{% url 'trainer_add_lesson' course.course_id %}" class="btn btn-success w-100">+ Add Lesson</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

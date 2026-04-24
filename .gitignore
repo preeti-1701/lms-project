@@ -1,0 +1,10 @@
+db.sqlite3
+lms-project/
+__pycache__/
+*.pyc
+.DS_Store
+*.log
+media/
+.env
+.venv/
+node_modules/

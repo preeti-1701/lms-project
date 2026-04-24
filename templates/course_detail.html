@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ course.title }} - LMS{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'course_list' %}" class="btn btn-outline-secondary btn-sm mb-3">
+        <i class="bi bi-arrow-left me-1"></i>Back to Courses
+    </a>
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div>
+            <h2 class="fw-bold mb-1">{{ course.title }}</h2>
+            <h5 class="text-muted">{{ course.course_id }}</h5>
+        </div>
+        <span class="badge status-badge status-{{ course.status }} fs-6">{{ course.get_status_display }}</span>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="fw-bold"><i class="bi bi-file-text me-2"></i>Description</h5>
+                <p class="text-muted">{{ course.description|linebreaks }}</p>
+
+                <h5 class="fw-bold mt-4"><i class="bi bi-list-check me-2"></i>Topics</h5>
+                {% if course.topics %}
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for topic in course.topics %}
+                            <span class="badge bg-light text-dark border">{{ topic }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No topics listed.</p>
+                {% endif %}
+
+                <div class="row mt-4 g-3">
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-tag text-primary fs-4 me-2"></i>
+                            <div>
+                                <small class="text-muted d-block">Version</small>
+                                <strong>{{ course.version }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-clock text-primary fs-4 me-2"></i>
+                            <div>
+                                <small class="text-muted d-block">Duration</small>
+                                <strong>{{ course.duration }} hours</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-play-btn text-primary fs-4 me-2"></i>
+                            <div>
+                                <small class="text-muted d-block">Lessons</small>
+                                <strong>{{ lessons.count }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if course.trainer %}
+                    <div class="mt-3">
+                        <i class="bi bi-person-workspace text-primary me-2"></i>
+                        <strong>Trainer:</strong> {{ course.trainer.username }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <h4 class="fw-bold mb-3"><i class="bi bi-collection-play me-2"></i>Lessons</h4>
+        {% if lessons %}
+            <div class="list-group shadow-sm">
+                {% for lesson in lessons %}
+                <div class="list-group-item d-flex flex-wrap justify-content-between align-items-center py-3">
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-primary rounded-pill me-3">{{ forloop.counter }}</span>
+                        <h6 class="mb-0">{{ lesson.title }}</h6>
+                    </div>
+                    <div class="d-flex gap-2 mt-2 mt-sm-0">
+                        {% if user.role == 'student' and is_enrolled %}
+                            <a href="{% url 'video_player' lesson.id %}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-play-circle me-1"></i>Watch
+                            </a>
+                        {% elif user.role == 'student' %}
+                            <span class="text-muted small"><i class="bi bi-lock me-1"></i>Enroll to watch</span>
+                        {% else %}
+                            <a href="{% url 'video_player' lesson.id %}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-play-circle me-1"></i>Watch
+                            </a>
+                        {% endif %}
+
+                        {% if can_edit %}
+                            {% if user.role == 'admin' %}
+                                <a href="{% url 'edit_lesson' lesson.id %}" class="btn btn-warning btn-sm">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'delete_lesson' lesson.id %}" class="btn btn-danger btn-sm">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            {% elif user.role == 'trainer' %}
+                                <a href="{% url 'trainer_edit_lesson' lesson.id %}" class="btn btn-warning btn-sm">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>No lessons available yet.
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm sticky-top" style="top: 20px;">
+            <div class="card-header bg-dark text-white">
+                <i class="bi bi-gear me-2"></i>Actions
+            </div>
+            <div class="card-body">
+                {% if user.role == 'student' %}
+                    {% if is_enrolled %}
+                        <div class="alert alert-success d-flex align-items-center">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            <div>You are enrolled in this course.</div>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'enroll_course' course.course_id %}" class="btn btn-success w-100 btn-lg">
+                            <i class="bi bi-plus-circle me-2"></i>Enroll Now
+                        </a>
+                    {% endif %}
+                {% elif user.role == 'admin' %}
+                    <a href="{% url 'edit_course' course.course_id %}" class="btn btn-warning w-100 mb-2">
+                        <i class="bi bi-pencil me-2"></i>Edit Course
+                    </a>
+                    <a href="{% url 'add_lesson' course.course_id %}" class="btn btn-success w-100 mb-2">
+                        <i class="bi bi-plus-circle me-2"></i>Add Lesson
+                    </a>
+                    <a href="{% url 'delete_course' course.course_id %}" class="btn btn-outline-danger w-100">
+                        <i class="bi bi-trash me-2"></i>Delete Course
+                    </a>
+                {% elif user.role == 'trainer' and can_edit %}
+                    <a href="{% url 'trainer_add_lesson' course.course_id %}" class="btn btn-success w-100">
+                        <i class="bi bi-plus-circle me-2"></i>Add Lesson
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

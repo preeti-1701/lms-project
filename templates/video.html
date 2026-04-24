@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ lesson.title }} - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'course_detail' course.course_id %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Back to Course
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">{{ lesson.title }}</h4>
+                    <small class="text-white-50">{{ course.title }} &bull; Lesson {{ lesson.order }}</small>
+                </div>
+                <i class="bi bi-play-btn fs-2"></i>
+            </div>
+            <div class="card-body p-0">
+                <div id="video-container" class="video-wrapper">
+                    <iframe
+                        src="{{ lesson.video_url }}"
+                        title="{{ lesson.title }}"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            </div>
+            <div class="card-footer bg-light d-flex justify-content-between align-items-center">
+                {% if prev_lesson %}
+                    <a href="{% url 'video_player' prev_lesson.id %}" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-left me-2"></i>{{ prev_lesson.title|truncatechars:30 }}
+                    </a>
+                {% else %}
+                    <span class="text-muted"><i class="bi bi-arrow-left me-1"></i>First Lesson</span>
+                {% endif %}
+
+                <span class="badge bg-dark">{{ forloop.counter }} / {{ course.lessons.count }}</span>
+
+                {% if next_lesson %}
+                    <a href="{% url 'video_player' next_lesson.id %}" class="btn btn-outline-primary">
+                        {{ next_lesson.title|truncatechars:30 }}<i class="bi bi-arrow-right ms-2"></i>
+                    </a>
+                {% else %}
+                    <span class="text-muted">Last Lesson<i class="bi bi-arrow-right ms-1"></i></span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/video_protect.js' %}"></script>
+{% endblock %}
+

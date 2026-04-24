@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Trainer Dashboard - LMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="bi bi-speedometer2 me-2"></i>Trainer Dashboard</h2>
+</div>
+
+<div class="alert alert-info">
+    <i class="bi bi-person-circle me-2"></i>Welcome, <strong>{{ user.username }}</strong>! Here are your assigned courses.
+</div>
+
+{% if courses %}
+    <div class="row g-4">
+        {% for course in courses %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <span class="text-muted fw-bold">{{ course.course_id }}</span>
+                    <span class="badge status-badge status-{{ course.status }}">{{ course.get_status_display }}</span>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">{{ course.title }}</h5>
+                    <p class="card-text text-muted">{{ course.description|truncatewords:20 }}</p>
+                    <ul class="list-unstyled small mb-0">
+                        <li><i class="bi bi-clock me-2"></i><strong>Duration:</strong> {{ course.duration }} hours</li>
+                        <li><i class="bi bi-tag me-2"></i><strong>Version:</strong> {{ course.version }}</li>
+                        <li><i class="bi bi-play-btn me-2"></i><strong>Lessons:</strong> {{ course.lessons.count }}</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent d-flex justify-content-between">
+                    <a href="{% url 'course_detail' course.course_id %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-eye me-1"></i>View
+                    </a>
+                    <a href="{% url 'trainer_add_lesson' course.course_id %}" class="btn btn-success btn-sm">
+                        <i class="bi bi-plus-circle me-1"></i>Add Lesson
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle me-2"></i>No courses assigned to you yet.
+    </div>
+{% endif %}
+{% endblock %}
+

@@ -1,0 +1,40 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}{{ lesson.title }} - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'course_detail' course.course_id %}" class="btn btn-outline-secondary btn-sm">&larr; Back to Course</a>
+</div>
+
+<h3>{{ lesson.title }}</h3>
+<p class="text-muted">{{ course.title }} &bull; Lesson {{ lesson.order }}</p>
+
+<div id="video-container" class="video-wrapper shadow mb-4">
+    <iframe
+        src="{{ lesson.video_url }}"
+        title="{{ lesson.title }}"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+    </iframe>
+</div>
+
+<div class="d-flex justify-content-between">
+    {% if prev_lesson %}
+        <a href="{% url 'video_player' prev_lesson.id %}" class="btn btn-outline-primary">&larr; Previous</a>
+    {% else %}
+        <span></span>
+    {% endif %}
+    {% if next_lesson %}
+        <a href="{% url 'video_player' next_lesson.id %}" class="btn btn-outline-primary">Next &rarr;</a>
+    {% else %}
+        <span></span>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/video_protect.js' %}"></script>
+{% endblock %}
+

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - LMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-success text-white text-center py-4">
+                <h4 class="mb-0"><i class="bi bi-person-plus me-2"></i>Create Account</h4>
+                <small>Join our learning platform</small>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">{{ field.label }}</label>
+                            {% if field.name == 'role' %}
+                                {{ field }}
+                            {% elif field.name == 'password1' or field.name == 'password2' %}
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                    {{ field }}
+                                </div>
+                            {% else %}
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        {% if field.name == 'username' %}<i class="bi bi-person"></i>
+                                        {% elif field.name == 'email' %}<i class="bi bi-envelope"></i>
+                                        {% else %}<i class="bi bi-circle"></i>{% endif %}
+                                    </span>
+                                    {{ field }}
+                                </div>
+                            {% endif %}
+                            {% if field.errors %}
+                                <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                            {% endif %}
+                            {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-person-check me-2"></i>Register
+                        </button>
+                    </div>
+                </form>
+                <hr class="my-4">
+                <p class="text-center text-muted mb-0">
+                    Already have an account? <a href="{% url 'login' %}" class="text-decoration-none fw-semibold">Sign in</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('input, select, textarea').forEach(el => {
+        if (!el.classList.contains('form-control') && !el.classList.contains('form-select') && !el.classList.contains('btn')) {
+            if (el.tagName === 'SELECT') {
+                el.classList.add('form-select');
+            } else {
+                el.classList.add('form-control');
+            }
+        }
+    });
+</script>
+{% endblock %}
+
