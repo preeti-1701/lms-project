@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="row mt-4">
+    <div class="col-lg-8 mx-auto">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'course_list' %}">Home</a></li>
+                <li class="breadcrumb-item active text-truncate" style="max-width: 200px;">{{ course.title }}</li>
+            </ol>
+        </nav>
+
+        <div class="mb-5">
+            <h1 class="display-5 fw-bold">{{ course.title }}</h1>
+            <p class="lead text-muted">{{ course.description }}</p>
+            <div class="d-flex align-items-center">
+                <span class="badge bg-secondary me-2">Instructor: {{ course.instructor.username }}</span>
+                <span class="text-muted small">Created on {{ course.created_at|date:"M d, Y" }}</span>
+            </div>
+        </div>
+
+        <hr class="my-4">
+
+        {% if request.user in course.students.all %}
+            
+            <div class="mb-4 bg-white p-3 rounded shadow-sm border">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted fw-bold small">Course Progress</span>
+                    <span class="text-primary fw-bold small">{{ progress_percent|floatformat:0 }}% Complete</span>
+                </div>
+                <div class="progress" style="height: 12px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" 
+                         role="progressbar" 
+                         style="width: {{ progress_percent|default:0 }}%;" 
+                         aria-valuenow="{{ progress_percent|default:0 }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3>📖 Lessons</h3>
+                <span class="text-success fw-bold small">✓ You are Enrolled</span>
+            </div>
+
+            <div class="list-group">
+                {% for lesson in lessons %}
+                    <div class="list-group-item p-4 mb-3 border rounded shadow-sm bg-white">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="me-3">
+                                <h5 class="mb-2 text-primary">{{ forloop.counter }}. {{ lesson.title }}</h5>
+                                <p class="text-muted mb-3">{{ lesson.content }}</p>
+                                
+                                {% if lesson.video_url %}
+                                    <a href="{{ lesson.video_url }}" target="_blank" class="btn btn-sm btn-outline-danger">
+                                        ▶ Watch Video
+                                    </a>
+                                {% endif %}
+                            </div>
+
+                            <div class="text-end" style="min-width: 130px;">
+                                {% if lesson.id in completed_lessons_ids %}
+                                    <span class="badge bg-success px-3 py-2">
+                                        ✅ Done
+                                    </span>
+                                {% else %}
+                                    <a href="{% url 'complete_lesson' lesson.id %}" class="btn btn-sm btn-outline-success">
+                                        Mark as Done
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="alert alert-info">No lessons added yet.</div>
+                {% endfor %}
+            </div>
+
+        {% else %}
+            
+            <div class="text-center p-5 bg-white rounded shadow border">
+                <div class="mb-4">
+                    <i class="display-1 text-primary">🔒</i>
+                </div>
+                <h3>Unlock this Course</h3>
+                <p class="text-muted mb-4">Enroll now to access {{ lessons.count }} lessons and track your progress!</p>
+                <a href="{% url 'enroll_course' course.id %}" class="btn btn-primary btn-lg px-5">
+                    Enroll Now
+                </a>
+            </div>
+
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
