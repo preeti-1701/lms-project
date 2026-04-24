@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
     path("api/auth/login/", views.api_login, name="api_login"),
+    path("api/auth/forgot-password/", views.api_forgot_password, name="api_forgot_password"),
     path("api/auth/logout/", views.api_logout, name="api_logout"),
     path("api/me/", views.api_me, name="api_me"),
     path("api/dashboard/", views.api_dashboard, name="api_dashboard"),
@@ -15,6 +16,7 @@ urlpatterns = [
     path("api/users/create/", views.api_user_create, name="api_user_create"),
     path("api/users/<int:user_id>/", views.api_user_delete, name="api_user_delete"),
     path("api/users/<int:user_id>/update/", views.api_user_update, name="api_user_update"),
+    path("api/stats/", views.api_stats, name="api_stats"),
     path("api/sessions/", views.api_sessions, name="api_sessions"),
     path("api/sessions/force-logout/<int:user_id>/", views.api_force_logout, name="api_force_logout"),
     path("api/courses/<int:course_id>/videos/<int:video_id>/watch-link/", views.api_student_watch_link, name="api_student_watch_link"),

@@ -6,6 +6,7 @@ from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.sessions.models import Session
 from django.core.exceptions import PermissionDenied
+from django.db import models
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -317,6 +318,32 @@ def api_login(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
+def api_forgot_password(request):
+    data = _json_body(request)
+    identifier = (data.get("identifier") or "").strip()
+    new_password = data.get("new_password") or ""
+    if not identifier or not new_password:
+        return JsonResponse({"error": "Identifier and new password are required."}, status=400)
+
+    user = (
+        User.objects.select_related("profile")
+        .filter(
+            models.Q(username__iexact=identifier)
+            | models.Q(email__iexact=identifier)
+            | models.Q(profile__mobile=identifier)
+        )
+        .first()
+    )
+    if not user:
+        return JsonResponse({"error": "User not found."}, status=404)
+
+    user.set_password(new_password)
+    user.save(update_fields=["password"])
+    return JsonResponse({"ok": True, "message": "Password reset successful."})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
 def api_logout(request):
     if request.user.is_authenticated:
         logout(request)
@@ -333,6 +360,7 @@ def api_me(request):
             "username": request.user.username,
             "role": request.user.profile.role,
             "email": request.user.email,
+            "last_login": request.user.last_login.isoformat() if request.user.last_login else None,
         }
     )
 
@@ -539,6 +567,24 @@ def api_students(request):
             ]
         }
     )
+
+
+@require_http_methods(["GET"])
+def api_stats(request):
+    err = _api_auth_required(request)
+    if err:
+        return err
+    if request.user.profile.role != Profile.Role.ADMIN:
+        return JsonResponse({"error": "Only admins allowed."}, status=403)
+
+    data = {
+        "students": User.objects.filter(profile__role=Profile.Role.STUDENT).count(),
+        "trainers": User.objects.filter(profile__role=Profile.Role.TRAINER).count(),
+        "admins": User.objects.filter(profile__role=Profile.Role.ADMIN).count(),
+        "total_users": User.objects.count(),
+        "total_courses": Course.objects.count(),
+    }
+    return JsonResponse(data)
 
 
 @require_http_methods(["GET"])
