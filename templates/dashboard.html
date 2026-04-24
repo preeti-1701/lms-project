@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — Coursify{% endblock %}
+
+{% block content %}
+<div class="dash">
+    <div class="dash-head fade-up">
+        <div class="kicker">◆ {{ user.role|title }} Dashboard</div>
+        <h1>Hi, <em>{{ user.first_name|default:user.username }}</em>.</h1>
+    </div>
+
+    {% if user.is_student %}
+        <div class="dash-stats">
+            <div class="dash-stat fade-up accent">
+                <div class="label">Enrolled</div>
+                <div class="value">{{ total_enrollments }}</div>
+            </div>
+            <div class="dash-stat fade-up">
+                <div class="label">Completed</div>
+                <div class="value">{{ completed_count }}</div>
+            </div>
+            <div class="dash-stat fade-up">
+                <div class="label">Avg. Progress</div>
+                <div class="value">{{ avg_progress }}%</div>
+            </div>
+            <div class="dash-stat fade-up">
+                <div class="label">Quiz Attempts</div>
+                <div class="value">{{ recent_quiz_attempts|length }}</div>
+            </div>
+        </div>
+
+        <div class="dash-section">
+            <h2>In progress</h2>
+            {% for enrollment in in_progress %}
+                <a href="{% url 'course_detail' enrollment.course.slug %}" style="display:block">
+                    <div class="progress-card">
+                        <div class="emoji">{{ enrollment.course.thumbnail_emoji }}</div>
+                        <div class="progress-info">
+                            <div class="title">{{ enrollment.course.title }}</div>
+                            <div class="instructor">by {{ enrollment.course.instructor.first_name }} {{ enrollment.course.instructor.last_name }}</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ enrollment.progress_percent }}%"></div>
+                            </div>
+                        </div>
+                        <div class="progress-pct">{{ enrollment.progress_percent }}%</div>
+                    </div>
+                </a>
+            {% empty %}
+                <div class="empty">
+                    <div class="icon">🎒</div>
+                    <p>You haven't enrolled in any courses yet.</p>
+                    <p style="margin-top:1rem"><a href="{% url 'catalog' %}" class="btn btn-primary">Browse catalog →</a></p>
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if recent_quiz_attempts %}
+        <div class="dash-section">
+            <h2>Recent quiz attempts</h2>
+            <div class="panel-box">
+                {% for attempt in recent_quiz_attempts %}
+                <div class="panel-list-item">
+                    <div>
+                        <div class="name">{{ attempt.quiz.title }}</div>
+                        <div class="meta">{{ attempt.quiz.course.title }} · {{ attempt.attempted_at|date:"M d, Y" }}</div>
+                    </div>
+                    <div style="font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: {% if attempt.passed %}var(--success){% else %}var(--danger){% endif %}">
+                        {{ attempt.score }}%
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    {% else %}
+        {# Instructor dashboard #}
+        <div class="dash-stats">
+            <div class="dash-stat fade-up accent">
+                <div class="label">My Courses</div>
+                <div class="value">{{ total_courses }}</div>
+            </div>
+            <div class="dash-stat fade-up">
+                <div class="label">Total Students</div>
+                <div class="value">{{ total_students }}</div>
+            </div>
+            <div class="dash-stat fade-up">
+                <div class="label">Total Lessons</div>
+                <div class="value">{{ total_lessons }}</div>
+            </div>
+        </div>
+
+        <div class="dash-section">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem">
+                <h2 style="margin-bottom:0">Your courses</h2>
+                <a href="{% url 'create_course' %}" class="btn btn-primary">+ New Course</a>
+            </div>
+            <div class="course-grid">
+                {% for course in courses %}
+                    <a href="{% url 'manage_course' course.slug %}" class="course-card fade-up" style="--accent-color: {{ course.accent_color }}">
+                        <span class="course-emoji">{{ course.thumbnail_emoji }}</span>
+                        <div class="course-meta">
+                            <span class="tag">{{ course.level|title }}</span>
+                            {% if course.is_published %}<span class="tag" style="color: var(--success)">● Live</span>{% else %}<span class="tag">Draft</span>{% endif %}
+                        </div>
+                        <h3 class="course-title">{{ course.title }}</h3>
+                        <p class="course-desc">{{ course.description }}</p>
+                        <div class="course-foot">
+                            <span>{{ course.total_lessons }} lessons</span>
+                            <span>{{ course.total_students }} students</span>
+                        </div>
+                    </a>
+                {% empty %}
+                    <div class="empty" style="grid-column: 1/-1;">
+                        <div class="icon">✨</div>
+                        <p>No courses yet. Create your first one.</p>
+                        <p style="margin-top:1rem"><a href="{% url 'create_course' %}" class="btn btn-primary">Create course →</a></p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

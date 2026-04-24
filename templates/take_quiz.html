@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}{{ quiz.title }} — Quiz{% endblock %}
+
+{% block content %}
+<div class="quiz-wrap">
+    <div class="quiz-head">
+        <div class="kicker">◆ Quiz · {{ quiz.course.title }}</div>
+        <h1>{{ quiz.title }}</h1>
+        {% if quiz.description %}<p style="color: var(--mist); margin-top: 1rem">{{ quiz.description }}</p>{% endif %}
+        <p style="color: var(--mist); margin-top: 0.5rem; font-family: var(--font-mono); font-size: 0.85rem">
+            {{ questions|length }} questions · Pass at {{ quiz.pass_score }}%
+        </p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        {% for question in questions %}
+            <div class="question-card fade-up">
+                <div class="question-num">Question {{ forloop.counter }} of {{ questions|length }}</div>
+                <div class="question-text">{{ question.text }}</div>
+
+                <label class="choice">
+                    <input type="radio" name="question_{{ question.id }}" value="A" required>
+                    <span><strong>A.</strong> {{ question.choice_a }}</span>
+                </label>
+                <label class="choice">
+                    <input type="radio" name="question_{{ question.id }}" value="B">
+                    <span><strong>B.</strong> {{ question.choice_b }}</span>
+                </label>
+                <label class="choice">
+                    <input type="radio" name="question_{{ question.id }}" value="C">
+                    <span><strong>C.</strong> {{ question.choice_c }}</span>
+                </label>
+                <label class="choice">
+                    <input type="radio" name="question_{{ question.id }}" value="D">
+                    <span><strong>D.</strong> {{ question.choice_d }}</span>
+                </label>
+            </div>
+        {% endfor %}
+
+        <div style="text-align: center; margin-top: 2rem">
+            <button type="submit" class="btn btn-primary" style="padding: 1rem 3rem; font-size: 1.1rem">
+                Submit quiz →
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

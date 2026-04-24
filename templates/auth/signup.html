@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Sign up — Coursify{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+    <div class="auth-poster">
+        <div>
+            <div style="font-family: var(--font-mono); font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1rem;">◆ Join the platform</div>
+            <h2>Learn a <em>new</em> thing. Teach a new thing.</h2>
+        </div>
+        <p>Sign up as a student to enroll in courses, or as an instructor to create and publish your own.</p>
+    </div>
+    <div class="auth-form-wrap">
+        <h1>Create account</h1>
+        <p class="sub">Takes about 30 seconds</p>
+
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-field">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                    {{ field.errors }}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                Create account →
+            </button>
+        </form>
+
+        <p class="auth-alt">Already have an account? <a href="{% url 'login' %}">Log in</a></p>
+    </div>
+</div>
+
+<script>
+// Style Django's auto-generated form fields to match our design
+document.querySelectorAll('.form-field input, .form-field select, .form-field textarea').forEach(el => {
+    // Styling already comes from CSS, this ensures widget rendering looks right
+});
+</script>
+{% endblock %}

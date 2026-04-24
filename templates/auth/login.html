@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Log in — Coursify{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+    <div class="auth-poster">
+        <div>
+            <div style="font-family: var(--font-mono); font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1rem;">◆ Welcome back</div>
+            <h2>Pick up <em>exactly</em> where you left off.</h2>
+        </div>
+        <p>Your progress, your courses, your quizzes — everything stays right where you left it.</p>
+    </div>
+    <div class="auth-form-wrap">
+        <h1>Log in</h1>
+        <p class="sub">Enter your credentials to continue</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-field">
+                <label for="username">Username</label>
+                <input type="text" name="username" id="username" required autofocus>
+            </div>
+            <div class="form-field">
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                Log in →
+            </button>
+        </form>
+
+        <p class="auth-alt">New here? <a href="{% url 'signup' %}">Create an account</a></p>
+    </div>
+</div>
+{% endblock %}
