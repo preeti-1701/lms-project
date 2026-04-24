@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Course Content - LearnManag{% endblock %}
+
+{% block extra_css %}
+<style>
+    .video-link-card {
+        margin-bottom: 1.5rem;
+        background: rgba(15, 23, 42, 0.4);
+        border: 1px solid rgba(139, 92, 246, 0.4); /* Added distinct purple outline */
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s ease;
+    }
+    .video-link-card:hover {
+        background: rgba(30, 41, 59, 0.8);
+        border-color: rgba(139, 92, 246, 1); /* Solid outline on hover */
+        box-shadow: 0 0 15px rgba(139, 92, 246, 0.3); /* Glow effect on hover */
+        transform: translateY(-2px);
+    }
+    .video-info {
+        flex: 1;
+        padding-right: 1rem;
+    }
+    .video-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--text-main);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>Course Content</h2>
+    <a href="/dashboard/" class="btn btn-outline">Back to Dashboard</a>
+</div>
+
+<div id="videos">
+    <p style="color: var(--text-muted);">Loading content...</p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const courseId = "{{ course_id }}";
+
+async function loadVideos() {
+    try {
+        const res = await fetch(`/video-api/${courseId}/`, { credentials: 'same-origin' });
+        const data = await res.json();
+        
+        if (!res.ok) {
+            document.getElementById("videos").innerHTML = `<p style="color:var(--danger);">${data.error || 'Failed to load videos'}</p>`;
+            return;
+        }
+
+        let html = "";
+        
+        if (!data.videos || data.videos.length === 0) {
+            html = "<p style='color: var(--text-muted);'>No videos found for this course.</p>";
+        } else {
+            data.videos.forEach(v => {
+                html += `
+                    <div class="video-link-card">
+                        <div class="video-info">
+                            <h3 class="video-title">${v.title}</h3>
+                        </div>
+                        <a href="${v.youtube_url}" target="_blank" rel="noopener noreferrer" class="btn btn-outline">Open Link</a>
+                    </div>
+                `;
+            });
+        }
+
+        document.getElementById("videos").innerHTML = html;
+    } catch (e) {
+        document.getElementById("videos").innerHTML = `<p style="color:var(--danger);">An error occurred while fetching videos.</p>`;
+    }
+}
+
+loadVideos();
+</script>
+{% endblock %}

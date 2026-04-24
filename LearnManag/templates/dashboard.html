@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - LearnManag{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>Dashboard</h2>
+    <button onclick="loadCourses()" class="btn btn-outline">Refresh Courses</button>
+</div>
+
+<div id="courses" class="grid-layout">
+    <!-- Courses will be loaded here -->
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function loadCourses() {
+    try {
+        const res = await fetch('/course/list/', { credentials: 'same-origin' });
+        const data = await res.json();
+        
+        if (!res.ok) {
+            document.getElementById("courses").innerHTML = `<p style="color:var(--danger);">${data.error || 'Failed to load courses'}</p>`;
+            return;
+        }
+
+        let html = "";
+
+        if (!data.courses || data.courses.length === 0) {
+            html = "<p style='color: var(--text-muted);'>No courses found.</p>";
+        } else {
+            data.courses.forEach(c => {
+                html += `
+                    <div class="course-card">
+                        <h3 class="course-title">${c.title}</h3>
+                        <p class="course-meta">Trainer: ${c.trainer || 'Unknown'}</p>
+                        <button onclick="viewVideos(${c.id})" class="btn" style="margin-top: auto;">Open</button>
+                    </div>
+                `;
+            });
+        }
+
+        document.getElementById("courses").innerHTML = html;
+    } catch (e) {
+        document.getElementById("courses").innerHTML = `<p style="color:var(--danger);">An error occurred while fetching courses.</p>`;
+    }
+}
+
+function viewVideos(courseId) {
+    window.location.href = `/video/${courseId}/`;
+}
+
+// Auto-load on page load
+loadCourses();
+</script>
+{% endblock %}
