@@ -21,7 +21,6 @@ def all_users(request):
 
 #------------------- Register ------------------
 from django.contrib.auth.models import User, Group
-
 def register(request):
     if request.method == "POST":
         username = request.POST['username']
@@ -576,4 +575,19 @@ def login_view(request):
         return render(request, "login.html", {"error": "Invalid credentials"})
 
     return render(request, "login.html")
-   
+#---------------------delete course---------------------
+def delete_course(request, id):
+    if 'user' not in request.session:
+        return redirect('/login/')
+
+    if request.session.get('role') != "trainer":
+        return redirect('/dashboard/')
+
+    course = Course.objects.get(id=id)
+
+    # allow only creator
+    if course.created_by != request.session['user']:
+        return redirect('/dashboard/')
+
+    course.delete()
+    return redirect('/dashboard/')   

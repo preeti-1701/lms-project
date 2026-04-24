@@ -77,6 +77,7 @@
                 <p>No courses available</p>
                 {% endfor %}
 
+
             </div>
             {% elif is_trainer %}
 
@@ -88,6 +89,8 @@
                     <a href="/add-course/" class="btn">Create Course</a>
                     <p>Add new course</p>
                 </div>
+
+
 
                 <div class="card">
                     <h3>Manage Students</h3>
@@ -145,15 +148,24 @@
             <div style="display:flex; gap:20px; flex-wrap:wrap; margin-top:15px;">
 
                 {% for course in courses %}
-                <a href="/course/{{ course.id }}/" style="text-decoration:none; color:inherit;">
-                    <div class="card">
+                <div class="card">
+
+                    <a href="/course/{{ course.id }}/" style="text-decoration:none; color:inherit;">
                         <h4>{{ course.title }}</h4>
                         <p>{{ course.description }}</p>
                         <small>By {{ course.created_by }}</small>
-                    </div>
-                </a>
-                {% empty %}
+                    </a>
 
+                    {% if is_trainer %}
+                    <a href="/delete-course/{{ course.id }}/" class="btn btn-danger"
+                        onclick="return confirm('Delete this course?');" style="margin-top:10px; display:inline-block;">
+                        Delete
+                    </a>
+                    {% endif %}
+
+                </div>
+                {% empty %}
+                <p>No courses available</p>
                 {% endfor %}
 
             </div>
