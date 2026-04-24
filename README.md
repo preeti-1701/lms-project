@@ -18,12 +18,12 @@ A Django-based Learning Management System built from the SRS requirements.
 
 ```powershell
 python -m pip install -r requirements.txt
-python manage.py migrate
-python manage.py seed_demo
-python manage.py runserver
+python manage.py
 ```
 
 Open `http://127.0.0.1:8000/`.
+
+`python manage.py` now runs `migrate`, `seed_demo`, and then starts the development server. You can still use normal Django commands like `python manage.py createsuperuser` or `python manage.py runserver 0.0.0.0:8000`.
 
 ## Demo Accounts
 
