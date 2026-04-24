@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect
-from .models import User
 from django.contrib.auth.hashers import make_password
 from django.shortcuts import render
 from django.contrib.auth.hashers import check_password
@@ -11,6 +10,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from .models import Course, Enrollment, Assignment, Profile
 from django.contrib.auth import authenticate, login
+from .models import Course, CourseContent, Enrollment, Assignment
+from django.contrib.auth.models import User, Group
 
 def home(request):
     return render(request, "home.html")
@@ -27,17 +28,12 @@ def register(request):
         password = request.POST['password']
         role = request.POST['role']
 
-        # ✅ CHECK if username exists
         if User.objects.filter(username=username).exists():
-            return render(request, "register.html", {
-                "error": "Username already exists"
-            })
+            return render(request, "register.html", {"error": "Username exists"})
 
-        # create user
         user = User.objects.create_user(username=username, password=password)
 
-        # create/get group
-        group, created = Group.objects.get_or_create(name=role)
+        group, _ = Group.objects.get_or_create(name=role)
         user.groups.add(group)
 
         return redirect('/login/')
@@ -237,34 +233,33 @@ def enroll(request, id):
     return redirect('/login/')
 
 #------------------- create upload view-------------------
-from .models import CourseContent
-
 def upload_content(request, id):
-    if 'user' in request.session:
-        role = request.session.get('role')
+    if 'user' not in request.session:
+        return redirect('/login/')
 
-        if role != "trainer":
-            return redirect('/dashboard/')
+    if request.session.get('role') != "trainer":
+        return redirect('/dashboard/')
 
-        course = Course.objects.get(id=id)
+    course = Course.objects.get(id=id)
 
-        if request.method == "POST":
-            title = request.POST['title']
-            file = request.FILES['file']
-            trainer = request.session['user']
+    if request.method == "POST":
+        title = request.POST['title']
+        description = request.POST.get('description')
+        url = request.POST.get('url')
+        file = request.FILES.get('file')
 
-            CourseContent.objects.create(
-                course=course,
-                title=title,
-                file=file,
-                uploaded_by=trainer
-            )
+        CourseContent.objects.create(
+            course=course,
+            title=title,
+            description=description,
+            url=url,
+            file=file,
+            uploaded_by=request.session['user']
+        )
 
-            return redirect(f'/course/{id}/')
+        return redirect(f'/course/{id}/')
 
-        return render(request, "upload_content.html", {"course": course})
-
-    return redirect('/login/')
+    return render(request, "upload_content.html", {"course": course})
 
 #------------------- save progress -------------------
 from django.http import JsonResponse

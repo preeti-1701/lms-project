@@ -1,22 +1,33 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-<link rel="stylesheet" href="{% static 'style.css' %}">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
 </head>
-<body>
-<div class="container">
-    <h2>Upload Content for {{ course.title }}</h2>
 
-    <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-        <input name="title" placeholder="Content Title">
-        <input type="file" name="file">
-        <button>Upload</button>
-    </form>
-</div>
+<body>
+    <div class="container">
+        <h2>Upload Content for {{ course.title }}</h2>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <input type="text" name="title" placeholder="Title" required><br><br>
+
+            <textarea name="description" placeholder="Description"></textarea><br><br>
+
+            <input type="url" name="url" placeholder="Paste video link (YouTube, etc)"><br><br>
+
+            <p>OR upload file:</p>
+            <input type="file" name="file"><br><br>
+
+            <button type="submit">Upload</button>
+        </form>
+    </div>
 </body>
+
 </html>

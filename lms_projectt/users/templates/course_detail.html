@@ -16,7 +16,7 @@
 
             <a href="/logout/">Logout</a>
         </div>
-        
+
     </div>
 
     <div class="container">
@@ -46,39 +46,18 @@
         {% for content in contents %}
         <div class="card">
             <h4>{{ content.title }}</h4>
+            <p>{{ content.description }}</p>
 
-            {% if content.file.url|lower|slice:"-4:" == ".mp4" %}
-
-            <video width="100%" controls id="video{{ content.id }}">
-                <source src="{{ content.file.url }}" type="video/mp4">
-            </video>
-
-
-            {% elif content.file.url|lower|slice:"-4:" == ".pdf" %}
-
-            <a href="{{ content.file.url }}" target="_blank" class="btn">
-                Open PDF
+            {% if content.url %}
+            <a href="{{ content.url }}" target="_blank" class="btn">
+                Open Content
             </a>
-            {% else %}
-
-            <a href="{{ content.file.url }}" target="_blank">Download File</a>
-
             {% endif %}
-            <!--only trainer delete   ------------------->
-            {% if role == "trainer" %}
-            <a href="/delete-content/{{ content.id }}/"
-                onclick="return confirm('Are you sure you want to delete this content?')"
-                style="color:red; margin-top:10px; display:block;">
-                Delete
-            </a>
-            <a href="/edit-content/{{ content.id }}" style="color:rgb(0, 255, 225); margin-top:10px; display:block;">
-                Edit
-            </a>
-            <a href="/students/{{ course.id }}/" class="btn" style="margin-top:10px;">
-                View Students
-            </a>
 
-
+            {% if content.file %}
+            <video width="400" controls>
+                <source src="{{ content.file.url }}">
+            </video>
             {% endif %}
         </div>
         {% empty %}

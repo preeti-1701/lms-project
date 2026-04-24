@@ -23,14 +23,13 @@
         </p>
         {% endif %}
 
-        <form id="registerForm">
+        <form method="POST">
             {% csrf_token %}
 
-            <input type="text" id="username" placeholder="Username" required>
-            <input type="password" id="password" placeholder="Password" required>
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
 
-            <select id="role" required>
-                <option value="">Select Role</option>
+            <select name="role" required>
                 <option value="student">Student</option>
                 <option value="trainer">Trainer</option>
                 <option value="teacher">Teacher</option>
