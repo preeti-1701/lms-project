@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Register Trainer - LMS{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 2rem auto;">
+    <a href="{% url 'admin_dashboard' %}" style="text-decoration: none; color: var(--primary); margin-bottom: 1rem; display: inline-block;">&larr; Back to Dashboard</a>
+    
+    <div class="card">
+        <h2 style="margin-bottom: 1.5rem;">Register New Trainer</h2>
+        <p style="color: var(--text-light); margin-bottom: 2rem;">A unique Trainer Code will be generated as the initial password.</p>
+        
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div style="color: #b91c1c; font-size: 0.875rem; margin-top: 0.25rem;">
+                            {{ field.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.75rem;">Generate Account & Code</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

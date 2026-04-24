@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - LMS{% endblock %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 4rem auto;">
+    <div class="card">
+        <h2 style="margin-bottom: 1.5rem; text-align: center;">Login</h2>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div style="color: #b91c1c; font-size: 0.875rem; margin-top: 0.25rem;">
+                            {{ field.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.75rem;">Login</button>
+        </form>
+        <p style="margin-top: 1.5rem; text-align: center; color: var(--text-light);">
+            Don't have an account? <a href="{% url 'register' %}" style="color: var(--primary); text-decoration: none;">Register here</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

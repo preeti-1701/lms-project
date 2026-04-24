@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - LMS{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>Admin Control Panel</h1>
+        <span class="btn btn-outline">Role: {{ user.get_role_display }}</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+        <!-- User Management Card -->
+        <div class="card" style="border-left: 5px solid var(--primary);">
+            <h3 style="margin-bottom: 1rem;">User Management</h3>
+            <p style="color: var(--text-light); margin-bottom: 1.5rem;">Manage trainers and students in the system.</p>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <a href="{% url 'trainer_register' %}" class="btn mary">Register New Trainer</a>
+                <a href="{% url 'user_list' %}?role=TRAINER" class="btn btn-outline">View All Trainers</a>
+                <a href="{% url 'user_list' %}?role=STUDENT" class="btn btn-outline">View All Students</a>
+            </div>
+        </div>
+
+        <!-- Course Management Card -->
+        <div class="card" style="border-left: 5px solid #10b981;">
+            <h3 style="margin-bottom: 1rem;">Course Management</h3>
+            <p style="color: var(--text-light); margin-bottom: 1.5rem;"> Manage LMS curriculum.</p>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <button class="btn btn-outline" disabled>Add New Course</button>
+                <button class="btn btn-outline" disabled>Assign Courses</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top: 2rem; background-color: #f3f4f6; border: none;">
+        <h3>System Overview</h3>
+        <p>Logged in as: <strong>{{ user.full_name }}</strong> ({{ user.email }})</p>
+        <p>Last login: {{ user.last_login|date:"M d, Y H:i" }}</p>
+    </div>
+</div>
+{% endblock %}

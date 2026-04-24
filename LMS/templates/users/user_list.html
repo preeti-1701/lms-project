@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}User Management - LMS{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <a href="{% url 'admin_dashboard' %}" style="text-decoration: none; color: var(--primary);">&larr; Back</a>
+            <h1 style="margin-top: 0.5rem;">
+                {% if request.GET.role == 'TRAINER' %}Trainers List{% else %}Students List{% endif %}
+            </h1>
+        </div>
+        <div class="nav-links">
+            <a href="?role=STUDENT" class="btn {% if request.GET.role != 'TRAINER' %}btn-primary{% else %}btn-outline{% endif %}">Students</a>
+            <a href="?role=TRAINER" class="btn {% if request.GET.role == 'TRAINER' %}btn-primary{% else %}btn-outline{% endif %}">Trainers</a>
+        </div>
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+        <thead>
+            <tr style="text-align: left; border-bottom: 2px solid var(--border);">
+                <th style="padding: 1rem;">Full Name</th>
+                <th style="padding: 1rem;">Email</th>
+                <th style="padding: 1rem;">Mobile</th>
+                <th style="padding: 1rem;">Date Joined</th>
+                <th style="padding: 1rem;">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users_list %}
+            <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 1rem;">{{ u.full_name }}</td>
+                <td style="padding: 1rem;">{{ u.email }}</td>
+                <td style="padding: 1rem;">{{ u.mobile|default:"-" }}</td>
+                <td style="padding: 1rem;">{{ u.date_joined|date:"M d, Y" }}</td>
+                <td style="padding: 1rem;">
+                    {% if u.is_active %}
+                        <span style="color: #10b981; font-weight: 600;">Active</span>
+                    {% else %}
+                        <span style="color: #ef4444; font-weight: 600;">Inactive</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="padding: 3rem; text-align: center; color: var(--text-light);">
+                    No users found for this role.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

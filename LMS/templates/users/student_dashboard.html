@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard - LMS{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>Welcome, {{ user.full_name }}</h1>
+        <span class="btn btn-outline" style="border-color: #3b82f6; color: #3b82f6;">Role: {{ user.get_role_display }}</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+        <!-- Learning Progress -->
+        <div class="card">
+            <h3>My Learning Journey</h3>
+            <p style="color: var(--text-light); margin: 1rem 0;">Access your assigned courses here.</p>
+            <div style="padding: 2rem; text-align: center; background: #f9fafb; border-radius: 0.5rem;">
+                <p style="color: var(--text-light);">No active courses found.</p>
+                <a href="#" class="btn btn-primary" style="margin-top: 1rem;">Browse Courses</a>
+            </div>
+        </div>
+
+        <!-- Materials -->
+        <div class="card">
+            <h3>Quick Access</h3>
+            <ul style="list-style: none; padding: 0;">
+                <li style="padding: 1rem 0; border-bottom: 1px solid var(--border);">
+                    <strong>Learning Materials</strong>
+                    <p style="font-size: 0.875rem; color: var(--text-light);">View PDFs and Docs</p>
+                </li>
+                <li style="padding: 1rem 0;">
+                    <strong>Video Gallery</strong>
+                    <p style="font-size: 0.875rem; color: var(--text-light);">Watch course tutorials</p>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
