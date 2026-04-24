@@ -29,6 +29,7 @@ The LMS is a web-based application accessible via modern browsers.
 6. Assumptions & Constraints - Videos are hosted on YouTube - Complete prevention of screen recording is not possible - System focuses on deterrence and traceability 
 7. Proposal Summary - Development Time: 2–3 weeks - Technology: React + Node.js/Django + PostgreSQL - Deployment: Cloud-based  -->
 few insights 
+
 project progress: 35%
 <img width="1917" height="1044" alt="Screenshot 2026-04-24 011759" src="https://github.com/user-attachments/assets/dc8dfb75-abde-47bd-af52-27f90ce0f8a7" />
 
