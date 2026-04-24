@@ -28,3 +28,18 @@ The LMS is a web-based application accessible via modern browsers.
 5. Non-Functional Requirements - Easy to use UI - Fast page loading - Scalable to 500+ users - Mobile responsive design 
 6. Assumptions & Constraints - Videos are hosted on YouTube - Complete prevention of screen recording is not possible - System focuses on deterrence and traceability 
 7. Proposal Summary - Development Time: 2–3 weeks - Technology: React + Node.js/Django + PostgreSQL - Deployment: Cloud-based  -->
+<img width="1917" height="1044" alt="Screenshot 2026-04-24 011759" src="https://github.com/user-attachments/assets/dc8dfb75-abde-47bd-af52-27f90ce0f8a7" />
+img1 dashboard main
+<img width="1919" height="976" alt="image" src="https://github.com/user-attachments/assets/338857c1-8eaf-4ed2-bf8c-45a5ea38ad28" />
+img2 course information page 
+<img width="936" height="715" alt="image" src="https://github.com/user-attachments/assets/b40aaef1-60f8-4ccd-9428-5a307f3fca50" />
+img3 login page 
+<img width="1919" height="992" alt="image" src="https://github.com/user-attachments/assets/61bd4153-e50f-4cf9-99b0-aaba931a9a56" />
+img4 admin dashboard
+<img width="1853" height="892" alt="image" src="https://github.com/user-attachments/assets/c1d964a7-6c5d-43ea-a8f4-b3085b236b86" />
+img5 add course pop up 
+
+
+
+
+
