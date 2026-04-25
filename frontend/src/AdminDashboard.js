@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -7,6 +7,9 @@ function AdminDashboard() {
 
     // Navigation
     const navigate = useNavigate();
+
+    // Navigation State
+    const [collapsed, setCollapsed] = useState(false);
 
     // Logout
     const handleLogout = () => {
@@ -29,22 +32,44 @@ function AdminDashboard() {
             {/* ======================Sidebar====================== */}
             <div
                 style={{
-                    width: '260px',
-                    background: '#1f2937',
+                    width: collapsed ? '50px' : '260px',
+                    transition: '0.4s',
+                    background: '#1c3a65',
                     color: 'white',
                     padding: '30px'
                 }}
             >
 
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    marginBottom: '20px'
+                }}>
+
+                    <button
+                        onClick={() => setCollapsed(!collapsed)}
+                        style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'white',
+                            fontSize: '28px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        ☰
+                    </button>
+                </div>
+
+
                 <h2>Admin Portal</h2>
                 <hr />
 
-                <button onClick={() => navigate('/create-user')} style={btnStyle}> Create User </button>
-                <button onClick={() => navigate('/create-course')} style={btnStyle}> Create Course </button>
-                <button onClick={() => navigate('/add-video')}style={btnStyle}> Add Videos </button>
-                <button onClick={() => navigate('/enroll')}style={btnStyle}> Enroll Students </button>
-                <button onClick={() => navigate('/sessions')}style={btnStyle}> Active Sessions </button>
-                <button onClick={handleLogout}style={{...btnStyle, background: '#dc2626'}}> Logout </button>
+                <button onClick={() => navigate('/create-user')} style={btnStyle}> {collapsed ? '👤' : 'Create User'} </button>
+                <button onClick={() => navigate('/create-course')} style={btnStyle}> {collapsed ? '📚' : 'Create Course'} </button>
+                <button onClick={() => navigate('/add-video')} style={btnStyle}> {collapsed ? '🎥' : 'Add Videos'} </button>
+                <button onClick={() => navigate('/enroll')} style={btnStyle}> {collapsed ? '🎓' : 'Enroll Students'} </button>
+                <button onClick={() => navigate('/sessions')} style={btnStyle}> {collapsed ? '🛡' : 'Active Sessions'} </button>
+                <button onClick={handleLogout} style={{ ...btnStyle, background: '#dc2626' }}> {collapsed ? '🚪' : 'Logout'} </button>
 
             </div>
 
@@ -73,17 +98,17 @@ function AdminDashboard() {
                     }}
                 >
 
-                    <Card title="Users" value="8+"/>
-                    <Card title="Courses" value="5+"/>
-                    <Card title="Enrollments" value="12+"/>
-                    <Card title="Sessions" value="Live"/>
+                    <Card title="Users" value="8+" />
+                    <Card title="Courses" value="5+" />
+                    <Card title="Enrollments" value="12+" />
+                    <Card title="Sessions" value="Live" />
 
                 </div>
 
 
 
                 {/* Quick Actions */}
-                <div style={{marginTop: '50px'}}>
+                <div style={{ marginTop: '50px' }}>
 
                     <h2>Quick Actions</h2>
 

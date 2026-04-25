@@ -1,36 +1,37 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from './api';
 
 function StudentDashboard() {
 
+  const navigate = useNavigate();
+
   const [courses, setCourses] = useState([]);
+
+  const [collapsed, setCollapsed] = useState(false);
 
   const currentUser = JSON.parse(
     localStorage.getItem('user')
   );
 
 
-  // Load courses
+  // logout
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate('/login');
+  };
+
+
+  // fetch courses
   const fetchCourses = async () => {
 
     try {
-
       const response = await api.get(
         '/api/student-courses/'
       );
-
-      console.log(
-        "API RESPONSE:",
-        response.data
-      );
-
       setCourses(response.data);
-
     } catch (error) {
-      console.error(
-        "Error fetching courses:",
-        error
-      );
+      console.error(error);
     }
 
   };
@@ -41,12 +42,10 @@ function StudentDashboard() {
   }, []);
 
 
-
-  // Mark video completed
+  // mark complete
   const markComplete = async (videoId) => {
 
     try {
-
       await api.post(
         '/api/mark-complete/',
         {
@@ -58,7 +57,7 @@ function StudentDashboard() {
         "Video marked completed"
       );
 
-      fetchCourses(); // refresh progress
+      fetchCourses();
 
     } catch (error) {
       console.error(error);
@@ -68,7 +67,7 @@ function StudentDashboard() {
 
 
 
-  // YouTube embed conversion
+  // youtube embed
   const getEmbedUrl = (url) => {
 
     if (!url) return "";
@@ -89,7 +88,6 @@ function StudentDashboard() {
       return url;
     }
 
-
     return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&disablekb=1&controls=1`;
 
   };
@@ -99,206 +97,293 @@ function StudentDashboard() {
   return (
 
     <div style={{
-      padding: "20px",
-      fontFamily: "Arial"
+      display: 'flex',
+      minHeight: '100vh',
+      fontFamily: 'Arial'
     }}>
 
-      <h2>
-        My Courses
-      </h2>
+
+      {/* SIDEBAR */}
+      <div style={{
+        width: collapsed ? '50px' : '220px',
+        transition: '0.4s',
+        background: '#041a4e',
+        color: 'white',
+        padding: '30px'
+      }}>
+
+        <div style={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          marginBottom: '20px'
+        }}>
+
+          <button onClick={() => setCollapsed(!collapsed)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'white',
+              fontSize: '28px',
+              cursor: 'pointer'
+            }}
+          >
+            ☰
+          </button>
+        </div>
 
 
-      {courses.length === 0 && (
-        <p>
-          No courses assigned
-        </p>
-      )}
+        <h4> Student Portal </h4>
 
+        <hr />
 
+        <button style={sideBtn}> {collapsed ? '🏠' : 'Dashboard'}</button>
+        <button style={sideBtn}> {collapsed ? '📚' : 'My Courses'}</button>
+        <button style={sideBtn}> {collapsed ? '📈' : 'Progress'} </button>
+        <button style={sideBtn}> {collapsed ? '👤' : 'Profile'} </button>
+        <button onClick={handleLogout} style={{ ...sideBtn, background: '#dc2626' }}> {collapsed ? '🚪' : 'Logout'} </button>
 
-      {courses.map((c, index) => (
-
-        <div
-          key={index}
-          style={{
-            marginBottom: "40px",
-            padding: "20px",
-            border: "1px solid #ddd",
-            borderRadius: "12px",
-            background: "#f9f9f9"
-          }}
-        >
-
-          <h3>
-            {c.course}
-          </h3>
-
-
-          {/* Course metadata */}
-          <p>
-            <b>Category:</b> {c.category}
-          </p>
-
-          <p>
-            <b>Level:</b> {c.level}
-          </p>
-
-          <p>
-            <b>Duration:</b> {c.duration}
-          </p>
-
-          <p>
-            {c.description}
-          </p>
+      </div>
 
 
 
-          {/* Progress */}
-          <h4>
-            Progress: {c.progress}%
-          </h4>
+
+      {/* MAIN CONTENT */}
+      <div style={{
+        flex: 1,
+        padding: '30px',
+        background: '#f5f7fb'
+      }}>
 
 
-          <div style={{
-            width: "100%",
-            height: "22px",
-            background: "#ddd",
-            borderRadius: "10px",
-            marginBottom: "20px"
-          }}>
+        {/* Profile header */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '30px'
+        }}>
 
-            <div style={{
-              width: `${c.progress}%`,
-              height: "22px",
-              background: "green",
-              borderRadius: "10px",
-              transition: "0.5s"
-            }}>
-            </div>
-
-          </div>
-
+          <h2>My Courses </h2>
 
 
           <div style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "20px"
+            background: 'white',
+            padding: '10px 15px',
+            borderRadius: '30px',
+            boxShadow: '0 4px 10px rgba(8, 8, 8, 0.08)'
           }}>
 
+            <b> {currentUser?.username} </b>
 
-            {c.videos && c.videos.length > 0 ? (
-
-              c.videos.map((v, i) => (
-
-                <div
-                  key={i}
-                  style={{
-                    width: "100%",
-                    maxWidth: "420px",
-                    border: "1px solid #ccc",
-                    borderRadius: "10px",
-                    padding: "10px",
-                    background: "white",
-                    boxShadow: "0 2px 5px rgba(0,0,0,.1)"
-                  }}
-                >
-
-                  <h4>
-                    {v.title}
-                  </h4>
-
-                  <p style={{
-                    color: "gray",
-                    fontSize: "14px"
-                  }}>
-                    {v.description}
-                  </p>
-
-
-
-                  <div style={{
-                    position: "relative"
-                  }}>
-
-                    {/* dynamic watermark */}
-                    <div style={{
-                      position: "absolute",
-                      top: "12px",
-                      left: "12px",
-                      zIndex: "10",
-                      background: "rgba(0,0,0,.55)",
-                      color: "white",
-                      padding: "6px 10px",
-                      borderRadius: "5px",
-                      fontSize: "12px",
-                      fontWeight: "bold"
-                    }}>
-                      {currentUser?.username}
-                    </div>
-
-
-                    <iframe
-                      width="100%"
-                      height="230"
-                      src={getEmbedUrl(v.link)}
-                      title={v.title}
-                      frameBorder="0"
-                      allow="encrypted-media"
-                      allowFullScreen
-                    ></iframe>
-
-                  </div>
-
-
-
-                  {/* completion status */}
-                  <p style={{
-                    marginTop: "10px",
-                    fontWeight: "bold"
-                  }}>
-                    {v.completed
-                      ? "✅ Completed"
-                      : "⏳ Not Completed"}
-                  </p>
-
-
-                  {!v.completed && (
-
-                    <button
-                      onClick={() => markComplete(v.id)}
-                      style={{
-                        padding: "10px",
-                        background: "green",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "5px",
-                        cursor: "pointer"
-                      }}
-                    >
-                      Mark Completed
-                    </button>
-
-                  )}
-
-                </div>
-
-              ))
-
-            ) : (
-              <p>No videos available</p>
-            )}
+            <p> Student </p>
 
           </div>
 
         </div>
 
-      ))}
+
+
+        {/* Learning summary */}
+        <div style={{
+          background: 'white',
+          padding: '25px',
+          borderRadius: '16px',
+          marginBottom: '30px',
+          boxShadow:
+            '0 4px 10px rgba(0,0,0,.08)'
+        }}>
+
+          <h3> Learning Summary </h3>
+
+          <p>Courses Enrolled: {courses.length}</p>
+
+          <p>Track your course progress below. </p>
+
+        </div>
+
+
+
+
+        {courses.length === 0 && (
+          <p> No courses assigned </p>
+        )}
+
+
+
+        {courses.map((c, index) => (
+
+          <div
+            key={index}
+            style={{
+              marginBottom: '40px',
+              padding: '25px',
+              border: '1px solid #ddd',
+              borderRadius: '14px',
+              background: 'white'
+            }}
+          >
+
+            <h3> {c.course} </h3>
+
+            <p> <b>Category:</b> {c.category} </p>
+            <p> <b>Level:</b> {c.level} </p>
+            <p> <b>Duration:</b> {c.duration} Hours</p>
+            <p> {c.description} </p>
+
+            <h4> Progress: {c.progress}% </h4>
+
+
+            <div style={{
+              width: '100%',
+              height: '10px',
+              background: '#ddd',
+              borderRadius: '10px',
+              marginBottom: '20px'
+            }}>
+
+              <div style={{
+                width: `${c.progress}%`,
+                height: '10px',
+                background: 'green',
+                borderRadius: '10px',
+                transition: '0.5s'
+              }}>
+              </div>
+
+            </div>
+            
+
+            <div style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '20px'
+            }}>
+
+
+              {c.videos && c.videos.length > 0 ? (
+
+                c.videos.map((v, i) => (
+
+                  <div
+                    key={i}
+                    style={{
+                      width: '100%',
+                      maxWidth: '360px',
+                      border: '1px solid #ccc',
+                      borderRadius: '10px',
+                      padding: '12px',
+                      background: 'white',
+                      boxShadow:
+                        '0 2px 5px rgba(0,0,0,.1)'
+                    }}
+                  >
+
+                    <h4> {v.title} </h4>
+
+                    <p style={{ color: 'gray', fontSize: '14px' }}> {v.description} </p>
+
+
+                    <div style={{ position: 'relative' }}>
+
+                      <div style={{
+                        position: 'absolute',
+                        top: '12px',
+                        left: '12px',
+                        zIndex: '10',
+                        background:
+                          'rgba(0,0,0,.55)',
+                        color: 'white',
+                        padding: '6px 10px',
+                        borderRadius: '5px',
+                        fontSize: '12px',
+                        fontWeight: 'bold'
+                      }}>
+                        {currentUser?.username}
+                      </div>
+
+                      <iframe
+                        width='100%'
+                        height='230'
+                        src={getEmbedUrl(v.link)}
+                        title={v.title}
+                        frameBorder='0'
+                        allow='encrypted-media'
+                        allowFullScreen
+                      ></iframe>
+
+                    </div>
+
+                    <p style={{
+                      marginTop: '10px',
+                      fontWeight: 'bold'
+                    }}>
+                      {
+                        v.completed
+                          ? '✅ Completed'
+                          : '⏳ Not Completed'
+                      }
+                    </p>
+
+
+
+                    {!v.completed && (
+
+                      <button
+                        onClick={() =>
+                          markComplete(v.id)
+                        }
+                        style={{
+                          padding: '10px',
+                          background: 'green',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '5px'
+                        }}
+                      >
+                        Mark Completed
+                      </button>
+
+                    )}
+
+
+                  </div>
+
+                ))
+
+              ) : (
+
+                <p> No videos available </p>
+
+              )}
+
+            </div>
+
+          </div>
+
+        ))}
+
+
+      </div>
 
     </div>
 
   );
 
 }
+
+
+
+const sideBtn = {
+  display: 'block',
+  width: '100%',
+  marginTop: '15px',
+  padding: '12px',
+  background: '#1e293b',
+  color: 'white',
+  border: 'none',
+  borderRadius: '8px',
+  cursor: 'pointer'
+};
+
 
 export default StudentDashboard;

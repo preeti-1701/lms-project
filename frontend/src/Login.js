@@ -74,7 +74,7 @@ function Login({ setUser }) {
       }
 
       else if (response.data.role === 'trainer') {
-        navigate('/create-course');
+        navigate('/trainer');
       }
 
       else if (response.data.role === 'student') {

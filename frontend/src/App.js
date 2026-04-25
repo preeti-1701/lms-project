@@ -9,6 +9,7 @@ import {
 
 // Pages
 import AdminDashboard from './AdminDashboard';
+import TrainerDashboard from './TrainerDashboard';
 import Home from './pages/Home';
 import Login from './Login';
 import CreateUser from './CreateUser';
@@ -273,6 +274,16 @@ function App() {
         element={
           <ProtectedRoute role='admin'>
             <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Trainer Route */}
+      <Route
+        path='/trainer'
+        element={
+          <ProtectedRoute role='trainer'>
+            <TrainerDashboard />
           </ProtectedRoute>
         }
       />
