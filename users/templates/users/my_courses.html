@@ -1,7 +1,9 @@
 <h2>My Courses</h2>
 
 {% for e in enrollments %}
-    <p><b>{{ e.course.title }}</b></p>
-{% empty %}
-    <p>No courses enrolled yet</p>
+    <div>
+        <h3>{{ e.course.title }}</h3>
+
+        <a href="/course/{{ e.course.id }}/">View Videos</a>
+    </div>
 {% endfor %}

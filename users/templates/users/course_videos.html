@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ course.title }}</title>
+</head>
+
+<body>
+
+<h1>{{ course.title }} Videos</h1>
+
+{% for video in videos %}
+    <div style="margin-bottom:20px;">
+        <h3>{{ video.title }}</h3>
+
+        <a href="{{ video.youtube_link }}" target="_blank">
+            ▶ Watch Video
+        </a>
+    </div>
+{% empty %}
+    <p>No videos available for this course.</p>
+{% endfor %}
+
+</body>
+</html>

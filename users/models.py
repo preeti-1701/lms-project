@@ -37,3 +37,13 @@ class Enrollment(models.Model):
 
     def __str__(self):
         return f"{self.student.name} - {self.course.title}"
+    
+    from django.db import models
+
+class Video(models.Model):
+    title = models.CharField(max_length=200)
+    youtube_link = models.URLField()
+    course = models.ForeignKey('users.Course', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.title

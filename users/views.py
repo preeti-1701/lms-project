@@ -2,24 +2,23 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from .models import User, Course
 from .models import Enrollment
+from .models import Video
+from .models import Video , Course , Enrollment , User
 
 
 # LOGIN
 def login_view(request):
     if request.method == "POST":
-        email = request.POST.get('email')
-        password = request.POST.get('password')
+        email = request.POST['email']
 
-        print(email, password)  # 👈 DEBUG
+        user = User.objects.get(email=email)
 
-        user = User.objects.filter(email=email, password=password).first()
+        # store user id in session
+        request.session['user_id'] = user.id
 
-        if user:
-            return redirect(f"/dashboard/?email={email}")
-        else:
-            return HttpResponse("Invalid Login ❌")
+        return redirect('dashboard')
 
-    return render(request, "users/login.html")
+    return render(request, 'users/login.html')
 
 # DASHBOARD
 def dashboard(request):
@@ -56,44 +55,79 @@ def add_course(request):
 
 # VIEW COURSES (Student)
 def view_courses(request):
-    email = request.GET.get('email')
-    user = User.objects.get(email=email)
-
-    if user.role == "trainer":
-        courses = Course.objects.filter(trainer=user)
-    else:
-        courses = Course.objects.filter(status="active")
+    courses = Course.objects.all()
 
     return render(request, 'users/view_courses.html', {
-        'courses': courses,
-        'email': email
+        'courses': courses
     })
 
 def enroll(request):
-    email = request.GET.get('email')
+    user_id = request.session.get('user_id')
+
+    if not user_id:
+        return HttpResponse("Login first")
+
+    user = User.objects.get(id=user_id)
+
     course_id = request.GET.get('course_id')
-
-    if not email:
-        return HttpResponse("Login again ❌")
-
-    user = User.objects.get(email=email)
     course = Course.objects.get(id=course_id)
 
-    if Enrollment.objects.filter(student=user, course=course).exists():
-        return HttpResponse("Already Enrolled ⚠️")
+    Enrollment.objects.get_or_create(
+        student=user,
+        course=course
+    )
 
-    Enrollment.objects.create(student=user, course=course)
-
-    return HttpResponse("Enrolled Successfully ✅")
+    return HttpResponse("Enrolled successfully")
 
 def my_courses(request):
-    email = request.GET.get('email')
-    user = User.objects.get(email=email)
+    user_id = request.session.get('user_id')
+
+    if not user_id:
+        return HttpResponse("Login first")
+
+    user = User.objects.get(id=user_id)
 
     enrollments = Enrollment.objects.filter(student=user)
 
     return render(request, 'users/my_courses.html', {
-        'enrollments': enrollments,
-        'email': email
+        'enrollments': enrollments
     })
 
+def dashboard(request):
+    videos = Video.objects.all()
+    return render(request, 'users/dashboard.html', {'videos': videos})
+
+from .models import Video, Course
+
+from django.http import HttpResponse
+from .models import Video, Course, Enrollment, User
+
+def course_videos(request, course_id):
+    course = Course.objects.get(id=course_id)
+
+    # get user from session
+    user_id = request.session.get('user_id')
+
+    if not user_id:
+        return HttpResponse("Please login first")
+
+    user = User.objects.get(id=user_id)
+
+    is_enrolled = Enrollment.objects.filter(
+        student=user,
+        course=course
+    ).exists()
+
+    if not is_enrolled:
+        return HttpResponse("You are not enrolled in this course")
+
+    videos = Video.objects.filter(course=course)
+
+    return render(request, 'users/course_videos.html', {
+        'course': course,
+        'videos': videos
+    })
+
+def logout_view(request):
+    request.session.flush()   # clears session (logs out user)
+    return redirect('login')  # goes back to login page
