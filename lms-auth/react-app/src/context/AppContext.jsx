@@ -68,7 +68,19 @@ export function AppProvider({ children }) {
     if (!user) return;
     if (user.role === 'student') {
       const [enrollRes] = await Promise.all([apiGetEnrollments()]);
-      if (enrollRes.ok) setEnrollments(enrollRes.data);
+      if (enrollRes.ok) {
+        setEnrollments(enrollRes.data);
+        const courseIds = enrollRes.data.map(e => e.course?.id).filter(Boolean);
+        if (courseIds.length) {
+          const progressResults = await Promise.all(
+            courseIds.map(async (courseId) => {
+              const pres = await apiGetProgress(courseId);
+              return [courseId, pres.ok ? pres.data : { progress: 0, watched: 0, total: 0 }];
+            })
+          );
+          setProgress(Object.fromEntries(progressResults));
+        }
+      }
     }
     if (user.role === 'admin') {
       const [usersRes, auditRes] = await Promise.all([apiGetAllUsers(), apiGetAuditLog()]);
@@ -116,13 +128,16 @@ export function AppProvider({ children }) {
   }, [showToast]);
 
   // ── Progress ───────────────────────────────────────────────────────────────
-  const getCourseProgress = useCallback(async (userId, courseId) => {
-    // userId kept for API signature compatibility with existing components
-    if (progress[courseId] !== undefined) return progress[courseId].progress ?? 0;
+  const fetchCourseProgress = useCallback(async (courseId) => {
     const res = await apiGetProgress(courseId);
     if (!res.ok) return 0;
     setProgress(p => ({ ...p, [courseId]: res.data }));
     return res.data.progress ?? 0;
+  }, []);
+
+  const getCourseProgress = useCallback((userId, courseId) => {
+    // userId kept for signature compatibility with existing components.
+    return progress[courseId]?.progress ?? 0;
   }, [progress]);
 
   const markVideoWatched = useCallback(async (userId, courseId, videoId) => {
@@ -218,7 +233,7 @@ export function AppProvider({ children }) {
     // Auth
     login, logout, registerStudent, registerTeacher,
     // Progress
-    getProgress, markVideoWatched, getCourseProgress,
+    getProgress, markVideoWatched, getCourseProgress, fetchCourseProgress,
     // Courses
     createCourse, addVideo, deleteVideo,
     // Enrollments

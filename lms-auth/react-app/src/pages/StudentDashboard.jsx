@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/useApp';
 import Sidebar from '../components/dashboard/Sidebar';
@@ -17,13 +17,22 @@ const NAV = [
 ];
 
 export default function StudentDashboard() {
-  const { currentUser, courses, getCourseProgress, users, logout, showToast } = useApp();
+  const {
+    currentUser,
+    courses,
+    enrollments,
+    getCourseProgress,
+    fetchCourseProgress,
+    enrollCourse,
+    logout,
+    showToast,
+  } = useApp();
   const navigate = useNavigate();
   const [section, setSection] = useState('overview');
 
-  const student = users.find(u => u.id === currentUser?.id);
-  const enrolledCourseIds = student?.assignedCourses || [];
-  const enrolledCourses = courses.filter(c => enrolledCourseIds.includes(c.id));
+  const enrolledCourses = enrollments.map(e => e.course).filter(Boolean);
+  const enrolledCourseIds = new Set(enrolledCourses.map(c => c.id));
+  const availableCourses = courses.filter(c => !enrolledCourseIds.has(c.id));
   const completedCourses = enrolledCourses.filter(c => getCourseProgress(currentUser?.id, c.id) === 100);
   const avgCompletion = enrolledCourses.length
     ? Math.round(enrolledCourses.reduce((s, c) => s + getCourseProgress(currentUser?.id, c.id), 0) / enrolledCourses.length)
@@ -33,6 +42,14 @@ export default function StudentDashboard() {
     if (s === '__logout__') { logout(); navigate('/'); return; }
     setSection(s);
   };
+
+  useEffect(() => {
+    enrollments.forEach((enrollment) => {
+      if (enrollment.course?.id != null) {
+        fetchCourseProgress(enrollment.course.id);
+      }
+    });
+  }, [enrollments, fetchCourseProgress]);
 
   const CourseCard = ({ course }) => {
     const progress = getCourseProgress(currentUser?.id, course.id);
@@ -80,7 +97,7 @@ export default function StudentDashboard() {
                 ))}
               </div>
 
-              {enrolledCourses.length > 0 && (
+              {enrolledCourses.length  && (
                 <>
                   <div className="section-header">
                     <span className="section-title">▶ Continue Watching</span>
@@ -106,6 +123,28 @@ export default function StudentDashboard() {
                 ? <div className="empty-state"><div className="empty-icon">📚</div><p>No courses assigned yet. Check back later!</p></div>
                 : <div className="courses-grid">{enrolledCourses.slice(0,4).map(c => <CourseCard key={c.id} course={c} />)}</div>
               }
+
+              <div className="section-header" style={{ marginTop: 20 }}>
+                <span className="section-title">✨ Available Courses</span>
+              </div>
+              {availableCourses.length === 0
+                ? <div className="empty-state"><div className="empty-icon">🎉</div><p>You are already enrolled in all available courses.</p></div>
+                : <div className="courses-grid">
+                    {availableCourses.slice(0,4).map(course => (
+                      <div key={course.id} className="course-card">
+                        <div className="course-thumb" style={{ background:'linear-gradient(135deg,#0EA5E9,#8B5CF6)' }}><span style={{ fontSize: '3rem' }}>{course.icon}</span></div>
+                        <div className="course-body">
+                          <div className="course-title">{course.title}</div>
+                          <div className="course-meta">{course.trainerName} · {course.videos.length} videos</div>
+                          <div className="progress-label"><span>{course.category}</span><span>Not Enrolled</span></div>
+                          <button className="btn-sm btn-sm-primary" style={{ marginTop: 10 }} onClick={() => enrollCourse(course.id)}>
+                            Enroll Now
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+              }
             </div>
           )}
 
@@ -117,6 +156,28 @@ export default function StudentDashboard() {
               {enrolledCourses.length === 0
                 ? <div className="empty-state"><div className="empty-icon">📚</div><p>No courses assigned yet.</p></div>
                 : <div className="courses-grid">{enrolledCourses.map(c => <CourseCard key={c.id} course={c} />)}</div>
+              }
+
+              <div className="section-header" style={{ marginTop: 24 }}>
+                <span className="section-title">Explore More Courses</span>
+              </div>
+              {availableCourses.length === 0
+                ? <div className="empty-state"><div className="empty-icon">🎉</div><p>No additional courses available right now.</p></div>
+                : <div className="courses-grid">
+                    {availableCourses.map(course => (
+                      <div key={course.id} className="course-card">
+                        <div className="course-thumb" style={{ background:'linear-gradient(135deg,#0EA5E9,#8B5CF6)' }}><span style={{ fontSize: '3rem' }}>{course.icon}</span></div>
+                        <div className="course-body">
+                          <div className="course-title">{course.title}</div>
+                          <div className="course-meta">{course.trainerName} · {course.videos.length} videos</div>
+                          <div className="progress-label"><span>{course.category}</span><span>Not Enrolled</span></div>
+                          <button className="btn-sm btn-sm-primary" style={{ marginTop: 10 }} onClick={() => enrollCourse(course.id)}>
+                            Enroll Now
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
               }
             </div>
           )}

@@ -51,9 +51,15 @@ export default function TrainerDashboard() {
         total + myCourses.reduce((st, c) => st + getCourseProgress(s.id, c.id), 0) / myCourses.length, 0) / myStudents.length)
     : null;
 
-  const handleCreateCourse = () => {
+  const handleCreateCourse = async () => {
     if (!cTitle || !cCat) return showToast('Please fill title and category.', 'error');
-    createCourse(currentUser.id, currentUser.name, { title: cTitle, description: cDesc, category: cCat, icon: cIcon });
+    const created = await createCourse(currentUser.id, currentUser.name, {
+      title: cTitle,
+      description: cDesc,
+      category: cCat,
+      icon: cIcon,
+    });
+    if (!created) return;
     setCTitle(''); setCDesc(''); setCCat(''); setCIcon('💻');
     setShowAddCourse(false);
   };
@@ -249,8 +255,13 @@ export default function TrainerDashboard() {
                 <div className="form-group"><label>Category *</label>
                   <select className="form-control" value={cCat} onChange={e => setCCat(e.target.value)}>
                     <option value="">Select category</option>
-                    <option>Web Development</option><option>Data Science</option><option>AI / ML</option>
-                    <option>Design</option><option>Data Engineering</option><option>Mobile Dev</option><option>Other</option>
+                    <option>Web Development</option>
+                    <option>Data Science</option>
+                    <option>Mobile Development</option>
+                    <option>Cloud Computing</option>
+                    <option>Cybersecurity</option>
+                    <option>AI/ML</option>
+                    <option>Other</option>
                   </select>
                 </div>
                 <div className="form-group"><label>Course Icon</label>

@@ -13,10 +13,11 @@ export default function VideoPlayer() {
   const navigate = useNavigate();
   const { currentUser, courses, getProgress, markVideoWatched, showToast } = useApp();
 
-  const course = courses.find(c => c.id === courseId);
+  const course = courses.find(c => String(c.id) === String(courseId));
   const [activeIdx, setActiveIdx] = useState(parseInt(videoIndex, 10) || 0);
   const progress = getProgress(currentUser?.id);
-  const watched = progress[courseId] || {};
+  const watchedSummary = progress[courseId] || {};
+  const watchedCount = typeof watchedSummary.watched === 'number' ? watchedSummary.watched : 0;
 
   useEffect(() => {
     if (!course) {
@@ -102,11 +103,11 @@ export default function VideoPlayer() {
       <div className="vp-sidebar">
         <div className="vp-sidebar-header">
           <span>📚 {course.title}</span>
-          <span style={{ fontSize:'0.75rem', color:'var(--text-muted)' }}>{Object.keys(watched).length}/{course.videos.length}</span>
+          <span style={{ fontSize:'0.75rem', color:'var(--text-muted)' }}>{watchedCount}/{course.videos.length}</span>
         </div>
         <div className="vp-playlist">
           {course.videos.map((v, i) => {
-            const isWatched = !!watched[v.id];
+            const isWatched = i < watchedCount;
             const isActive = i === activeIdx;
             const vid = getYtId(v.url);
             return (

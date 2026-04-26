@@ -62,7 +62,7 @@ WSGI_APPLICATION = "myproject.wsgi.application"
 
 # ── Database ───────────────────────────────────────────────────────────────────
 # Default to SQLite for quick local setup; opt in to Postgres with USE_POSTGRES=True.
-USE_POSTGRES = os.getenv("USE_POSTGRES", "False") == "True"
+USE_POSTGRES = os.getenv("USE_POSTGRES", "True") == "True"
 
 if USE_POSTGRES:
     DATABASES = {
@@ -75,14 +75,7 @@ if USE_POSTGRES:
             "PORT": os.getenv("DB_PORT", "5432"),
         }
     }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            # Keep separate from repository placeholder `db.sqlite3`.
-            "NAME": BASE_DIR / "local.sqlite3",
-        }
-    }
+
 
 # ── Custom User Model ──────────────────────────────────────────────────────────
 AUTH_USER_MODEL = "myapp.CustomUser"

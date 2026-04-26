@@ -12,6 +12,17 @@ const BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 // ── helpers ────────────────────────────────────────────────────────────────────
 
+function normalizeCourse(course) {
+  if (!course) return course;
+  return {
+    ...course,
+    trainerId: course.trainerId ?? course.trainer_id ?? null,
+    trainerName: course.trainerName ?? course.trainer_name ?? "Unknown Trainer",
+    created: course.created ?? course.created_at ?? null,
+    videos: Array.isArray(course.videos) ? course.videos : [],
+  };
+}
+
 function getToken() {
   return localStorage.getItem("lms_token");
 }
@@ -66,9 +77,17 @@ export const apiMe = () => get("/api/auth/me/");
 
 // ── Courses ────────────────────────────────────────────────────────────────────
 
-export const apiGetCourses = () => get("/api/courses/", false);
+export const apiGetCourses = async () => {
+  const res = await get("/api/courses/", false);
+  if (!res.ok) return res;
+  return { ok: true, data: (res.data || []).map(normalizeCourse) };
+};
 
-export const apiGetCourse = (id) => get(`/api/courses/${id}/`, false);
+export const apiGetCourse = async (id) => {
+  const res = await get(`/api/courses/${id}/`, false);
+  if (!res.ok) return res;
+  return { ok: true, data: normalizeCourse(res.data) };
+};
 
 export const apiCreateCourse = (data) => post("/api/courses/", data);
 
@@ -85,7 +104,17 @@ export const apiDeleteVideo = (videoId) => del(`/api/videos/${videoId}/`);
 
 // ── Enrollments ────────────────────────────────────────────────────────────────
 
-export const apiGetEnrollments = () => get("/api/enrollments/");
+export const apiGetEnrollments = async () => {
+  const res = await get("/api/enrollments/");
+  if (!res.ok) return res;
+  return {
+    ok: true,
+    data: (res.data || []).map((enrollment) => ({
+      ...enrollment,
+      course: normalizeCourse(enrollment.course),
+    })),
+  };
+};
 
 export const apiEnroll = (course_id) => post("/api/enrollments/", { course_id });
 

@@ -19,7 +19,21 @@ for BackEnd
 
 Added a Demo Landing Page and try to change as per the requirements
 
-# React APP added
+# /lms-auth/react-app/src Folder
+
+**React APP added**
+
+> js file
+- __api__
+
+> CSS file
+- __App__
+- __index__
+
+> jsx file
+- __App__
+- __main__
+
 
 React context added 
 > jsx file
@@ -41,3 +55,18 @@ React pages added
 - __StudentDashboard__
 - __TrainerDashboard__
 - __VideoPlayer__
+
+
+# lms-backend/django-postgres-app folder
+
+**myapp**
+**myproject**
+
+Then reacted OMR to connect Database
+> First checked with sqlite
+
+then
+
+> postgres to the backend
+
+Running succesfully in local system and Completed My internship project
