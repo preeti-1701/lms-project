@@ -4,7 +4,7 @@
 ![Login](output/login.png)
 
 ### 👥 User List
-![User List](output/user.png)
+![User List](output/users.png)
 
 ### 📚 Course List
 ![Course List](output/course.png)
