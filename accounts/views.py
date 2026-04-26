@@ -1,3 +1,4 @@
+from urllib import request
 import uuid
 
 from django.shortcuts import render
@@ -7,6 +8,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from courses.models import Course, Video, Enrollment, VideoProgress
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -214,6 +216,7 @@ def enable_user(request):
             status=403
         )
 
+
     user_id = request.data.get('user_id')
 
     try:
@@ -301,3 +304,110 @@ def active_sessions(request):
  )
 
  return Response(list(sessions))
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def admin_stats(request):
+
+    if request.user.role != 'admin':
+        return Response(
+          {'error':'Unauthorized'},
+          status=403
+        )
+
+    data={
+      "users":User.objects.count(),
+      "courses":Course.objects.count(),
+      "videos":Video.objects.count(),
+      "enrollments":Enrollment.objects.count(),
+      "disabled_users":
+         User.objects.filter(
+          is_active=False
+         ).count()
+    }
+
+    return Response(data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def trainer_stats(request):
+
+    if request.user.role != 'trainer':
+        return Response(
+            {'error':'Unauthorized'},
+            status=403
+        )
+
+    courses = Course.objects.filter(
+        trainer=request.user
+    ).count()
+
+
+    videos = Video.objects.filter(
+        course__trainer=request.user
+    ).count()
+
+
+    students = Enrollment.objects.filter(
+        course__trainer=request.user
+    ).count()
+
+
+    data = {
+       'courses':courses,
+       'videos':videos,
+       'students':students
+    }
+
+    return Response(data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def student_stats(request):
+
+    if request.user.role!='student':
+        return Response(
+           {'error':'Unauthorized'},
+           status=403
+        )
+
+    enrollments=Enrollment.objects.filter(student=request.user)
+    course_count=enrollments.count()
+    total_videos=0
+    completed=0
+
+
+    for enroll in enrollments:
+
+        videos=Video.objects.filter(course=enroll.course)
+
+        total_videos+=videos.count()
+
+        for v in videos:
+
+            if VideoProgress.objects.filter(
+               student=request.user,
+               video=v,
+               completed=True
+            ).exists():
+
+                completed+=1
+
+    progress=0
+
+    if total_videos>0:
+       progress=round(
+         completed/total_videos*100
+       )
+
+
+    return Response({
+
+      'courses':course_count,
+      'completed':completed,
+      'total_videos':total_videos,
+      'progress':progress
+
+    })

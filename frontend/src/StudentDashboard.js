@@ -36,9 +36,31 @@ function StudentDashboard() {
 
   };
 
+  // learning summary state
+  const [summary, setSummary] = useState({
+    courses: 0,
+    completed: 0,
+    total_videos: 0,
+    progress: 0
+  });
+
+  const fetchSummary = async () => {
+    const res = await api.get(
+      '/api/student-stats/'
+    );
+
+    setSummary(
+      res.data
+    );
+
+  };
+
+
+
 
   useEffect(() => {
     fetchCourses();
+    fetchSummary();
   }, []);
 
 
@@ -107,7 +129,7 @@ function StudentDashboard() {
       <div style={{
         width: collapsed ? '50px' : '220px',
         transition: '0.4s',
-        background: '#041a4e',
+        background: '#1c3a65',
         color: 'white',
         padding: '30px'
       }}>
@@ -127,7 +149,8 @@ function StudentDashboard() {
               cursor: 'pointer'
             }}
           >
-            ☰
+            {/* ☰ */}
+            {collapsed ? '»' : '«'}
           </button>
         </div>
 
@@ -194,10 +217,16 @@ function StudentDashboard() {
         }}>
 
           <h3> Learning Summary </h3>
-
+{/* 
           <p>Courses Enrolled: {courses.length}</p>
 
-          <p>Track your course progress below. </p>
+          <p>Track your course progress below. </p> */}
+
+          <p>Courses: {summary.courses} </p>
+
+          <p>Completed Videos: {summary.completed}/{summary.total_videos} </p>
+
+          <p>Overall Progress: {summary.progress}% </p>
 
         </div>
 
@@ -251,7 +280,7 @@ function StudentDashboard() {
               </div>
 
             </div>
-            
+
 
             <div style={{
               display: 'flex',

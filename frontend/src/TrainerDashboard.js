@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from './api';
 
 
 
@@ -17,6 +18,36 @@ function TrainerDashboard() {
     navigate('/login');
   };
 
+  // =========================Stats State==========================
+  const [stats, setStats] = useState({
+    courses: 0,
+    videos: 0,
+    students: 0
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await api.get(
+          '/api/trainer-stats/'
+        );
+
+        setStats(
+          res.data
+        );
+
+      } catch (error) {
+        console.error(error);
+      }
+
+    };
+
+    fetchStats();
+
+  }, []);
+
+
+
 
 
   // ==========================UI==========================
@@ -33,9 +64,9 @@ function TrainerDashboard() {
       {/* ======================Sidebar====================== */}
       <div
         style={{
-          width: collapsed ? '50px' : '260px',
+          width: collapsed ? '50px' : '220px',
           transition: '0.4s',
-          background: '#163793',
+          background: '#1c3a65',
           color: 'white',
           padding: '30px'
         }}
@@ -57,7 +88,8 @@ function TrainerDashboard() {
               cursor: 'pointer'
             }}
           >
-            ☰
+            {/* ☰ */}
+            {collapsed ? '»' : '«'}
           </button>
         </div>
 
@@ -99,10 +131,10 @@ function TrainerDashboard() {
           }}
         >
 
-          <Card title="Courses" value="4" />
-          <Card title="Students" value="65" />
-          <Card title="Videos" value="22" />
-          <Card title="Assignments" value="8" />
+          <Card title="Courses" value={stats.courses} />
+          <Card title="Students" value={stats.students} />
+          <Card title="Videos" value={stats.videos} />
+          {/* <Card title="Assignments" value={stats.assignments} /> */}
 
         </div>
 
@@ -165,7 +197,7 @@ const btnStyle = {
   width: '100%',
   marginTop: '15px',
   padding: '12px',
-  background: '#2563eb',
+  background: '#374151',
   color: 'white',
   border: 'none',
   borderRadius: '8px',

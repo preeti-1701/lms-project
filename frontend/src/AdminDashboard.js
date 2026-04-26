@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from './api';
 
 
 
@@ -10,6 +11,32 @@ function AdminDashboard() {
 
     // Navigation State
     const [collapsed, setCollapsed] = useState(false);
+
+    // Stats State
+    const [stats, setStats] = useState({
+        users: 0,
+        courses: 0,
+        videos: 0,
+        enrollments: 0
+    });
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const res = await api.get(
+                    '/api/admin-stats/'
+                );
+                setStats(
+                    res.data
+                );
+
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchStats();
+
+    }, []);
 
     // Logout
     const handleLogout = () => {
@@ -32,7 +59,7 @@ function AdminDashboard() {
             {/* ======================Sidebar====================== */}
             <div
                 style={{
-                    width: collapsed ? '50px' : '260px',
+                    width: collapsed ? '50px' : '220px',
                     transition: '0.4s',
                     background: '#1c3a65',
                     color: 'white',
@@ -56,7 +83,8 @@ function AdminDashboard() {
                             cursor: 'pointer'
                         }}
                     >
-                        ☰
+                        {/* ☰ */}
+                        {collapsed ? '»' : '«'}
                     </button>
                 </div>
 
@@ -98,10 +126,11 @@ function AdminDashboard() {
                     }}
                 >
 
-                    <Card title="Users" value="8+" />
-                    <Card title="Courses" value="5+" />
-                    <Card title="Enrollments" value="12+" />
-                    <Card title="Sessions" value="Live" />
+                    <Card title="Users" value={stats.users} />
+                    <Card title="Courses" value={stats.courses} />
+                    <Card title="Videos" value={stats.videos}/>
+                    <Card title="Enrollments" value={stats.enrollments} />
+                    {/* <Card title="Sessions" value="4+" /> */}
 
                 </div>
 
