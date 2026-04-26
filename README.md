@@ -1,38 +1,16 @@
-# \## 📸 Output Screenshots
+## 📸 Output Screenshots
 
-# 
+### 🔐 Login Page
+![Login](output/login.png)
 
-# \### Login Page
+### 👥 User List
+![User List](output/user.png)
 
-# !\[Home](output/login.png)
+### 📚 Course List
+![Course List](output/course.png)
 
-# 
+### 📝 Enrollments
+![Enrollments](output/enrollment.png)
 
-# \### User List 
-
-# !\[Login](output/user.png)
-
-# 
-
-# \### Course List 
-
-# !\[Dashboard](output/course.png)
-
-
-
-
-
-# \###  Enrollments
-
-# !\[Dashboard](output/enrollment.png)
-
-
-
-
-
-# \###  Videos
-
-# !\[Dashboard](output/video.png)
-
-
-
+### 🎥 Videos
+![Videos](output/video.png)
