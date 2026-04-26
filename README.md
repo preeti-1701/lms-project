@@ -13,4 +13,4 @@
 ![Enrollments](output/enrollment.png)
 
 ### 🎥 Videos
-![Videos](output/video.png)
+![Videos](output/videos.png)
