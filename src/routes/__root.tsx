@@ -29,14 +29,14 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Eduflow Pro" },
-      { name: "description", content: "Eduflow Pro Project" },
-      { name: "author", content: "Eduflow" },
-      { property: "og:title", content: "Eduflow Pro" },
-      { property: "og:description", content: "Eduflow Pro Project" },
+      { title: "LumenLMS" },
+      { name: "description", content: "LumenLMS Project" },
+      { name: "author", content: "LumenLMS" },
+      { property: "og:title", content: "LumenLMS" },
+      { property: "og:description", content: "LumenLMS Project" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@eduflow" },
+      { name: "twitter:site", content: "@lumenlms" },
     ],
     links: [
       {
