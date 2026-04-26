@@ -69,4 +69,4 @@ then
 
 > postgres to the backend
 
-Running succesfully in local system and Completed My internship project
+Running succesfully in local system 
