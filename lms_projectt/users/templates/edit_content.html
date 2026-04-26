@@ -18,14 +18,18 @@
     <h2>Edit Content</h2>
 
     <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
+    {% csrf_token %}
 
-        <input name="title" value="{{ content.title }}">
+    <input type="text" name="title" value="{{ content.title }}" required><br><br>
 
-        <input type="file" name="file">
+    <textarea name="description">{{ content.description }}</textarea><br><br>
 
-        <button>Update</button>
-    </form>
+    <input type="url" name="url" value="{{ content.url }}"><br><br>
+
+    <input type="file" name="file"><br><br>
+
+    <button type="submit">Update</button>
+</form>
 </div>
 </body>
 </html>

@@ -27,6 +27,8 @@ urlpatterns = [
     path('pending-assignments/', views.pending_assignments),
     path('reject/<int:id>/', views.reject_assignment),
     path('delete-course/<int:id>/', views.delete_course),
+    path('edit-content/<int:id>/', views.edit_content),
+    path('delete-content/<int:id>/', views.delete_content),
 
   
     

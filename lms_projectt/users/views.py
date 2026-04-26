@@ -196,7 +196,8 @@ def course_detail(request, id):
         "course": course,
         "role": role,
         "is_enrolled": is_enrolled,
-        "contents": contents   # ADD THIS
+        "contents": contents,
+        "user": request.session.get('user')
     })
 #------------------- Course enroll view ------------------
 from .models import Enrollment
@@ -586,3 +587,40 @@ def delete_course(request, id):
 
     course.delete()
     return redirect('/dashboard/')   
+#---------------------delete content---------------------
+def delete_content(request, id):
+    if 'user' not in request.session or request.session.get('role') != "trainer":
+        return redirect('/dashboard/')
+
+    content = CourseContent.objects.get(id=id)
+    course_id = content.course.id
+
+    # allow only uploader / creator
+    if content.uploaded_by != request.session['user']:
+        return redirect('/dashboard/')
+
+    content.delete()
+    return redirect(f'/course/{course_id}/')
+
+#---------------------edit content---------------------
+def edit_content(request, id):
+    if 'user' not in request.session or request.session.get('role') != "trainer":
+        return redirect('/dashboard/')
+
+    content = CourseContent.objects.get(id=id)
+
+    if content.uploaded_by != request.session['user']:
+        return redirect('/dashboard/')
+
+    if request.method == "POST":
+        content.title = request.POST['title']
+        content.description = request.POST.get('description')
+        content.url = request.POST.get('url')
+
+        if request.FILES.get('file'):
+            content.file = request.FILES['file']
+
+        content.save()
+        return redirect(f'/course/{content.course.id}/')
+
+    return render(request, "edit_content.html", {"content": content})
