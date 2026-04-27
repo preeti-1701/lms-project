@@ -256,7 +256,7 @@ function StudentDashboard() {
 
             <p> <b>Category:</b> {c.category} </p>
             <p> <b>Level:</b> {c.level} </p>
-            <p> <b>Duration:</b> {c.duration} Hours</p>
+            <p> <b>Duration:</b> {c.duration}</p>
             <p> {c.description} </p>
 
             <h4> Progress: {c.progress}% </h4>
