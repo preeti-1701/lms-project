@@ -153,32 +153,102 @@ def force_logout(request):
     })
 
 
+# ✅ NEW: Disable user (Admin only)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def disable_user(request):
 
-    # 🔐 validate active session
+def disable_user(request, user_id):
+
+    # Validate active session
     session_check = validate_session(request)
     if session_check:
         return session_check
 
-    # 👮 admin only
+    # Admin only
     if request.user.role != 'admin':
         return Response(
             {'error':'Unauthorized'},
             status=403
         )
 
-    user_id = request.data.get('user_id')
 
-    if not user_id:
+    try: 
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
         return Response(
-            {'error':'user_id required'},
+            {'error':'User not found'},
+            status=404
+        )
+
+    # prevent admin disabling self
+    if user == request.user:
+        return Response(
+            {
+             'error':
+             'Admin cannot disable self'
+            },
             status=400
         )
 
+
+    # optional:
+    # prevent disabling other admins
+    if user.role == 'admin':
+        return Response(
+            {
+             'error':
+             'Another admin cannot be disabled'
+            },
+            status=400
+        )
+
+
+    # already disabled check
+    if not user.is_active:
+        return Response(
+            {
+             'message':
+             'User already disabled'
+            }
+        )
+
+    # Disable user
+    user.is_active=False
+    user.save()
+
+    return Response({
+
+        'message':
+        'User disabled successfully',
+
+        'user_id':
+        user.id,
+
+        'status':
+        'disabled'
+
+    })
+
+# ✅ NEW: Enable user (Admin only)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+
+def enable_user(request, user_id):
+
+    # validate active session
+    session_check = validate_session(request)
+    if session_check:
+        return session_check
+
+    # admin only
+    if request.user.role != 'admin':
+        return Response(
+            {'error':'Unauthorized'},
+            status=403
+        )
+
     try:
-        user = User.objects.get(id=int(user_id))
+        user = User.objects.get(id=user_id)
 
     except User.DoesNotExist:
         return Response(
@@ -186,54 +256,39 @@ def disable_user(request):
             status=404
         )
 
-    # optional safety: don't disable self
-    if user == request.user:
+
+    # optional: prevent enabling admins manually
+    if user.role == 'admin':
         return Response(
-            {'error':'Admin cannot disable self'},
-            status=400
+          {'error':'Cannot modify admin'},
+          status=400
         )
 
-    # 🔥 Disable user
-    user.is_active = False
-    user.save()
-
-    return Response({
-        'message':'User disabled successfully'
-    })
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def enable_user(request):
-
-    session_check = validate_session(request)
-    if session_check:
-        return session_check
-
-    if request.user.role != 'admin':
+    # already enabled
+    if user.is_active:
         return Response(
-            {'error':'Unauthorized'},
-            status=403
-        )
-
-
-    user_id = request.data.get('user_id')
-
-    try:
-        user = User.objects.get(id=user_id)
-
-    except User.DoesNotExist:
-        return Response(
-          {'error':'User not found'},
-          status=404
+            {
+             'message':
+             'User already active'
+            }
         )
 
     user.is_active = True
     user.save()
 
     return Response({
-       'message':'User enabled successfully'
+
+       'message':
+       'User enabled successfully',
+
+       'user_id':
+       user.id,
+
+       'status':
+       'enabled'
+
     })
+
 
 # ✅ NEW: Edit user details (Admin only)
 @api_view(['POST'])
@@ -334,6 +389,7 @@ def admin_stats(request):
 @permission_classes([IsAuthenticated])
 def trainer_stats(request):
 
+
     if request.user.role != 'trainer':
         return Response(
             {'error':'Unauthorized'},
@@ -350,15 +406,9 @@ def trainer_stats(request):
     ).count()
 
 
-    students = Enrollment.objects.filter(
-        course__trainer=request.user
-    ).count()
-
-
     data = {
        'courses':courses,
        'videos':videos,
-       'students':students
     }
 
     return Response(data)
@@ -411,3 +461,34 @@ def student_stats(request):
       'progress':progress
 
     })
+
+# list all users with active session info (Admin only)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_users(request):
+
+    if request.user.role!='admin':
+        return Response(
+          {'error':'Unauthorized'},
+          status=403
+        )
+
+    users=User.objects.all()
+
+    data=[]
+
+    for u in users:
+        active_session=UserSession.objects.filter(user=u, is_active=True).exists()
+
+        data.append({
+          'id':u.id,
+          'username':u.username,
+          'first_name':u.first_name,
+          'last_name':u.last_name,
+          'role':u.role,
+          'is_active':u.is_active,
+          'has_active_session':
+             active_session
+        })
+
+    return Response(data)

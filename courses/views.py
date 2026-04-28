@@ -38,7 +38,8 @@ def create_course(request):
         category=category,
         level=level,
         duration=duration,
-        created_by=request.user
+        # created_by=request.user
+        trainer = request.user
     )
 
     return Response({'message': 'Course created successfully'})
@@ -251,3 +252,105 @@ def mark_video_complete(request):
     return Response({
       'message':'Completed'
     })
+
+
+# Admin + Trainer can see all enrollments
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_enrollments(request):
+
+    if request.user.role not in [
+       'admin',
+       'trainer'
+    ]:
+        return Response(
+          {'error':'Unauthorized'},
+          status=403
+        )
+
+
+    enrollments=Enrollment.objects.all()
+
+
+    data=[]
+
+    for e in enrollments:
+
+        data.append({
+            'id':e.id,
+            'student_name':
+              e.student.username,
+            'course_title':
+              e.course.title
+        })
+
+
+    return Response(data)
+
+
+# Admin can delete enrollment (unenroll student)
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_enrollment(
+request,
+enrollment_id
+):
+
+    if request.user.role!='admin':
+        return Response(
+          {'error':'Unauthorized'},
+          status=403
+        )
+
+    enrollment=Enrollment.objects.get(id=enrollment_id)
+
+    enrollment.delete()
+
+    return Response({
+      'message':
+      'Enrollment removed'
+    })
+
+
+# Trainer can see their courses and progress stats
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+
+def trainer_courses(request):
+
+    session_check=validate_session(request)
+
+    if session_check:
+        return session_check
+
+
+    if request.user.role!='trainer':
+        return Response(
+         {'error':'Unauthorized'},
+         status=403
+        )
+
+
+    courses=Course.objects.filter(
+      trainer=request.user
+    )
+
+    data=[]
+
+    for c in courses:
+
+        videos_count=Video.objects.filter(course=c).count()
+
+        data.append({
+         'id':c.id,
+         'title':c.title,
+         'description':c.description,
+         'category':c.category,
+         'level':c.level,
+         'duration':c.duration,
+         'videos_count':videos_count
+
+        })
+
+
+    return Response(data)
