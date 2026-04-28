@@ -1,0 +1,27 @@
+.layout {
+  display: flex;
+}
+
+.dashboard {
+  flex: 1;
+  background: #f9fafb;
+  padding: 40px;
+}
+
+.dashboard h1 {
+  margin-bottom: 30px;
+}
+
+.stats {
+  display: flex;
+  gap: 20px;
+}
+
+.card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  flex: 1;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  font-weight: bold;
+}

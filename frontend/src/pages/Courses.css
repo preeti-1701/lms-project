@@ -1,0 +1,53 @@
+/* Main container */
+.courses-container {
+  flex: 1;
+  padding: 40px;
+  background: #f9fafb;
+}
+
+/* Title stays on top */
+.courses-title {
+  font-size: 28px;
+  margin-bottom: 25px;
+}
+
+/* Grid ONLY for cards */
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* ✅ 2 per row */
+  gap: 25px;
+}
+
+/* Card */
+.course-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  transition: 0.3s;
+}
+
+.course-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Title link */
+.course-card a {
+  text-decoration: none;
+  color: #111;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+/* Button style */
+.course-card a::after {
+  content: " \A ▶ Watch Course";
+  white-space: pre;
+  display: block;
+  margin-top: 12px;
+  background: #4f46e5;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 6px;
+  width: fit-content;
+}
