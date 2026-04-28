@@ -1,8 +1,50 @@
 {% extends 'base.html' %}
 {% block title %}Courses{% endblock %}
 {% block content %}
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
-    <h2 style="color:#1a1a2e;">📚 Courses</h2>
+
+<style>
+    .course-card {
+        border-radius: 18px; border: 1px solid var(--border);
+        background: var(--card); overflow: hidden;
+        transition: all 0.3s; animation: fadeUp 0.4s ease both;
+    }
+    .course-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 24px 60px rgba(233,69,96,0.15);
+        border-color: #e94560;
+    }
+    .course-card-banner {
+        height: 90px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 48px; position: relative; overflow: hidden;
+    }
+    .course-card-banner::after {
+        content: ''; position: absolute; inset: 0;
+        background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.1));
+    }
+    .course-card-body { padding: 22px; }
+    .course-title {
+        font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px;
+        color: var(--text); margin-bottom: 8px;
+    }
+    .course-desc {
+        font-size: 13px; color: var(--text2); line-height: 1.6;
+        margin-bottom: 16px; min-height: 40px;
+    }
+    .course-meta {
+        display: flex; gap: 12px; font-size: 12px; color: var(--text2);
+        margin-bottom: 18px; flex-wrap: wrap;
+    }
+    .course-meta-item {
+        display: flex; align-items: center; gap: 5px;
+        background: var(--bg); padding: 5px 10px;
+        border-radius: 20px; border: 1px solid var(--border);
+    }
+    .course-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+</style>
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:28px;">
+    <div class="page-title" style="margin-bottom:0;">📚 All <span>Courses</span></div>
     {% if user.role in 'admin,trainer' %}
     <a href="{% url 'create_course' %}" class="btn btn-primary">+ New Course</a>
     {% endif %}
@@ -11,36 +53,42 @@
 {% if courses %}
 <div class="grid-3">
     {% for course in courses %}
-    <div class="card" style="border-top: 4px solid #e94560; transition: transform 0.2s;"
-         onmouseover="this.style.transform='translateY(-4px)'"
-         onmouseout="this.style.transform='translateY(0)'">
-        <h3 style="margin-bottom:10px; color:#1a1a2e;">{{ course.title }}</h3>
-        <p style="color:#888; font-size:13px; margin-bottom:16px; min-height:40px;">
-            {{ course.description|truncatewords:15 }}
-        </p>
-        <div style="font-size:12px; color:#aaa; margin-bottom:16px;">
-            📹 {{ course.videos.count }} videos &nbsp;|&nbsp;
-            👥 {{ course.assigned_students.count }} students
+    <div class="course-card" style="animation-delay:{{ forloop.counter0 }}00ms;">
+        <div class="course-card-banner" style="background:
+            {% cycle 'linear-gradient(135deg,#e94560,#c73652)' 'linear-gradient(135deg,#1a73e8,#0d47a1)' 'linear-gradient(135deg,#28a745,#1e7e34)' 'linear-gradient(135deg,#f7b731,#e67e22)' 'linear-gradient(135deg,#9c27b0,#6a0080)' %};">
+            {% cycle '🐍' '⚛️' '🌐' '📊' '🔐' '🎨' '🤖' '☁️' %}
         </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <a href="{% url 'course_detail' course.id %}" class="btn btn-secondary btn-sm">View</a>
-            {% if user.role in 'admin,trainer' %}
-            <a href="{% url 'add_video' course.id %}" class="btn btn-primary btn-sm">+ Video</a>
-            <a href="{% url 'assign_students' course.id %}" class="btn btn-sm" style="background:#f0f2f5; color:#333;">Assign</a>
-            {% endif %}
+        <div class="course-card-body">
+            <div class="course-title">{{ course.title }}</div>
+            <div class="course-desc">{{ course.description|truncatewords:14 }}</div>
+            <div class="course-meta">
+                <div class="course-meta-item">📹 {{ course.videos.count }} videos</div>
+                <div class="course-meta-item">👥 {{ course.assigned_students.count }} students</div>
+            </div>
+            <div class="course-actions">
+                <a href="{% url 'course_detail' course.id %}" class="btn btn-primary btn-sm"
+                    style="flex:1; justify-content:center;">
+                    View Course →
+                </a>
+                {% if user.role in 'admin,trainer' %}
+                <a href="{% url 'add_video' course.id %}" class="btn btn-secondary btn-sm">+ Video</a>
+                {% endif %}
+            </div>
         </div>
     </div>
     {% endfor %}
 </div>
 {% else %}
-<div class="card" style="text-align:center; padding:60px;">
-    <div style="font-size:48px; margin-bottom:16px;">📭</div>
-    <h3 style="color:#888;">No courses found</h3>
+<div class="card" style="text-align:center; padding:80px 40px;">
+    <div style="font-size:72px; margin-bottom:20px; animation:float 3s ease-in-out infinite;">📭</div>
+    <div style="font-family:'Syne',sans-serif; font-size:22px; font-weight:700;
+        margin-bottom:10px;">No courses yet</div>
+    <p style="color:var(--text2); margin-bottom:24px;">
+        {% if user.role in 'admin,trainer' %}Create your first course to get started.
+        {% else %}You are not enrolled in any courses yet.{% endif %}
+    </p>
     {% if user.role in 'admin,trainer' %}
-    <p style="color:#aaa; margin:10px 0 20px;">Create your first course to get started</p>
-    <a href="{% url 'create_course' %}" class="btn btn-primary">Create Course</a>
-    {% else %}
-    <p style="color:#aaa;">You are not enrolled in any courses yet.</p>
+    <a href="{% url 'create_course' %}" class="btn btn-primary">Create First Course →</a>
     {% endif %}
 </div>
 {% endif %}

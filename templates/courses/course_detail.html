@@ -1,75 +1,203 @@
 {% extends 'base.html' %}
 {% block title %}{{ course.title }}{% endblock %}
 {% block content %}
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-    <div>
-        <h2 style="color:#1a1a2e;">{{ course.title }}</h2>
-        <p style="color:#888; margin-top:6px;">{{ course.description }}</p>
-    </div>
+
+<style>
+    .course-hero {
+        border-radius: 20px; padding: 36px 40px; margin-bottom: 24px;
+        position: relative; overflow: hidden;
+        background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+        border: 1px solid rgba(233,69,96,0.2);
+    }
+    .course-hero::before {
+        content: ''; position: absolute; top: -40%; right: -5%;
+        width: 300px; height: 300px;
+        background: radial-gradient(circle, rgba(233,69,96,0.15), transparent 70%);
+    }
+    .course-hero h1 {
+        font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800;
+        color: white; margin-bottom: 8px; position: relative; z-index: 1;
+    }
+    .course-hero p {
+        color: rgba(255,255,255,0.5); font-size: 14px;
+        position: relative; z-index: 1; max-width: 600px;
+    }
+    .course-hero-actions {
+        margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;
+        position: relative; z-index: 1;
+    }
+
+    .video-item {
+        display: flex; align-items: center; gap: 14px;
+        padding: 14px 16px; border-radius: 12px;
+        text-decoration: none; border: 1px solid var(--border);
+        background: var(--bg); transition: all 0.25s;
+        margin-bottom: 10px; animation: fadeUp 0.3s ease both;
+    }
+    .video-item:hover {
+        border-color: #e94560; transform: translateX(6px);
+        background: rgba(233,69,96,0.04);
+        box-shadow: 0 4px 20px rgba(233,69,96,0.1);
+    }
+    .video-play-btn {
+        width: 46px; height: 46px; flex-shrink: 0;
+        background: linear-gradient(135deg, #e94560, #c73652);
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 18px;
+        box-shadow: 0 4px 14px rgba(233,69,96,0.4);
+        transition: transform 0.2s;
+    }
+    .video-item:hover .video-play-btn { transform: scale(1.1); }
+    .video-info { flex: 1; }
+    .video-title { font-weight: 600; font-size: 14px; color: var(--text); }
+    .video-sub { font-size: 12px; color: var(--text2); margin-top: 3px; }
+
+    .student-chip {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 14px; border-radius: 10px;
+        border: 1px solid var(--border); background: var(--bg);
+        margin-bottom: 8px; animation: fadeUp 0.3s ease both;
+    }
+    .s-avatar {
+        width: 34px; height: 34px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 13px; font-weight: 700; color: white; flex-shrink: 0;
+        background: linear-gradient(135deg, #e94560, #f7b731);
+    }
+</style>
+
+<div class="course-hero">
+    <h1>{{ course.title }}</h1>
+    <p>{{ course.description }}</p>
     {% if user.role in 'admin,trainer' %}
-    <div style="display:flex; gap:10px;">
+    <div class="course-hero-actions">
         <a href="{% url 'add_video' course.id %}" class="btn btn-primary">+ Add Video</a>
-        <a href="{% url 'assign_students' course.id %}" class="btn btn-secondary">Assign Students</a>
+        <a href="{% url 'assign_students' course.id %}"
+            style="background:rgba(255,255,255,0.1); color:white; border:1px solid rgba(255,255,255,0.2);"
+            class="btn">Assign Students</a>
     </div>
     {% endif %}
 </div>
 
+{% if user.role == 'student' %}
+<div class="card" style="padding:20px 28px; margin-bottom:20px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <span style="font-weight:600; font-family:'Syne',sans-serif;">Course Progress</span>
+        <span style="font-size:14px; font-weight:700; color:#e94560;">{{ course_progress }}%</span>
+    </div>
+    <div class="progress-bar-wrap" style="height:10px;">
+        <div class="progress-bar-fill" style="width:{{ course_progress }}%;"></div>
+    </div>
+    {% if course_progress == 100 %}
+    <div style="margin-top:10px; font-size:13px; color:#28a745; font-weight:600;">
+        🎉 Completed!
+        <a href="{% url 'view_certificate' course.id %}" style="color:#28a745; margin-left:8px;">
+            Get Certificate →
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
 <div class="grid-2">
     <div>
         <div class="card">
-            <h2>📹 Videos ({{ videos.count }})</h2>
+            <h2>📹 Videos
+                <span style="font-size:13px; font-weight:400; color:var(--text2);
+                    margin-left:6px; font-family:'DM Sans',sans-serif;">
+                    ({{ videos.count }})
+                </span>
+            </h2>
             {% if videos %}
-            <div style="display:flex; flex-direction:column; gap:12px;">
-                {% for video in videos %}
-                <a href="{% url 'watch_video' video.id %}"
-                   style="display:flex; align-items:center; gap:14px; padding:14px;
-                   background:#f8f9fa; border-radius:10px; text-decoration:none;
-                   color:#333; transition:background 0.2s;"
-                   onmouseover="this.style.background='#fde8ec'"
-                   onmouseout="this.style.background='#f8f9fa'">
-                    <div style="width:48px; height:48px; background:#e94560; border-radius:10px;
-                        display:flex; align-items:center; justify-content:center;
-                        color:white; font-size:20px; flex-shrink:0;">▶</div>
-                    <div>
-                        <div style="font-weight:600; font-size:14px;">{{ video.title }}</div>
-                        <div style="font-size:12px; color:#aaa; margin-top:2px;">Click to watch</div>
+            {% for video in videos %}
+            <a href="{% url 'watch_video' video.id %}" class="video-item"
+                style="animation-delay:{{ forloop.counter0 }}00ms;">
+                <div class="video-play-btn">▶</div>
+                <div class="video-info">
+                    <div class="video-title">{{ video.title }}</div>
+                    <div class="video-sub">
+                        {% if user.role == 'student' and progress_map %}
+                            {% with pct=progress_map|default:0 %}
+                            {{ pct }}% watched
+                            {% endwith %}
+                        {% else %}
+                        Click to watch
+                        {% endif %}
                     </div>
-                </a>
-                {% endfor %}
-            </div>
+                    {% if user.role == 'student' %}
+                    <div class="progress-bar-wrap" style="margin-top:6px; height:3px;">
+                        <div class="progress-bar-fill" style="width:{{ progress_map|default:0 }}%;"></div>
+                    </div>
+                    {% endif %}
+                </div>
+                <span style="color:var(--text2); font-size:20px;">›</span>
+            </a>
+            {% endfor %}
             {% else %}
-            <p style="color:#888; text-align:center; padding:30px;">No videos yet.</p>
+            <div style="text-align:center; padding:30px; color:var(--text2);">
+                <div style="font-size:40px; margin-bottom:12px;">📭</div>
+                No videos yet.
+                {% if user.role in 'admin,trainer' %}
+                <a href="{% url 'add_video' course.id %}"
+                    style="color:#e94560; display:block; margin-top:8px;">
+                    Add first video →
+                </a>
+                {% endif %}
+            </div>
             {% endif %}
         </div>
     </div>
 
     <div>
         <div class="card">
-            <h2>👥 Enrolled Students ({{ course.assigned_students.count }})</h2>
+            <h2>👥 Students
+                <span style="font-size:13px; font-weight:400; color:var(--text2);
+                    margin-left:6px; font-family:'DM Sans',sans-serif;">
+                    ({{ course.assigned_students.count }})
+                </span>
+            </h2>
             {% if course.assigned_students.all %}
-            <table>
-                <tr><th>Name</th><th>Email</th></tr>
-                {% for student in course.assigned_students.all %}
-                <tr>
-                    <td>{{ student.full_name }}</td>
-                    <td style="font-size:12px; color:#888;">{{ student.email }}</td>
-                </tr>
-                {% endfor %}
-            </table>
+            {% for student in course.assigned_students.all %}
+            <div class="student-chip" style="animation-delay:{{ forloop.counter0 }}00ms;">
+                <div class="s-avatar">{{ student.full_name|first }}</div>
+                <div>
+                    <div style="font-size:14px; font-weight:600; color:var(--text);">
+                        {{ student.full_name }}
+                    </div>
+                    <div style="font-size:12px; color:var(--text2);">{{ student.email }}</div>
+                </div>
+            </div>
+            {% endfor %}
             {% else %}
-            <p style="color:#888; text-align:center; padding:20px;">No students assigned yet.</p>
+            <div style="text-align:center; padding:20px; color:var(--text2); font-size:13px;">
+                No students assigned yet.
+            </div>
             {% endif %}
         </div>
 
         <div class="card">
-            <h2>ℹ️ Course Info</h2>
-            <table>
-                <tr><td style="color:#888;">Created by</td><td>{{ course.created_by.full_name }}</td></tr>
-                <tr><td style="color:#888;">Created</td><td>{{ course.created_at|date:"d M Y" }}</td></tr>
-                <tr><td style="color:#888;">Status</td>
-                    <td>{% if course.is_active %}<span style="color:green;">Active</span>
-                    {% else %}<span style="color:red;">Inactive</span>{% endif %}</td></tr>
-            </table>
+            <h2>ℹ️ Info</h2>
+            <div style="display:flex; flex-direction:column; gap:0;">
+                <div style="display:flex; justify-content:space-between; padding:12px 0;
+                    border-bottom:1px solid var(--border); font-size:14px;">
+                    <span style="color:var(--text2);">Created by</span>
+                    <span style="font-weight:600;">{{ course.created_by.full_name }}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:12px 0;
+                    border-bottom:1px solid var(--border); font-size:14px;">
+                    <span style="color:var(--text2);">Date</span>
+                    <span style="font-weight:600;">{{ course.created_at|date:"d M Y" }}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:12px 0; font-size:14px;">
+                    <span style="color:var(--text2);">Status</span>
+                    {% if course.is_active %}
+                    <span style="color:#28a745; font-weight:600;">● Active</span>
+                    {% else %}
+                    <span style="color:#e94560; font-weight:600;">● Inactive</span>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -1,30 +1,190 @@
 {% extends 'base.html' %}
 {% block title %}Student Dashboard{% endblock %}
 {% block content %}
-<h2 style="margin-bottom:20px; color:#1a1a2e;">🎓 Student Dashboard</h2>
 
-<div class="stat-card" style="margin-bottom:24px;">
-    <div class="number">{{ courses.count }}</div>
-    <div class="label">Enrolled Courses</div>
+<style>
+    .hero-banner {
+        background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #1a1a2e 100%);
+        border-radius: 20px; padding: 40px; margin-bottom: 28px;
+        position: relative; overflow: hidden; border: 1px solid rgba(26,115,232,0.3);
+    }
+    .hero-banner::before {
+        content: ''; position: absolute; top: -50%; right: -10%;
+        width: 400px; height: 400px;
+        background: radial-gradient(circle, rgba(26,115,232,0.2), transparent 70%);
+        animation: heroGlow 4s ease-in-out infinite alternate;
+    }
+    @keyframes heroGlow {
+        from { transform: scale(1); opacity: 0.5; }
+        to { transform: scale(1.2); opacity: 1; }
+    }
+    .hero-banner h1 {
+        font-family: 'Syne', sans-serif; font-size: 30px; font-weight: 800;
+        color: white; margin-bottom: 8px; position: relative; z-index: 1;
+    }
+    .hero-banner p { color: rgba(255,255,255,0.5); font-size: 14px; position: relative; z-index: 1; }
+    .hero-banner .big-emoji {
+        position: absolute; right: 40px; top: 50%; transform: translateY(-50%);
+        font-size: 80px; animation: float 3s ease-in-out infinite;
+        filter: drop-shadow(0 10px 20px rgba(26,115,232,0.5));
+    }
+
+    .stat-card-new {
+        background: var(--card); border-radius: 16px; padding: 24px;
+        border: 1px solid var(--border); position: relative; overflow: hidden;
+        transition: all 0.3s; animation: fadeUp 0.5s ease both;
+    }
+    .stat-card-new:hover {
+        transform: translateY(-6px); border-color: #e94560;
+        box-shadow: 0 20px 40px rgba(233,69,96,0.15);
+    }
+    .stat-icon {
+        width: 48px; height: 48px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 22px; margin-bottom: 16px;
+    }
+    .stat-value {
+        font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800;
+        color: var(--text); line-height: 1; margin-bottom: 4px;
+    }
+    .stat-label { font-size: 13px; color: var(--text2); font-weight: 500; }
+    .stat-glow {
+        position: absolute; bottom: -20px; right: -20px;
+        width: 80px; height: 80px; border-radius: 50%;
+        filter: blur(30px); opacity: 0.4;
+    }
+
+    .course-card {
+        border-radius: 16px; border: 1px solid var(--border);
+        background: var(--card); overflow: hidden;
+        transition: all 0.3s; animation: fadeUp 0.4s ease both;
+        position: relative;
+    }
+    .course-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 50px rgba(233,69,96,0.15);
+        border-color: #e94560;
+    }
+    .course-card-top {
+        height: 8px;
+        background: linear-gradient(90deg, #e94560, #f7b731);
+    }
+    .course-card-body { padding: 24px; }
+    .course-emoji { font-size: 36px; margin-bottom: 14px; display: block; }
+    .course-title {
+        font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px;
+        color: var(--text); margin-bottom: 8px;
+    }
+    .course-desc {
+        font-size: 13px; color: var(--text2); line-height: 1.6;
+        margin-bottom: 18px; min-height: 42px;
+    }
+    .course-meta {
+        display: flex; gap: 14px; font-size: 12px; color: var(--text2);
+        margin-bottom: 18px; padding: 12px 0;
+        border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .course-meta span { display: flex; align-items: center; gap: 4px; }
+</style>
+
+<div class="hero-banner">
+    <h1>Hello, {{ user.full_name|truncatewords:1 }}! 🎓</h1>
+    <p>Keep learning — you're doing great. Let's continue where you left off.</p>
+    <div class="big-emoji">📖</div>
 </div>
 
+<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:28px;">
+    <div class="stat-card-new" style="animation-delay:0.05s;">
+        <div class="stat-icon" style="background:rgba(233,69,96,0.12);">📚</div>
+        <div class="stat-value counter">{{ courses.count }}</div>
+        <div class="stat-label">Enrolled Courses</div>
+        <div class="stat-glow" style="background:#e94560;"></div>
+    </div>
+    <div class="stat-card-new" style="animation-delay:0.1s;">
+        <div class="stat-icon" style="background:rgba(26,115,232,0.12);">📝</div>
+        <div class="stat-value counter">{{ user.quiz_attempts.count }}</div>
+        <div class="stat-label">Quizzes Attempted</div>
+        <div class="stat-glow" style="background:#1a73e8;"></div>
+    </div>
+    <div class="stat-card-new" style="animation-delay:0.15s;">
+        <div class="stat-icon" style="background:rgba(40,167,69,0.12);">🏆</div>
+        <div class="stat-value counter">{{ user.certificates.count }}</div>
+        <div class="stat-label">Certificates Earned</div>
+        <div class="stat-glow" style="background:#28a745;"></div>
+    </div>
+</div>
+
+{% if courses %}
 <div class="card">
-    <h2>My Courses</h2>
-    {% if courses %}
-    <div class="grid-2">
+    <h2>📚 My Courses</h2>
+    <div class="grid-3">
         {% for course in courses %}
-        <div class="card" style="border-left: 4px solid #e94560;">
-            <h3 style="margin-bottom:8px;">{{ course.title }}</h3>
-            <p style="color:#888; font-size:13px; margin-bottom:16px;">{{ course.description|truncatewords:20 }}</p>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-size:13px; color:#555;">📹 {{ course.videos.count }} videos</span>
-                <a href="{% url 'course_detail' course.id %}" class="btn btn-primary btn-sm">Start Learning</a>
+        <div class="course-card" style="animation-delay:{{ forloop.counter0 }}00ms;">
+            <div class="course-card-top"></div>
+            <div class="course-card-body">
+                <span class="course-emoji">{% cycle '📘' '📗' '📙' '📕' '📒' '📓' %}</span>
+                <div class="course-title">{{ course.title }}</div>
+                <div class="course-desc">{{ course.description|truncatewords:12 }}</div>
+                <div class="course-meta">
+                    <span>📹 {{ course.videos.count }} videos</span>
+                    <span>👨‍🏫 {{ course.created_by.full_name|truncatewords:1 }}</span>
+                </div>
+                <a href="{% url 'course_detail' course.id %}" class="btn btn-primary"
+                    style="width:100%; justify-content:center;">
+                    Continue Learning →
+                </a>
             </div>
         </div>
         {% endfor %}
     </div>
-    {% else %}
-    <p style="color:#888; text-align:center; padding:30px;">You are not enrolled in any courses yet.</p>
-    {% endif %}
 </div>
+{% else %}
+<div class="card" style="text-align:center; padding:80px 40px;">
+    <div style="font-size:72px; margin-bottom:20px; animation:float 3s ease-in-out infinite;">📭</div>
+    <div style="font-family:'Syne',sans-serif; font-size:22px; font-weight:700;
+        margin-bottom:10px; color:var(--text);">No courses yet</div>
+    <p style="color:var(--text2);">Your enrolled courses will appear here once assigned.</p>
+</div>
+{% endif %}
+
+{% if user.certificates.all %}
+<div class="card" style="margin-top:8px;">
+    <h2>🎓 My Certificates</h2>
+    {% for cert in user.certificates.all %}
+    <div style="display:flex; justify-content:space-between; align-items:center;
+        padding:16px 20px; margin-bottom:10px;
+        background:linear-gradient(135deg,rgba(40,167,69,0.05),rgba(40,167,69,0.1));
+        border:1px solid rgba(40,167,69,0.25); border-radius:12px;">
+        <div style="display:flex; align-items:center; gap:14px;">
+            <div style="font-size:32px;">🎓</div>
+            <div>
+                <div style="font-weight:700; font-family:'Syne',sans-serif; color:var(--text);">
+                    {{ cert.course.title }}
+                </div>
+                <div style="font-size:12px; color:var(--text2); margin-top:3px;">
+                    Issued {{ cert.issued_at|date:"d M Y" }} · ID: {{ cert.certificate_id }}
+                </div>
+            </div>
+        </div>
+        <a href="{% url 'view_certificate' cert.course.id %}" class="btn btn-success btn-sm">
+            View Certificate 🎓
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<script>
+    document.querySelectorAll('.counter').forEach(el => {
+        const target = parseInt(el.textContent);
+        if (isNaN(target)) return;
+        let current = 0;
+        const step = Math.max(1, target / 40);
+        const timer = setInterval(() => {
+            current = Math.min(current + step, target);
+            el.textContent = Math.floor(current);
+            if (current >= target) clearInterval(timer);
+        }, 30);
+    });
+</script>
 {% endblock %}

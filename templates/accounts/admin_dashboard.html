@@ -1,44 +1,245 @@
 {% extends 'base.html' %}
 {% block title %}Admin Dashboard{% endblock %}
 {% block content %}
-<h2 style="margin-bottom:20px; color:#1a1a2e;">👑 Admin Dashboard</h2>
 
-<div class="grid-3" style="margin-bottom:28px;">
-    <div class="stat-card">
-        <div class="number">{{ users.count }}</div>
-        <div class="label">Total Users</div>
+<style>
+    .hero-banner {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 28px;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(233,69,96,0.3);
+    }
+    .hero-banner::before {
+        content: '';
+        position: absolute;
+        top: -50%; right: -10%;
+        width: 400px; height: 400px;
+        background: radial-gradient(circle, rgba(233,69,96,0.2), transparent 70%);
+        animation: heroGlow 4s ease-in-out infinite alternate;
+    }
+    @keyframes heroGlow {
+        from { transform: scale(1); opacity: 0.5; }
+        to { transform: scale(1.2); opacity: 1; }
+    }
+    .hero-banner h1 {
+        font-family: 'Syne', sans-serif;
+        font-size: 32px; font-weight: 800;
+        color: white; margin-bottom: 8px;
+        position: relative; z-index: 1;
+    }
+    .hero-banner p {
+        color: rgba(255,255,255,0.5);
+        font-size: 14px; position: relative; z-index: 1;
+    }
+    .hero-banner .big-emoji {
+        position: absolute; right: 40px; top: 50%;
+        transform: translateY(-50%);
+        font-size: 80px;
+        animation: float 3s ease-in-out infinite;
+        filter: drop-shadow(0 10px 20px rgba(233,69,96,0.4));
+    }
+
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+    .stat-card-new {
+        background: var(--card);
+        border-radius: 16px;
+        padding: 24px;
+        border: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s;
+        animation: fadeUp 0.5s ease both;
+    }
+    .stat-card-new:hover {
+        transform: translateY(-6px);
+        border-color: #e94560;
+        box-shadow: 0 20px 40px rgba(233,69,96,0.15);
+    }
+    .stat-card-new .stat-icon {
+        width: 48px; height: 48px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 22px; margin-bottom: 16px;
+    }
+    .stat-card-new .stat-value {
+        font-family: 'Syne', sans-serif;
+        font-size: 36px; font-weight: 800;
+        color: var(--text); line-height: 1;
+        margin-bottom: 4px;
+    }
+    .stat-card-new .stat-label {
+        font-size: 13px; color: var(--text2); font-weight: 500;
+    }
+    .stat-card-new .stat-glow {
+        position: absolute;
+        bottom: -20px; right: -20px;
+        width: 80px; height: 80px;
+        border-radius: 50%;
+        filter: blur(30px);
+        opacity: 0.4;
+    }
+
+    .action-btn {
+        display: flex; align-items: center; gap: 14px;
+        padding: 16px 20px;
+        border-radius: 12px;
+        text-decoration: none;
+        border: 1px solid var(--border);
+        background: var(--bg);
+        transition: all 0.25s;
+        margin-bottom: 10px;
+        color: var(--text);
+    }
+    .action-btn:hover {
+        transform: translateX(6px);
+        border-color: #e94560;
+        background: rgba(233,69,96,0.04);
+    }
+    .action-btn .action-icon {
+        width: 42px; height: 42px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px; flex-shrink: 0;
+    }
+    .action-btn .action-text { flex: 1; }
+    .action-btn .action-title {
+        font-weight: 700; font-size: 14px; font-family: 'Syne', sans-serif;
+    }
+    .action-btn .action-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+    .action-btn .action-arrow { color: var(--text2); font-size: 18px; }
+
+    .user-row {
+        display: flex; align-items: center; gap: 12px;
+        padding: 12px 0; border-bottom: 1px solid var(--border);
+        animation: fadeUp 0.3s ease both;
+    }
+    .user-row:last-child { border-bottom: none; }
+    .avatar {
+        width: 38px; height: 38px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px; font-weight: 700; color: white; flex-shrink: 0;
+    }
+</style>
+
+<div class="hero-banner">
+    <h1>Welcome back, {{ user.full_name|truncatewords:1 }} 👋</h1>
+    <p>Here's what's happening in your LMS today</p>
+    <div class="big-emoji">👑</div>
+</div>
+
+<div class="stat-grid">
+    <div class="stat-card-new" style="animation-delay:0.05s;">
+        <div class="stat-icon" style="background:rgba(233,69,96,0.12);">👥</div>
+        <div class="stat-value counter">{{ users.count }}</div>
+        <div class="stat-label">Total Users</div>
+        <div class="stat-glow" style="background:#e94560;"></div>
     </div>
-    <div class="stat-card">
-        <div class="number">{{ courses.count }}</div>
-        <div class="label">Total Courses</div>
+    <div class="stat-card-new" style="animation-delay:0.1s;">
+        <div class="stat-icon" style="background:rgba(26,115,232,0.12);">📚</div>
+        <div class="stat-value counter">{{ courses.count }}</div>
+        <div class="stat-label">Total Courses</div>
+        <div class="stat-glow" style="background:#1a73e8;"></div>
     </div>
-    <div class="stat-card">
-        <div class="number">{{ users|length }}</div>
-        <div class="label">Active Sessions</div>
+    <div class="stat-card-new" style="animation-delay:0.15s;">
+        <div class="stat-icon" style="background:rgba(40,167,69,0.12);">🎒</div>
+        <div class="stat-value counter">{{ users.count }}</div>
+        <div class="stat-label">Active Users</div>
+        <div class="stat-glow" style="background:#28a745;"></div>
+    </div>
+    <div class="stat-card-new" style="animation-delay:0.2s;">
+        <div class="stat-icon" style="background:rgba(247,183,49,0.12);">🏆</div>
+        <div class="stat-value counter">0</div>
+        <div class="stat-label">Certificates</div>
+        <div class="stat-glow" style="background:#f7b731;"></div>
     </div>
 </div>
 
 <div class="grid-2">
     <div class="card">
-        <h2>Quick Actions</h2>
-        <div style="display:flex; flex-direction:column; gap:10px;">
-            <a href="{% url 'manage_users' %}" class="btn btn-primary">👥 Manage Users</a>
-            <a href="{% url 'create_course' %}" class="btn btn-secondary">📚 Create Course</a>
-            <a href="{% url 'course_list' %}" class="btn btn-secondary">📋 View All Courses</a>
-        </div>
+        <h2>⚡ Quick Actions</h2>
+        <a href="{% url 'manage_users' %}" class="action-btn">
+            <div class="action-icon" style="background:rgba(233,69,96,0.12);">👥</div>
+            <div class="action-text">
+                <div class="action-title">Manage Users</div>
+                <div class="action-sub">Create, disable, force logout users</div>
+            </div>
+            <div class="action-arrow">›</div>
+        </a>
+        <a href="{% url 'create_course' %}" class="action-btn">
+            <div class="action-icon" style="background:rgba(26,115,232,0.12);">📚</div>
+            <div class="action-text">
+                <div class="action-title">Create Course</div>
+                <div class="action-sub">Add a new course and assign students</div>
+            </div>
+            <div class="action-arrow">›</div>
+        </a>
+        <a href="{% url 'analytics' %}" class="action-btn">
+            <div class="action-icon" style="background:rgba(40,167,69,0.12);">📊</div>
+            <div class="action-text">
+                <div class="action-title">Analytics</div>
+                <div class="action-sub">View charts and performance data</div>
+            </div>
+            <div class="action-arrow">›</div>
+        </a>
+        <a href="{% url 'leaderboard' %}" class="action-btn">
+            <div class="action-icon" style="background:rgba(247,183,49,0.12);">🏆</div>
+            <div class="action-text">
+                <div class="action-title">Leaderboard</div>
+                <div class="action-sub">Top performing students</div>
+            </div>
+            <div class="action-arrow">›</div>
+        </a>
     </div>
+
     <div class="card">
-        <h2>Recent Users</h2>
-        <table>
-            <tr><th>Name</th><th>Role</th><th>Status</th></tr>
-            {% for u in users|slice:":5" %}
-            <tr>
-                <td>{{ u.full_name }}</td>
-                <td><span class="badge badge-{{ u.role }}">{{ u.role }}</span></td>
-                <td>{% if u.is_active %}✅{% else %}❌{% endif %}</td>
-            </tr>
-            {% endfor %}
-        </table>
+        <h2>👥 Recent Users</h2>
+        {% for u in users|slice:":6" %}
+        <div class="user-row" style="animation-delay:{{ forloop.counter0 }}00ms;">
+            <div class="avatar" style="background:linear-gradient(135deg,
+                {% cycle '#e94560' '#1a73e8' '#28a745' '#f7b731' '#9c27b0' %},
+                {% cycle '#c73652' '#0d47a1' '#1e7e34' '#e67e22' '#6a0080' %});">
+                {{ u.full_name|first }}
+            </div>
+            <div style="flex:1;">
+                <div style="font-weight:600; font-size:14px; color:var(--text);">{{ u.full_name }}</div>
+                <div style="font-size:12px; color:var(--text2);">{{ u.email }}</div>
+            </div>
+            <span class="badge badge-{{ u.role }}">{{ u.role }}</span>
+            {% if u.is_active %}
+            <span style="width:8px;height:8px;background:#28a745;border-radius:50%;display:inline-block;"></span>
+            {% else %}
+            <span style="width:8px;height:8px;background:#e94560;border-radius:50%;display:inline-block;"></span>
+            {% endif %}
+        </div>
+        {% endfor %}
+        <a href="{% url 'manage_users' %}" class="btn btn-primary btn-sm" style="margin-top:16px;">
+            View All Users →
+        </a>
     </div>
 </div>
+
+<script>
+    // Animate counters
+    document.querySelectorAll('.counter').forEach(el => {
+        const target = parseInt(el.textContent);
+        if (isNaN(target)) return;
+        let current = 0;
+        const duration = 1000;
+        const step = target / (duration / 16);
+        const timer = setInterval(() => {
+            current = Math.min(current + step, target);
+            el.textContent = Math.floor(current);
+            if (current >= target) clearInterval(timer);
+        }, 16);
+    });
+</script>
 {% endblock %}

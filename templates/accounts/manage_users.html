@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 {% block title %}Manage Users{% endblock %}
 {% block content %}
+
+<div class="page-title">👥 <span>Manage</span> Users</div>
+
 <div class="card">
     <h2>➕ Create New User</h2>
     <form method="POST">
@@ -9,22 +12,22 @@
         <div class="grid-2">
             <div class="form-group">
                 <label>Full Name</label>
-                <input type="text" name="full_name" required placeholder="John Doe">
+                <input type="text" name="full_name" required placeholder="e.g. Priya Sharma">
             </div>
             <div class="form-group">
                 <label>Email</label>
-                <input type="email" name="email" required placeholder="john@example.com">
+                <input type="email" name="email" required placeholder="user@example.com">
             </div>
             <div class="form-group">
                 <label>Password</label>
-                <input type="password" name="password" required placeholder="••••••••">
+                <input type="password" name="password" required placeholder="Min 8 characters">
             </div>
             <div class="form-group">
                 <label>Role</label>
                 <select name="role">
-                    <option value="student">Student</option>
-                    <option value="trainer">Trainer</option>
-                    <option value="admin">Admin</option>
+                    <option value="student">🎒 Student</option>
+                    <option value="trainer">🏫 Trainer</option>
+                    <option value="admin">👑 Admin</option>
                 </select>
             </div>
         </div>
@@ -35,29 +38,50 @@
 <div class="card">
     <h2>👥 All Users</h2>
     <table>
-        <tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Last IP</th><th>Actions</th></tr>
-        {% for u in users %}
         <tr>
-            <td><strong>{{ u.full_name }}</strong></td>
-            <td>{{ u.email }}</td>
-            <td><span class="badge badge-{{ u.role }}">{{ u.role }}</span></td>
-            <td>{% if u.is_active %}<span style="color:green;">Active</span>{% else %}<span style="color:red;">Disabled</span>{% endif %}</td>
-            <td style="font-size:12px; color:#888;">{{ u.last_login_ip|default:"N/A" }}</td>
+            <th>User</th><th>Email</th><th>Role</th>
+            <th>Status</th><th>Last IP</th><th>Actions</th>
+        </tr>
+        {% for u in users %}
+        <tr style="animation: fadeUp 0.3s ease {{ forloop.counter0 }}00ms both;">
             <td>
-                <form method="POST" style="display:inline;">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="toggle">
-                    <input type="hidden" name="user_id" value="{{ u.id }}">
-                    <button class="btn btn-sm {% if u.is_active %}btn-danger{% else %}btn-success{% endif %}">
-                        {% if u.is_active %}Disable{% else %}Enable{% endif %}
-                    </button>
-                </form>
-                <form method="POST" style="display:inline;">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="force_logout">
-                    <input type="hidden" name="user_id" value="{{ u.id }}">
-                    <button class="btn btn-sm btn-secondary">Force Logout</button>
-                </form>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:36px; height:36px;
+                        background:linear-gradient(135deg,#e94560,#f7b731);
+                        border-radius:50%; display:flex; align-items:center; justify-content:center;
+                        font-size:14px; font-weight:700; color:white; flex-shrink:0;">
+                        {{ u.full_name|first }}
+                    </div>
+                    <span style="font-weight:600;">{{ u.full_name }}</span>
+                </div>
+            </td>
+            <td style="color:var(--text2); font-size:13px;">{{ u.email }}</td>
+            <td><span class="badge badge-{{ u.role }}">{{ u.role }}</span></td>
+            <td>
+                {% if u.is_active %}
+                <span style="color:#28a745; font-size:12px; font-weight:600;">● Active</span>
+                {% else %}
+                <span style="color:#e94560; font-size:12px; font-weight:600;">● Disabled</span>
+                {% endif %}
+            </td>
+            <td style="font-size:12px; color:var(--text2);">{{ u.last_login_ip|default:"N/A" }}</td>
+            <td>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <form method="POST" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="toggle">
+                        <input type="hidden" name="user_id" value="{{ u.id }}">
+                        <button class="btn btn-sm {% if u.is_active %}btn-danger{% else %}btn-success{% endif %}">
+                            {% if u.is_active %}Disable{% else %}Enable{% endif %}
+                        </button>
+                    </form>
+                    <form method="POST" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="force_logout">
+                        <input type="hidden" name="user_id" value="{{ u.id }}">
+                        <button class="btn btn-sm btn-secondary">Force Logout</button>
+                    </form>
+                </div>
             </td>
         </tr>
         {% endfor %}

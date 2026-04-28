@@ -1,44 +1,68 @@
 {% extends 'base.html' %}
 {% block title %}Trainer Dashboard{% endblock %}
 {% block content %}
-<h2 style="margin-bottom:20px; color:#1a1a2e;">🏫 Trainer Dashboard</h2>
 
-<div class="grid-2" style="margin-bottom:24px;">
+<div class="page-title">🏫 <span>Trainer</span> Dashboard</div>
+
+<div class="grid-3" style="margin-bottom:28px;">
     <div class="stat-card">
+        <div class="icon" style="animation:float 3s ease-in-out infinite;">📚</div>
         <div class="number">{{ courses.count }}</div>
         <div class="label">My Courses</div>
     </div>
     <div class="stat-card">
+        <div class="icon" style="animation:float 3s ease-in-out infinite 0.5s;">👥</div>
         <div class="number">
             {% with total=0 %}
-            {{ courses|length }}
+            {% for c in courses %}{{ c.assigned_students.count }}{% endfor %}
             {% endwith %}
         </div>
-        <div class="label">Active Courses</div>
+        <div class="label">Total Students</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon" style="animation:float 3s ease-in-out infinite 1s;">📹</div>
+        <div class="number">
+            {% for c in courses %}{{ c.videos.count }}{% endfor %}
+        </div>
+        <div class="label">Total Videos</div>
     </div>
 </div>
 
 <div class="card">
-    <h2>My Courses
-        <a href="{% url 'create_course' %}" class="btn btn-primary btn-sm" style="float:right;">+ New Course</a>
+    <h2>📚 My Courses
+        <a href="{% url 'create_course' %}" class="btn btn-primary btn-sm" style="margin-left:auto;">
+            + New Course
+        </a>
     </h2>
     {% if courses %}
-    <table>
-        <tr><th>Course</th><th>Students</th><th>Videos</th><th>Actions</th></tr>
+    <div class="grid-2">
         {% for course in courses %}
-        <tr>
-            <td><strong>{{ course.title }}</strong></td>
-            <td>{{ course.assigned_students.count }}</td>
-            <td>{{ course.videos.count }}</td>
-            <td>
+        <div style="padding:22px; border-radius:14px; border:1px solid var(--border);
+            background:var(--bg); transition:all 0.3s;
+            animation: fadeUp 0.4s ease {{ forloop.counter0|add:'1' }}00ms both;"
+            onmouseover="this.style.transform='translateY(-3px)'; this.style.borderColor='#e94560'"
+            onmouseout="this.style.transform=''; this.style.borderColor='var(--border)'">
+            <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:15px;
+                margin-bottom:10px; color:var(--text);">{{ course.title }}</div>
+            <div style="display:flex; gap:16px; font-size:12px; color:var(--text2); margin-bottom:16px;">
+                <span>👥 {{ course.assigned_students.count }} students</span>
+                <span>📹 {{ course.videos.count }} videos</span>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <a href="{% url 'course_detail' course.id %}" class="btn btn-secondary btn-sm">View</a>
                 <a href="{% url 'add_video' course.id %}" class="btn btn-primary btn-sm">+ Video</a>
-            </td>
-        </tr>
+                <a href="{% url 'assign_students' course.id %}" class="btn btn-sm"
+                    style="background:var(--border); color:var(--text);">Assign</a>
+            </div>
+        </div>
         {% endfor %}
-    </table>
+    </div>
     {% else %}
-    <p style="color:#888; text-align:center; padding:30px;">No courses yet. Create your first course!</p>
+    <div style="text-align:center; padding:40px; color:var(--text2);">
+        <div style="font-size:48px; margin-bottom:16px;">📭</div>
+        No courses yet.
+        <a href="{% url 'create_course' %}" style="color:#e94560;">Create your first →</a>
+    </div>
     {% endif %}
 </div>
 {% endblock %}
