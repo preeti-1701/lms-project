@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Leaderboard{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>🏆 Leaderboard — Top Students</h2>
+    <p style="color:var(--text2); font-size:13px; margin-bottom:24px;">
+        Ranked by number of quizzes passed
+    </p>
+    {% if board %}
+    <table>
+        <tr><th>Rank</th><th>Student</th><th>Quizzes Passed</th><th>Avg Score</th><th>Badge</th></tr>
+        {% for entry in board %}
+        <tr>
+            <td>
+                {% if forloop.counter == 1 %}🥇
+                {% elif forloop.counter == 2 %}🥈
+                {% elif forloop.counter == 3 %}🥉
+                {% else %}#{{ forloop.counter }}
+                {% endif %}
+            </td>
+            <td><strong>{{ entry.student__full_name }}</strong></td>
+            <td>{{ entry.passed_count }}</td>
+            <td>
+                {% if entry.avg_score %}
+                    {{ entry.avg_score|floatformat:1 }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+            <td>
+                {% if entry.passed_count >= 5 %}
+                <span class="badge" style="background:#ffd700; color:#333;">🌟 Expert</span>
+                {% elif entry.passed_count >= 3 %}
+                <span class="badge" style="background:#c0c0c0; color:#333;">⭐ Advanced</span>
+                {% elif entry.passed_count >= 1 %}
+                <span class="badge" style="background:#cd7f32; color:white;">✨ Beginner</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <div style="text-align:center; padding:40px;">
+        <div style="font-size:48px;">🏆</div>
+        <p style="color:var(--text2); margin-top:12px;">
+            No quiz attempts yet. Be the first!
+        </p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

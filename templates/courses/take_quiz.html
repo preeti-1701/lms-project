@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Quiz{% endblock %}
+{% block content %}
+<div class="card" style="max-width:700px; margin:0 auto;">
+    <h2>📝 {{ quiz.title }}</h2>
+    <p style="color:var(--text2); margin-bottom:24px; font-size:13px;">
+        Answer all questions. You need 60% to pass.
+    </p>
+    <form method="POST">
+        {% csrf_token %}
+        {% for question in questions %}
+        <div style="margin-bottom:28px; padding:20px; background:var(--bg);
+            border-radius:10px; border:1px solid var(--border);">
+            <p style="font-weight:600; margin-bottom:14px; color:var(--text);">
+                {{ forloop.counter }}. {{ question.text }}
+            </p>
+            {% for opt, label in question.option_a,question.option_b,question.option_c,question.option_d %}
+            {% endfor %}
+            <label style="display:flex; align-items:center; gap:10px; padding:10px;
+                border-radius:8px; cursor:pointer; margin-bottom:8px;
+                border:1.5px solid var(--border); background:var(--card);"
+                onmouseover="this.style.borderColor='#e94560'"
+                onmouseout="this.style.borderColor='var(--border)'">
+                <input type="radio" name="q_{{ question.id }}" value="a" required>
+                <span style="color:var(--text);">A. {{ question.option_a }}</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:10px; padding:10px;
+                border-radius:8px; cursor:pointer; margin-bottom:8px;
+                border:1.5px solid var(--border); background:var(--card);"
+                onmouseover="this.style.borderColor='#e94560'"
+                onmouseout="this.style.borderColor='var(--border)'">
+                <input type="radio" name="q_{{ question.id }}" value="b">
+                <span style="color:var(--text);">B. {{ question.option_b }}</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:10px; padding:10px;
+                border-radius:8px; cursor:pointer; margin-bottom:8px;
+                border:1.5px solid var(--border); background:var(--card);"
+                onmouseover="this.style.borderColor='#e94560'"
+                onmouseout="this.style.borderColor='var(--border)'">
+                <input type="radio" name="q_{{ question.id }}" value="c">
+                <span style="color:var(--text);">C. {{ question.option_c }}</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:10px; padding:10px;
+                border-radius:8px; cursor:pointer;
+                border:1.5px solid var(--border); background:var(--card);"
+                onmouseover="this.style.borderColor='#e94560'"
+                onmouseout="this.style.borderColor='var(--border)'">
+                <input type="radio" name="q_{{ question.id }}" value="d">
+                <span style="color:var(--text);">D. {{ question.option_d }}</span>
+            </label>
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary" style="width:100%; padding:14px;">
+            Submit Quiz
+        </button>
+    </form>
+</div>
+{% endblock %}

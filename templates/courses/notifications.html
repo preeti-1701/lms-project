@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>🔔 All Notifications</h2>
+    {% if notifications %}
+    <div style="display:flex; flex-direction:column; gap:10px;">
+        {% for notif in notifications %}
+        <div style="padding:14px 18px; border-radius:10px;
+            background:{% if not notif.is_read %}#fde8ec{% else %}var(--bg){% endif %};
+            border-left: 4px solid {% if not notif.is_read %}#e94560{% else %}var(--border){% endif %};
+            cursor:pointer;"
+            onclick="{% if notif.link %}window.location='{{ notif.link }}'{% endif %}">
+            <div style="font-size:14px; color:var(--text);">{{ notif.message }}</div>
+            <div style="font-size:12px; color:var(--text2); margin-top:4px;">
+                {{ notif.created_at|timesince }} ago
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align:center; padding:40px;">
+        <div style="font-size:48px;">🔕</div>
+        <p style="color:var(--text2); margin-top:12px;">No notifications yet.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

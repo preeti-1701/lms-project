@@ -1,20 +1,19 @@
 {% extends 'base.html' %}
 {% block title %}{{ video.title }}{% endblock %}
 {% block content %}
-
 <style>
     .video-wrapper { position:relative; background:#000; border-radius:12px; overflow:hidden; margin-bottom:20px; }
     .video-wrapper iframe { width:100%; aspect-ratio:16/9; display:block; }
     .watermark { position:absolute; color:rgba(255,255,255,0.18); font-size:15px; font-weight:700;
         pointer-events:none; white-space:nowrap; z-index:10; user-select:none;
-        text-shadow:1px 1px 3px rgba(0,0,0,0.5); transition: top 1s, left 1s; }
+        text-shadow:1px 1px 3px rgba(0,0,0,0.5); transition: top 1s, left 1s; top:10%; left:10%; }
     .no-select { -webkit-user-select:none; user-select:none; }
     .security-bar { background:#1a1a2e; color:#aaa; padding:10px 20px; border-radius:8px;
         font-size:12px; margin-bottom:16px; display:flex; justify-content:space-between; }
     .video-link { display:block; padding:10px; border-radius:8px; text-decoration:none;
-        color:#333; margin-bottom:6px; }
-    .video-link.active { background:#fde8ec; }
-    .video-link.inactive { background:#f8f9fa; }
+        color:var(--text); margin-bottom:6px; border:1px solid var(--border); }
+    .video-link.active { background:#fde8ec; border-color:#e94560; }
+    .video-link.inactive { background:var(--bg); }
 </style>
 
 <div class="security-bar no-select">
@@ -25,25 +24,88 @@
 <div class="video-wrapper no-select" oncontextmenu="return false;">
     <div class="watermark" id="watermark">{{ watermark }}</div>
     {% if youtube_id %}
-    <iframe src="https://www.youtube.com/embed/{{ youtube_id }}?rel=0&modestbranding=1"
-        frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope"
+    <iframe id="yt-player"
+        src="https://www.youtube.com/embed/{{ youtube_id }}?rel=0&modestbranding=1&enablejsapi=1"
+        frameborder="0"
+        allow="accelerometer; autoplay; encrypted-media; gyroscope"
         allowfullscreen></iframe>
     {% else %}
     <div style="color:white; text-align:center; padding:60px;">Invalid YouTube URL</div>
     {% endif %}
 </div>
 
-<div class="grid-2">
-    <div class="card">
-        <h2>{{ video.title }}</h2>
-        <p style="color:#888; font-size:13px; margin-top:8px;">
-            Course: <strong>{{ course.title }}</strong>
-        </p>
-        <a href="{% url 'course_detail' course.id %}" class="btn btn-secondary btn-sm"
-            style="margin-top:16px;">← Back to Course</a>
+{% if progress %}
+<div class="card" style="margin-bottom:20px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-size:13px; color:var(--text2);">Your Progress</span>
+        <span style="font-size:13px; font-weight:600; color:#e94560;" id="progress-text">
+            {{ progress.percentage }}%
+        </span>
     </div>
+    <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-fill" style="width:{{ progress.percentage }}%;"></div>
+    </div>
+    {% if progress.completed %}
+    <div style="margin-top:8px; font-size:13px; color:#28a745;">✅ Completed!</div>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="grid-2">
+    <div>
+        <div class="card">
+            <h2>{{ video.title }}</h2>
+            <p style="color:var(--text2); font-size:13px; margin-top:8px;">
+                Course: <strong>{{ course.title }}</strong>
+            </p>
+            <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
+                <a href="{% url 'course_detail' course.id %}" class="btn btn-secondary btn-sm">
+                    ← Back
+                </a>
+                {% if user.role in 'admin,trainer' %}
+                {% if not video.quiz %}
+                <a href="{% url 'create_quiz' video.id %}" class="btn btn-primary btn-sm">
+                    + Add Quiz
+                </a>
+                {% endif %}
+                {% endif %}
+                {% if quiz and user.role == 'student' %}
+                    {% if not attempt %}
+                    <a href="{% url 'take_quiz' video.id %}" class="btn btn-primary btn-sm">
+                        📝 Take Quiz
+                    </a>
+                    {% else %}
+                    <span class="btn btn-sm"
+                        style="background:{% if attempt.passed %}#28a745{% else %}#e94560{% endif %}; color:white;">
+                        {% if attempt.passed %}✅ Passed {{ attempt.percentage }}%
+                        {% else %}❌ Failed {{ attempt.percentage }}%{% endif %}
+                    </span>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        {% if user.role == 'student' %}
+        {% with cert=user.certificates.all %}
+        {% for c in cert %}
+        {% if c.course == course %}
+        <div class="card" style="border-left:4px solid #28a745;">
+            <h2>🎓 Certificate Earned!</h2>
+            <p style="color:var(--text2); font-size:13px; margin-bottom:12px;">
+                You completed this course!
+            </p>
+            <a href="{% url 'view_certificate' course.id %}" class="btn btn-success btn-sm">
+                View Certificate
+            </a>
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% endwith %}
+        {% endif %}
+    </div>
+
     <div class="card">
-        <h2>Other Videos</h2>
+        <h2>📹 Other Videos</h2>
         {% for v in course.videos.all %}
         {% if v.id == video.id %}
         <a href="{% url 'watch_video' v.id %}" class="video-link active">▶ {{ v.title }}</a>
@@ -63,8 +125,39 @@
     });
     setInterval(() => {
         const wm = document.getElementById('watermark');
-        wm.style.top  = Math.floor(Math.random() * 80) + '%';
-        wm.style.left = Math.floor(Math.random() * 70) + '%';
+        if (wm) {
+            wm.style.top  = Math.floor(Math.random() * 80) + '%';
+            wm.style.left = Math.floor(Math.random() * 70) + '%';
+        }
+    }, 5000);
+
+    // Progress tracking
+    let progressInterval;
+    let watched = {{ progress.watched_seconds|default:0 }};
+    let duration = {{ progress.duration_seconds|default:0 }};
+
+    function saveProgress() {
+        if (watched > 0) {
+            fetch('/courses/video/{{ video.id }}/progress/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ watched: watched, duration: duration })
+            }).then(r => r.json()).then(data => {
+                const fill = document.getElementById('progress-fill');
+                const text = document.getElementById('progress-text');
+                if (fill) fill.style.width = data.percentage + '%';
+                if (text) text.textContent = data.percentage + '%';
+            });
+        }
+    }
+    // Simulate progress (since YouTube iframe restricts time tracking)
+    progressInterval = setInterval(() => {
+        watched += 5;
+        if (duration === 0) duration = 600;
+        saveProgress();
     }, 5000);
 </script>
 {% endblock %}

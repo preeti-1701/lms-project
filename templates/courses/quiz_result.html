@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Quiz Result{% endblock %}
+{% block content %}
+<div class="card" style="max-width:500px; margin:0 auto; text-align:center;">
+    {% if attempt.passed %}
+    <div style="font-size:64px; margin-bottom:16px;">🎉</div>
+    <h2 style="color:#28a745; margin-bottom:8px;">You Passed!</h2>
+    {% else %}
+    <div style="font-size:64px; margin-bottom:16px;">😔</div>
+    <h2 style="color:#e94560; margin-bottom:8px;">Better Luck Next Time!</h2>
+    {% endif %}
+
+    <p style="color:var(--text2); margin-bottom:24px;">{{ quiz.title }}</p>
+
+    <div style="background:var(--bg); border-radius:16px; padding:30px; margin-bottom:24px;">
+        <div style="font-size:56px; font-weight:700;
+            color:{% if attempt.passed %}#28a745{% else %}#e94560{% endif %};">
+            {{ attempt.percentage }}%
+        </div>
+        <div style="color:var(--text2); margin-top:8px; font-size:14px;">
+            {{ attempt.score }} out of {{ attempt.total }} correct
+        </div>
+    </div>
+
+    <div class="progress-bar-wrap" style="margin-bottom:24px; height:12px;">
+        <div class="progress-bar-fill" style="width:{{ attempt.percentage }}%;
+            background:{% if attempt.passed %}#28a745{% else %}#e94560{% endif %};">
+        </div>
+    </div>
+
+    <div style="display:flex; gap:12px; justify-content:center;">
+        <a href="{% url 'watch_video' video.id %}" class="btn btn-secondary">
+            ← Back to Video
+        </a>
+        <a href="{% url 'leaderboard' %}" class="btn btn-primary">
+            🏆 Leaderboard
+        </a>
+    </div>
+</div>
+{% endblock %}

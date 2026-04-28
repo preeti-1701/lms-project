@@ -1,34 +1,102 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" id="html-root">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}LMS{% endblock %}</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #333; }
+        :root {
+            --bg: #f0f2f5;
+            --card: #ffffff;
+            --text: #333333;
+            --text2: #666666;
+            --border: #e0e0e0;
+            --nav: linear-gradient(135deg, #1a1a2e, #16213e);
+            --primary: #e94560;
+            --primary-hover: #c73652;
+            --secondary: #1a1a2e;
+            --input-bg: #ffffff;
+            --table-hover: #fafafa;
+            --stat-bg: #ffffff;
+        }
+        [data-theme="dark"] {
+            --bg: #0f0f1a;
+            --card: #1a1a2e;
+            --text: #e0e0e0;
+            --text2: #aaaaaa;
+            --border: #2a2a3e;
+            --nav: linear-gradient(135deg, #0a0a15, #0d1020);
+            --primary: #e94560;
+            --primary-hover: #c73652;
+            --secondary: #0d1020;
+            --input-bg: #0f0f1a;
+            --table-hover: #16162a;
+            --stat-bg: #16162a;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; transition: background 0.3s, color 0.3s; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
 
         .navbar {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            color: white; padding: 14px 30px;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            background: var(--nav); color: white;
+            padding: 14px 30px; display: flex;
+            justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 100;
         }
-        .navbar .brand { font-size: 22px; font-weight: 700; color: #e94560; }
-        .navbar .nav-links a {
-            color: #ccc; text-decoration: none; margin-left: 20px;
-            font-size: 14px; transition: color 0.2s;
+        .brand { font-size: 22px; font-weight: 700; color: #e94560; text-decoration: none; }
+        .nav-links { display: flex; align-items: center; gap: 6px; }
+        .nav-links a {
+            color: #ccc; text-decoration: none; padding: 6px 12px;
+            border-radius: 6px; font-size: 14px; transition: all 0.2s;
         }
-        .navbar .nav-links a:hover { color: #e94560; }
-        .navbar .user-info { font-size: 13px; color: #aaa; }
+        .nav-links a:hover { color: white; background: rgba(255,255,255,0.1); }
+        .user-info { font-size: 13px; color: #aaa; display: flex; align-items: center; gap: 12px; }
+
+        .notif-btn {
+            position: relative; background: none; border: none;
+            color: #ccc; cursor: pointer; font-size: 20px; padding: 4px;
+        }
+        .notif-badge {
+            position: absolute; top: -4px; right: -4px;
+            background: #e94560; color: white; border-radius: 50%;
+            width: 18px; height: 18px; font-size: 10px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .notif-dropdown {
+            position: absolute; top: 50px; right: 20px;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 12px; width: 320px; box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            display: none; z-index: 200;
+        }
+        .notif-dropdown.show { display: block; }
+        .notif-header {
+            padding: 14px 16px; border-bottom: 1px solid var(--border);
+            font-weight: 600; color: var(--text); font-size: 14px;
+        }
+        .notif-item {
+            padding: 12px 16px; border-bottom: 1px solid var(--border);
+            font-size: 13px; color: var(--text2); cursor: pointer;
+        }
+        .notif-item:hover { background: var(--bg); }
+        .notif-footer {
+            padding: 10px 16px; text-align: center;
+            font-size: 13px; color: #e94560; cursor: pointer;
+        }
+
+        .dark-toggle {
+            background: rgba(255,255,255,0.1); border: none; color: white;
+            padding: 6px 12px; border-radius: 20px; cursor: pointer;
+            font-size: 14px; transition: all 0.2s;
+        }
+        .dark-toggle:hover { background: rgba(255,255,255,0.2); }
 
         .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
 
         .card {
-            background: white; border-radius: 12px; padding: 28px;
+            background: var(--card); border-radius: 12px; padding: 28px;
             box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 20px;
+            border: 1px solid var(--border);
         }
-        .card h2 { font-size: 20px; margin-bottom: 18px; color: #1a1a2e; }
+        .card h2 { font-size: 20px; margin-bottom: 18px; color: var(--text); }
 
         .btn {
             display: inline-block; padding: 10px 22px; border-radius: 8px;
@@ -36,28 +104,28 @@
             border: none; cursor: pointer; transition: all 0.2s;
         }
         .btn-primary { background: #e94560; color: white; }
-        .btn-primary:hover { background: #c73652; }
-        .btn-secondary { background: #1a1a2e; color: white; }
-        .btn-secondary:hover { background: #16213e; }
+        .btn-primary:hover { background: #c73652; transform: translateY(-1px); }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .btn-secondary:hover { opacity: 0.9; }
         .btn-success { background: #28a745; color: white; }
         .btn-danger { background: #dc3545; color: white; }
         .btn-sm { padding: 6px 14px; font-size: 13px; }
 
         .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #555; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text2); }
         .form-group input, .form-group select, .form-group textarea {
-            width: 100%; padding: 10px 14px; border: 1.5px solid #ddd;
-            border-radius: 8px; font-size: 14px; transition: border 0.2s;
+            width: 100%; padding: 10px 14px; border: 1.5px solid var(--border);
+            border-radius: 8px; font-size: 14px; background: var(--input-bg);
+            color: var(--text); transition: border 0.2s;
         }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             outline: none; border-color: #e94560;
         }
 
-        .alert {
-            padding: 12px 18px; border-radius: 8px; margin-bottom: 16px; font-size: 14px;
-        }
+        .alert { padding: 12px 18px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
         .alert-error { background: #fde8ec; color: #c0392b; border-left: 4px solid #e94560; }
         .alert-success { background: #e8f8f0; color: #1e7e34; border-left: 4px solid #28a745; }
+        .alert-info { background: #e8f0fe; color: #1a73e8; border-left: 4px solid #1a73e8; }
 
         .badge {
             display: inline-block; padding: 3px 10px; border-radius: 20px;
@@ -68,22 +136,35 @@
         .badge-student { background: #e8f8f0; color: #28a745; }
 
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th { background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #555; }
-        td { padding: 12px; border-bottom: 1px solid #f0f0f0; }
-        tr:hover td { background: #fafafa; }
+        th { background: var(--bg); padding: 12px; text-align: left; font-weight: 600; color: var(--text2); }
+        td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text); }
+        tr:hover td { background: var(--table-hover); }
 
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
 
         .stat-card {
-            background: white; border-radius: 12px; padding: 24px;
+            background: var(--stat-bg); border-radius: 12px; padding: 24px;
             box-shadow: 0 2px 12px rgba(0,0,0,0.08); text-align: center;
+            border: 1px solid var(--border); transition: transform 0.2s;
         }
+        .stat-card:hover { transform: translateY(-3px); }
         .stat-card .number { font-size: 36px; font-weight: 700; color: #e94560; }
-        .stat-card .label { font-size: 13px; color: #888; margin-top: 6px; }
+        .stat-card .label { font-size: 13px; color: var(--text2); margin-top: 6px; }
+        .stat-card .icon { font-size: 28px; margin-bottom: 8px; }
+
+        .progress-bar-wrap {
+            background: var(--border); border-radius: 10px;
+            height: 8px; overflow: hidden; margin-top: 6px;
+        }
+        .progress-bar-fill {
+            height: 100%; background: linear-gradient(90deg, #e94560, #f7a4b5);
+            border-radius: 10px; transition: width 0.5s;
+        }
 
         @media (max-width: 768px) {
-            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
             .navbar { flex-direction: column; gap: 10px; }
         }
     </style>
@@ -91,19 +172,40 @@
 <body>
 {% if user.is_authenticated %}
 <nav class="navbar">
-    <div class="brand">🎓 LMS Portal</div>
+    <a href="{% url 'dashboard' %}" class="brand">🎓 LMS Portal</a>
     <div class="nav-links">
         <a href="{% url 'dashboard' %}">Dashboard</a>
         <a href="{% url 'course_list' %}">Courses</a>
+        <a href="{% url 'leaderboard' %}">🏆 Leaderboard</a>
+        {% if user.role in 'admin,trainer' %}
+        <a href="{% url 'analytics' %}">📊 Analytics</a>
+        {% endif %}
         {% if user.role == 'admin' %}
         <a href="{% url 'manage_users' %}">Users</a>
         {% endif %}
         {% if user.role in 'admin,trainer' %}
         <a href="{% url 'create_course' %}">+ Course</a>
         {% endif %}
+        <a href="{% url 'notifications' %}">🔔
+            {% with count=request.user.notifications.all %}
+            {% with unread=request.user.notifications.filter %}
+            {% endwith %}{% endwith %}
+        </a>
         <a href="{% url 'logout' %}">Logout</a>
     </div>
-    <div class="user-info">{{ user.full_name }} &nbsp;|&nbsp;
+    <div class="user-info">
+        <button class="dark-toggle" onclick="toggleDark()">🌙 Dark</button>
+        <div style="position:relative;">
+            <button class="notif-btn" onclick="toggleNotif()" id="notif-btn">
+                🔔 <span class="notif-badge" id="notif-count" style="display:none;">0</span>
+            </button>
+            <div class="notif-dropdown" id="notif-dropdown">
+                <div class="notif-header">Notifications</div>
+                <div id="notif-list"></div>
+                <div class="notif-footer" onclick="window.location='/courses/notifications/'">View All</div>
+            </div>
+        </div>
+        <span>{{ user.full_name }}</span>
         <span class="badge badge-{{ user.role }}">{{ user.role }}</span>
     </div>
 </nav>
@@ -115,5 +217,60 @@
     {% endfor %}
     {% block content %}{% endblock %}
 </div>
+
+<script>
+    // Dark mode
+    function toggleDark() {
+        const html = document.getElementById('html-root');
+        const isDark = html.getAttribute('data-theme') === 'dark';
+        html.setAttribute('data-theme', isDark ? '' : 'dark');
+        localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        document.querySelector('.dark-toggle').textContent = isDark ? '🌙 Dark' : '☀️ Light';
+    }
+    // Load saved theme
+    if (localStorage.getItem('theme') === 'dark') {
+        document.getElementById('html-root').setAttribute('data-theme', 'dark');
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.querySelector('.dark-toggle');
+            if (btn) btn.textContent = '☀️ Light';
+        });
+    }
+
+    // Notifications
+    function toggleNotif() {
+        document.getElementById('notif-dropdown').classList.toggle('show');
+    }
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#notif-btn') && !e.target.closest('#notif-dropdown')) {
+            document.getElementById('notif-dropdown')?.classList.remove('show');
+        }
+    });
+
+    {% if user.is_authenticated %}
+    function loadNotifications() {
+        fetch('/courses/notifications/unread/')
+            .then(r => r.json())
+            .then(data => {
+                const badge = document.getElementById('notif-count');
+                const list = document.getElementById('notif-list');
+                if (data.count > 0) {
+                    badge.style.display = 'flex';
+                    badge.textContent = data.count;
+                } else {
+                    badge.style.display = 'none';
+                }
+                if (list) {
+                    list.innerHTML = data.notifications.length
+                        ? data.notifications.map(n =>
+                            `<div class="notif-item" onclick="window.location='${n.link}'">${n.message}</div>`
+                          ).join('')
+                        : '<div class="notif-item">No new notifications</div>';
+                }
+            });
+    }
+    loadNotifications();
+    setInterval(loadNotifications, 30000);
+    {% endif %}
+</script>
 </body>
 </html>

@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% block title %}Analytics{% endblock %}
+{% block content %}
+<h2 style="margin-bottom:24px; color:var(--text);">📊 Analytics Dashboard</h2>
+
+<div class="grid-4" style="margin-bottom:24px;">
+    <div class="stat-card">
+        <div class="icon">👥</div>
+        <div class="number">{{ total_users }}</div>
+        <div class="label">Total Users</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">📚</div>
+        <div class="number">{{ total_courses }}</div>
+        <div class="label">Total Courses</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">📹</div>
+        <div class="number">{{ total_videos }}</div>
+        <div class="label">Total Videos</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">🎓</div>
+        <div class="number">{{ certificates_issued }}</div>
+        <div class="label">Certificates Issued</div>
+    </div>
+</div>
+
+<div class="grid-2" style="margin-bottom:24px;">
+    <div class="stat-card">
+        <div class="icon">👨‍🏫</div>
+        <div class="number">{{ total_trainers }}</div>
+        <div class="label">Trainers</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">🎒</div>
+        <div class="number">{{ total_students }}</div>
+        <div class="label">Students</div>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <h2>📹 Video Engagement</h2>
+        <canvas id="videoChart"></canvas>
+        <div style="margin-top:16px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="color:var(--text2); font-size:13px;">Total Views</span>
+                <strong>{{ video_views }}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+                <span style="color:var(--text2); font-size:13px;">Completed</span>
+                <strong style="color:#28a745;">{{ completed_videos }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>📝 Quiz Performance</h2>
+        <canvas id="quizChart"></canvas>
+        <div style="margin-top:16px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="color:var(--text2); font-size:13px;">Total Attempts</span>
+                <strong>{{ quiz_attempts }}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+                <span style="color:var(--text2); font-size:13px;">Passed</span>
+                <strong style="color:#28a745;">{{ passed_quizzes }}</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>🏆 Top Courses by Enrollment</h2>
+    {% if top_courses %}
+    <table>
+        <tr><th>Course</th><th>Students Enrolled</th><th>Progress</th></tr>
+        {% for course in top_courses %}
+        <tr>
+            <td><strong>{{ course.title }}</strong></td>
+            <td>{{ course.student_count }}</td>
+            <td>
+                <div class="progress-bar-wrap" style="width:200px;">
+                    <div class="progress-bar-fill"
+                        style="width:{% widthratio course.student_count total_students 100 %}%">
+                    </div>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p style="color:var(--text2); text-align:center; padding:20px;">No course data yet.</p>
+    {% endif %}
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+    const isDark = document.getElementById('html-root').getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#aaaaaa' : '#666666';
+
+    new Chart(document.getElementById('videoChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Completed', 'In Progress'],
+            datasets: [{
+                data: [{{ completed_videos }}, {{ video_views }} - {{ completed_videos }}],
+                backgroundColor: ['#28a745', '#e94560'],
+                borderWidth: 0,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: textColor } } }
+        }
+    });
+
+    new Chart(document.getElementById('quizChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Passed', 'Failed'],
+            datasets: [{
+                data: [{{ passed_quizzes }}, {{ quiz_attempts }} - {{ passed_quizzes }}],
+                backgroundColor: ['#1a73e8', '#e94560'],
+                borderWidth: 0,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: textColor } } }
+        }
+    });
+</script>
+{% endblock %}
