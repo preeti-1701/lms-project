@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
 import uuid
-from .models import Course, Video, VideoProgress, Quiz, Question, QuizAttempt, Certificate, Notification
+from .models import Course, Video, VideoProgress, Quiz, Question, QuizAttempt, Certificate, Notification, Discussion, DiscussionReply
 from accounts.models import CustomUser
 
 
@@ -32,8 +32,13 @@ def create_course(request):
         description = request.POST.get('description')
         thumbnail = request.POST.get('thumbnail', '')
         course = Course.objects.create(
-            title=title, description=description,
-            created_by=request.user, thumbnail=thumbnail
+            title=title,
+            description=description,
+            created_by=request.user,
+            thumbnail=thumbnail,
+            start_date=request.POST.get('start_date') or None,
+            end_date=request.POST.get('end_date') or None,
+            enrollment_deadline=request.POST.get('enrollment_deadline') or None,
         )
         student_ids = request.POST.getlist('students')
         course.assigned_students.set(student_ids)
@@ -222,7 +227,6 @@ def create_quiz(request, video_id):
         return redirect('course_detail', course_id=video.course.id)
     if request.method == 'POST':
         quiz = Quiz.objects.create(video=video, title=f'Quiz - {video.title}')
-        questions_data = []
         i = 1
         while request.POST.get(f'q{i}_text'):
             Question.objects.create(
@@ -251,14 +255,11 @@ def view_certificate(request, course_id):
 
 @login_required
 def leaderboard(request):
-    attempts = QuizAttempt.objects.filter(passed=True).values(
-        'student__full_name', 'student__id'
-    )
-    from django.db.models import Count, Avg
+    from django.db.models import Count, Avg, Q
     board = QuizAttempt.objects.values(
         'student__full_name'
     ).annotate(
-        passed_count=Count('id', filter=__import__('django.db.models', fromlist=['Q']).Q(passed=True)),
+        passed_count=Count('id', filter=Q(passed=True)),
         avg_score=Avg('score')
     ).order_by('-passed_count', '-avg_score')[:10]
     return render(request, 'courses/leaderboard.html', {'board': board})
@@ -336,4 +337,79 @@ def assign_students(request, course_id):
     return render(request, 'courses/assign_students.html', {
         'course': course, 'students': students,
         'assigned': course.assigned_students.all(),
+    })
+
+
+# ── Search ────────────────────────────────────────────────
+@login_required
+def search_courses(request):
+    query = request.GET.get('q', '')
+    results = []
+    if query:
+        if request.user.role == 'student':
+            results = request.user.enrolled_courses.filter(
+                title__icontains=query, is_active=True
+            )
+        elif request.user.role == 'trainer':
+            results = Course.objects.filter(
+                created_by=request.user, title__icontains=query
+            )
+        else:
+            results = Course.objects.filter(title__icontains=query)
+    return render(request, 'courses/search_results.html', {
+        'results': results, 'query': query
+    })
+
+
+# ── Discussion Forum ──────────────────────────────────────
+@login_required
+def discussion_list(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    if request.user.role == 'student':
+        if course not in request.user.enrolled_courses.all():
+            return redirect('dashboard')
+    discussions = course.discussions.all()
+    return render(request, 'courses/discussion_list.html', {
+        'course': course, 'discussions': discussions
+    })
+
+
+@login_required
+def create_discussion(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        body = request.POST.get('body')
+        Discussion.objects.create(
+            course=course, author=request.user,
+            title=title, body=body
+        )
+        for student in course.assigned_students.all():
+            if student != request.user:
+                notify(student,
+                       f'New discussion in "{course.title}": {title}',
+                       f'/courses/{course.id}/discuss/')
+        messages.success(request, 'Discussion posted!')
+        return redirect('discussion_list', course_id=course.id)
+    return render(request, 'courses/create_discussion.html', {'course': course})
+
+
+@login_required
+def discussion_detail(request, discussion_id):
+    discussion = get_object_or_404(Discussion, id=discussion_id)
+    course = discussion.course
+    if request.method == 'POST':
+        body = request.POST.get('body')
+        if body:
+            DiscussionReply.objects.create(
+                discussion=discussion, author=request.user, body=body
+            )
+            notify(discussion.author,
+                   f'{request.user.full_name} replied to your discussion: "{discussion.title}"',
+                   f'/courses/discuss/{discussion.id}/')
+            messages.success(request, 'Reply posted!')
+        return redirect('discussion_detail', discussion_id=discussion.id)
+    replies = discussion.replies.all()
+    return render(request, 'courses/discussion_detail.html', {
+        'discussion': discussion, 'replies': replies, 'course': course
     })

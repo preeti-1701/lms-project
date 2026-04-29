@@ -9,10 +9,29 @@ class Course(models.Model):
     assigned_students = models.ManyToManyField(CustomUser, related_name='enrolled_courses', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
-    thumbnail = models.URLField(blank=True, help_text="Optional thumbnail image URL")
+    thumbnail = models.URLField(blank=True)
+
+    # 📅 Scheduling
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    enrollment_deadline = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return self.title
+
+    def is_ongoing(self):
+        from django.utils import timezone
+        today = timezone.now().date()
+        if self.start_date and self.end_date:
+            return self.start_date <= today <= self.end_date
+        return True
+
+    def days_left(self):
+        from django.utils import timezone
+        if self.end_date:
+            delta = self.end_date - timezone.now().date()
+            return delta.days
+        return None
 
 
 class Video(models.Model):
@@ -59,9 +78,6 @@ class VideoProgress(models.Model):
             return 0
         return min(int((self.watched_seconds / self.duration_seconds) * 100), 100)
 
-    def __str__(self):
-        return f"{self.student.full_name} - {self.video.title} ({self.percentage}%)"
-
 
 class Quiz(models.Model):
     video = models.OneToOneField(Video, on_delete=models.CASCADE, related_name='quiz')
@@ -80,11 +96,8 @@ class Question(models.Model):
     option_c = models.CharField(max_length=200)
     option_d = models.CharField(max_length=200)
     correct_option = models.CharField(max_length=1, choices=[
-        ('a', 'A'), ('b', 'B'), ('c', 'C'), ('d', 'D')
+        ('a','A'),('b','B'),('c','C'),('d','D')
     ])
-
-    def __str__(self):
-        return self.text[:50]
 
 
 class QuizAttempt(models.Model):
@@ -104,9 +117,6 @@ class QuizAttempt(models.Model):
             return 0
         return int((self.score / self.total) * 100)
 
-    def __str__(self):
-        return f"{self.student.full_name} - {self.quiz.title} ({self.percentage}%)"
-
 
 class Certificate(models.Model):
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='certificates')
@@ -116,9 +126,6 @@ class Certificate(models.Model):
 
     class Meta:
         unique_together = ('student', 'course')
-
-    def __str__(self):
-        return f"{self.student.full_name} - {self.course.title}"
 
 
 class Notification(models.Model):
@@ -131,5 +138,28 @@ class Notification(models.Model):
     class Meta:
         ordering = ['-created_at']
 
+
+# 💬 Discussion Forum
+class Discussion(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='discussions')
+    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='discussions')
+    title = models.CharField(max_length=200)
+    body = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_pinned = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-is_pinned', '-created_at']
+
     def __str__(self):
-        return f"{self.user.full_name} - {self.message[:40]}"
+        return self.title
+
+
+class DiscussionReply(models.Model):
+    discussion = models.ForeignKey(Discussion, on_delete=models.CASCADE, related_name='replies')
+    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='replies')
+    body = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']

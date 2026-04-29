@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Search Results{% endblock %}
+{% block content %}
+
+<div style="margin-bottom:28px;">
+    <div class="page-title" style="margin-bottom:16px;">🔍 Search <span>Courses</span></div>
+    <form method="GET" action="{% url 'search_courses' %}"
+        style="display:flex; gap:12px; max-width:600px;">
+        <input type="text" name="q" value="{{ query }}"
+            placeholder="Search courses by name..."
+            style="flex:1; padding:12px 18px; border-radius:12px;
+            border:1.5px solid var(--border); background:var(--input-bg);
+            color:var(--text); font-size:14px; font-family:'DM Sans',sans-serif;">
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+</div>
+
+{% if query %}
+<div style="margin-bottom:20px; color:var(--text2); font-size:14px;">
+    {% if results %}
+        Found <strong style="color:var(--text);">{{ results|length }}</strong>
+        result(s) for "<strong style="color:#e94560;">{{ query }}</strong>"
+    {% else %}
+        No results found for "<strong style="color:#e94560;">{{ query }}</strong>"
+    {% endif %}
+</div>
+{% endif %}
+
+{% if results %}
+<div class="grid-3">
+    {% for course in results %}
+    <div class="card" style="padding:0; overflow:hidden; animation-delay:{{ forloop.counter0 }}00ms;">
+        <div style="height:6px; background:linear-gradient(90deg,#e94560,#f7b731);"></div>
+        <div style="padding:22px;">
+            <div style="font-size:28px; margin-bottom:12px;">
+                {% cycle '📘' '📗' '📙' '📕' '📒' %}
+            </div>
+            <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:15px;
+                margin-bottom:8px; color:var(--text);">{{ course.title }}</div>
+            <div style="font-size:13px; color:var(--text2); margin-bottom:16px; line-height:1.6;">
+                {{ course.description|truncatewords:12 }}
+            </div>
+            <div style="display:flex; gap:10px; font-size:12px; color:var(--text2);
+                margin-bottom:16px;">
+                <span style="background:var(--bg); padding:4px 10px; border-radius:20px;
+                    border:1px solid var(--border);">
+                    📹 {{ course.videos.count }} videos
+                </span>
+                <span style="background:var(--bg); padding:4px 10px; border-radius:20px;
+                    border:1px solid var(--border);">
+                    👥 {{ course.assigned_students.count }} students
+                </span>
+            </div>
+            {% if course.end_date %}
+            <div style="font-size:12px; color:{% if course.days_left < 3 %}#e94560{% else %}#28a745{% endif %};
+                margin-bottom:14px; font-weight:600;">
+                ⏰ {{ course.days_left }} days left
+            </div>
+            {% endif %}
+            <a href="{% url 'course_detail' course.id %}" class="btn btn-primary btn-sm"
+                style="width:100%; justify-content:center;">
+                View Course →
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% elif query %}
+<div class="card" style="text-align:center; padding:60px;">
+    <div style="font-size:64px; margin-bottom:16px;">🔍</div>
+    <div style="font-family:'Syne',sans-serif; font-size:20px; font-weight:700;
+        margin-bottom:8px; color:var(--text);">No courses found</div>
+    <p style="color:var(--text2);">Try a different keyword.</p>
+</div>
+{% endif %}
+{% endblock %}

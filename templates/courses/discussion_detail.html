@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}{{ discussion.title }}{% endblock %}
+{% block content %}
+
+<div style="max-width:780px; margin:0 auto;">
+
+    <a href="{% url 'discussion_list' course.id %}"
+        style="display:inline-flex; align-items:center; gap:6px; color:var(--text2);
+        text-decoration:none; font-size:13px; margin-bottom:20px;"
+        onmouseover="this.style.color='#e94560'"
+        onmouseout="this.style.color='var(--text2)'">
+        ← Back to Forum
+    </a>
+
+    <!-- Original Post -->
+    <div class="card" style="margin-bottom:20px;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+            <div style="width:44px; height:44px;
+                background:linear-gradient(135deg,#e94560,#f7b731);
+                border-radius:50%; display:flex; align-items:center;
+                justify-content:center; font-size:18px; font-weight:700;
+                color:white; flex-shrink:0;">
+                {{ discussion.author.full_name|first }}
+            </div>
+            <div>
+                <div style="font-weight:700; color:var(--text); font-size:14px;">
+                    {{ discussion.author.full_name }}
+                    <span class="badge badge-{{ discussion.author.role }}"
+                        style="margin-left:6px;">{{ discussion.author.role }}</span>
+                </div>
+                <div style="font-size:12px; color:var(--text2);">
+                    {{ discussion.created_at|timesince }} ago
+                </div>
+            </div>
+        </div>
+        <div style="font-family:'Syne',sans-serif; font-size:20px; font-weight:700;
+            color:var(--text); margin-bottom:14px;">
+            {{ discussion.title }}
+        </div>
+        <div style="font-size:14px; color:var(--text2); line-height:1.8;
+            padding:16px; background:var(--bg); border-radius:10px;
+            border:1px solid var(--border);">
+            {{ discussion.body }}
+        </div>
+    </div>
+
+    <!-- Replies -->
+    {% if replies %}
+    <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:15px;
+        color:var(--text); margin-bottom:14px;">
+        💬 {{ replies.count }} Repl{{ replies.count|pluralize:"y,ies" }}
+    </div>
+    <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:24px;">
+        {% for reply in replies %}
+        <div style="background:var(--card); border-radius:14px; padding:18px 22px;
+            border:1px solid var(--border);
+            animation: fadeUp 0.3s ease {{ forloop.counter0 }}00ms both;
+            border-left: 3px solid {% cycle '#e94560' '#1a73e8' '#28a745' '#f7b731' %};">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                <div style="width:34px; height:34px;
+                    background:linear-gradient(135deg,#1a1a2e,#0f3460);
+                    border-radius:50%; display:flex; align-items:center;
+                    justify-content:center; font-size:13px;
+                    font-weight:700; color:white; flex-shrink:0;">
+                    {{ reply.author.full_name|first }}
+                </div>
+                <div>
+                    <div style="font-weight:600; font-size:13px; color:var(--text);">
+                        {{ reply.author.full_name }}
+                        <span class="badge badge-{{ reply.author.role }}"
+                            style="margin-left:4px;">{{ reply.author.role }}</span>
+                    </div>
+                    <div style="font-size:11px; color:var(--text2);">
+                        {{ reply.created_at|timesince }} ago
+                    </div>
+                </div>
+            </div>
+            <div style="font-size:14px; color:var(--text2); line-height:1.7;">
+                {{ reply.body }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Reply Box -->
+    <div class="card">
+        <h2>✍️ Post a Reply</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <textarea name="body" rows="4" required
+                    placeholder="Write your reply here..."
+                    style="width:100%; padding:12px 16px;
+                    border:1.5px solid var(--border); border-radius:10px;
+                    font-size:14px; background:var(--input-bg); color:var(--text);
+                    font-family:'DM Sans',sans-serif; resize:vertical; transition:border 0.2s;"
+                    onfocus="this.style.borderColor='#e94560'; this.style.boxShadow='0 0 0 3px rgba(233,69,96,0.1)'"
+                    onblur="this.style.borderColor='var(--border)'; this.style.boxShadow=''">
+                </textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Post Reply →</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Discussion Forum{% endblock %}
+{% block content %}
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:28px;">
+    <div>
+        <div class="page-title" style="margin-bottom:4px;">
+            💬 <span>Discussion</span> Forum
+        </div>
+        <div style="color:var(--text2); font-size:14px;">{{ course.title }}</div>
+    </div>
+    <div style="display:flex; gap:10px;">
+        <a href="{% url 'course_detail' course.id %}" class="btn btn-secondary">← Back</a>
+        <a href="{% url 'create_discussion' course.id %}" class="btn btn-primary">+ New Post</a>
+    </div>
+</div>
+
+{% if discussions %}
+<div style="display:flex; flex-direction:column; gap:14px;">
+    {% for discussion in discussions %}
+    <a href="{% url 'discussion_detail' discussion.id %}"
+        style="text-decoration:none; display:block;
+        animation: fadeUp 0.3s ease {{ forloop.counter0 }}00ms both;">
+        <div style="background:var(--card); border-radius:16px; padding:22px 24px;
+            border:1px solid var(--border); transition:all 0.25s;"
+            onmouseover="this.style.borderColor='#e94560'; this.style.transform='translateX(6px)';
+                this.style.boxShadow='0 8px 30px rgba(233,69,96,0.1)'"
+            onmouseout="this.style.borderColor='var(--border)'; this.style.transform='';
+                this.style.boxShadow=''">
+            <div style="display:flex; justify-content:space-between;
+                align-items:flex-start; gap:16px;">
+                <div style="flex:1;">
+                    {% if discussion.is_pinned %}
+                    <span style="font-size:11px; font-weight:700; color:#f7b731;
+                        background:rgba(247,183,49,0.1); padding:2px 8px;
+                        border-radius:20px; margin-bottom:8px; display:inline-block;">
+                        📌 PINNED
+                    </span>
+                    {% endif %}
+                    <div style="font-family:'Syne',sans-serif; font-weight:700;
+                        font-size:16px; color:var(--text); margin-bottom:6px;">
+                        {{ discussion.title }}
+                    </div>
+                    <div style="font-size:13px; color:var(--text2); line-height:1.6;
+                        margin-bottom:12px;">
+                        {{ discussion.body|truncatewords:20 }}
+                    </div>
+                    <div style="display:flex; align-items:center; gap:14px;
+                        font-size:12px; color:var(--text2);">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <div style="width:24px; height:24px;
+                                background:linear-gradient(135deg,#e94560,#f7b731);
+                                border-radius:50%; display:flex; align-items:center;
+                                justify-content:center; font-size:10px;
+                                font-weight:700; color:white;">
+                                {{ discussion.author.full_name|first }}
+                            </div>
+                            {{ discussion.author.full_name }}
+                        </div>
+                        <span>·</span>
+                        <span>{{ discussion.created_at|timesince }} ago</span>
+                        <span>·</span>
+                        <span>💬 {{ discussion.replies.count }} replies</span>
+                    </div>
+                </div>
+                <span style="color:var(--text2); font-size:24px; flex-shrink:0;">›</span>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card" style="text-align:center; padding:80px 40px;">
+    <div style="font-size:64px; margin-bottom:16px;
+        animation:float 3s ease-in-out infinite;">💬</div>
+    <div style="font-family:'Syne',sans-serif; font-size:20px;
+        font-weight:700; margin-bottom:8px; color:var(--text);">
+        No discussions yet
+    </div>
+    <p style="color:var(--text2); margin-bottom:24px;">
+        Be the first to start a conversation!
+    </p>
+    <a href="{% url 'create_discussion' course.id %}" class="btn btn-primary">
+        Start Discussion →
+    </a>
+</div>
+{% endif %}
+{% endblock %}
