@@ -43,6 +43,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
 
     # Optional for your project
+    last_login_ip = models.GenericIPAddressField(null=True, blank=True)
     last_login_device = models.CharField(max_length=255, blank=True, null=True)
 
     objects = CustomUserManager()
