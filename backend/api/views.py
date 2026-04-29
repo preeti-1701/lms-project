@@ -1,3 +1,5 @@
+from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -7,6 +9,8 @@ from .serializers import *
 
 class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
+
+    @method_decorator(ratelimit(key='ip', rate='5/m', method='POST', block=True))
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')

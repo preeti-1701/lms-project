@@ -13,8 +13,17 @@ function StudentDashboard() {
     axios.get('http://127.0.0.1:8000/api/my-courses/', {
       headers: { Authorization: `Bearer ${token}` }
     }).then(r => { setCourses(r.data); setLoading(false); })
-    .catch(() => setLoading(false));
+    .catch((err) => {
+      if (err.response?.status === 401) {
+        localStorage.clear();
+        window.location.href = '/login';
+      }
+      setLoading(false);
+    });
   }, []);
+
+  
+
 
   const logout = () => { localStorage.clear(); window.location.href = '/login'; };
 

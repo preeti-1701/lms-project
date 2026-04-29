@@ -11,9 +11,15 @@ function AdminDashboard() {
   const headers = { Authorization: `Bearer ${token}` };
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/users/', { headers }).then(r => setUsers(r.data)).catch(console.error);
-    axios.get('http://127.0.0.1:8000/api/courses/', { headers }).then(r => setCourses(r.data)).catch(console.error);
-    axios.get('http://127.0.0.1:8000/api/sessions/', { headers }).then(r => setSessions(r.data)).catch(console.error);
+    const handleError = (err) => {
+      if (err.response?.status === 401) {
+        localStorage.clear();
+        window.location.href = '/login';
+      }
+    };
+    axios.get('http://127.0.0.1:8000/api/users/', { headers }).then(r => setUsers(r.data)).catch(handleError);
+    axios.get('http://127.0.0.1:8000/api/courses/', { headers }).then(r => setCourses(r.data)).catch(handleError);
+    axios.get('http://127.0.0.1:8000/api/sessions/', { headers }).then(r => setSessions(r.data)).catch(handleError);
   }, []);
 
   const forceLogout = async (userId) => {
