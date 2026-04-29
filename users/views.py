@@ -2,7 +2,9 @@ from urllib import request
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate
+from .models import User
 
 from .utils import get_tokens_for_user
     
@@ -28,3 +30,22 @@ class LoginView(APIView):
             return Response(tokens)
 
         return Response({"error": "Invalid credentials"}, status=401)
+    
+class ForceLogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, user_id):
+        admin_user = request.user
+
+        if admin_user.role != 'admin':
+            return Response({"error": "Not allowed"}, status=403)
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
+
+        user.token_version += 1
+        user.save()
+
+        return Response({"message": "User logged out from all devices"})

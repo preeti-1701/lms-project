@@ -17,11 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path , include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from users.views import LoginView
+from users.views import LoginView , ForceLogoutView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/login/', LoginView.as_view()),
+    path('api/force-logout/<int:user_id>/', ForceLogoutView.as_view()),
     path('api/token/', TokenObtainPairView.as_view()),
     path('api/token/refresh/', TokenRefreshView.as_view()),
     path('api/', include('courses.urls')),
