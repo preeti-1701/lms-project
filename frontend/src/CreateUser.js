@@ -244,268 +244,230 @@ function CreateUser() {
 
 
   return (
+    <div className="min-h-screen bg-slate-950 relative overflow-hidden">
+      {/* Radial gradient background */}
+      <div className="absolute inset-0 bg-gradient-radial from-cyan-500/10 via-transparent to-transparent opacity-30 pointer-events-none" />
 
-    <section className="min-h-screen bg-[radial-gradient(circle_at_10%_10%,rgba(255,184,77,0.16)_0%,transparent_28%),radial-gradient(circle_at_90%_18%,rgba(13,142,123,0.14)_0%,transparent_30%),linear-gradient(155deg,#f7fbfa_0%,#eef4ff_100%)] px-4 py-8">
-
-      <div className="mx-auto mb-4 flex max-w-6xl justify-between">
-
-        <button
-          onClick={handleBack}
-          className="rounded-full bg-white px-4 py-2 shadow"
-        >
-          ← Back
-        </button>
-
-      </div>
-
-
-
-      <div className="mx-auto grid max-w-6xl overflow-hidden rounded-[28px] shadow-xl lg:grid-cols-[0.85fr_1.15fr]">
-
-
-        {/* LEFT PANEL */}
-        <aside className="bg-teal-700 text-white p-10">
-
-          <span className="rounded-full bg-white/10 px-4 py-2 text-xs uppercase">
-            LMS Admin
-          </span>
-
-          <h1 className="mt-6 text-5xl font-semibold">
-            User Management
-          </h1>
-
-          <p className="mt-4">
-            Create and manage platform users.
-          </p>
-
-        </aside>
-
-
-
-        {/* CREATE FORM */}
-        <form
-          onSubmit={handleCreate}
-          className="bg-white p-10 space-y-4"
-        >
-
-          <h2 className="text-3xl font-semibold">
-            Create New User
-          </h2>
-
-
-          <input
-            placeholder="First Name"
-            value={firstName}
-            onChange={(e) =>
-              setFirstName(
-                e.target.value
-              )}
-            className="w-full rounded-2xl border p-4"
-          />
-
-          <input
-            placeholder="Last Name"
-            value={lastName}
-            onChange={(e) =>
-              setLastName(
-                e.target.value
-              )}
-            className="w-full rounded-2xl border p-4"
-          />
-
-          <input
-            placeholder="Username"
-            value={username}
-            onChange={(e) =>
-              setUsername(
-                e.target.value
-              )}
-            className="w-full rounded-2xl border p-4"
-          />
-
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) =>
-              setPassword(
-                e.target.value
-              )}
-            className="w-full rounded-2xl border p-4"
-          />
-
-
-          <select
-            value={role}
-            onChange={(e) =>
-              setRole(
-                e.target.value
-              )}
-            className="w-full rounded-2xl border p-4"
-          >
-            <option value='student'>
-              Student
-            </option>
-
-            <option value='trainer'>
-              Trainer
-            </option>
-
-            <option value='admin'>
-              Admin
-            </option>
-
-          </select>
-
-
-
-          {feedback.text && (
-
-            <div className={
-              feedback.type === 'success'
-                ? 'rounded-xl bg-green-50 p-4 text-green-700'
-                : 'rounded-xl bg-red-50 p-4 text-red-700'
-            }
-            >
-              {feedback.text}
-            </div>
-
-          )}
-
-
-
+      {/* Content */}
+      <div className="relative z-10 px-6 md:px-8 py-12">
+        {/* Back button */}
+        <div className="mb-8">
           <button
-            disabled={isSubmitting}
-            className="w-full rounded-2xl bg-teal-700 p-4 text-white font-semibold"
+            onClick={handleBack}
+            className="px-4 py-2 text-slate-300 hover:text-cyan-400 transition-colors duration-300 flex items-center gap-2"
           >
-            {
-              isSubmitting
-                ? 'Creating...'
-                : 'Create User'
-            }
+            ← Back
           </button>
-
-        </form>
-
-      </div>
-
-
-
-      {/* USER MANAGEMENT */}
-      <div className="mx-auto mt-10 max-w-6xl rounded-3xl bg-white p-10 shadow-xl">
-
-        <h2 className="text-3xl font-semibold mb-8">
-          Manage Users
-        </h2>
-
-
-        <div className="grid gap-6">
-
-          {users.map((u) => (
-
-            <div
-              key={u.id}
-              className="rounded-2xl border p-6 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-            >
-
-              <div>
-
-                <h3 className="font-semibold text-xl">
-                  {u.first_name} {u.last_name}
-                </h3>
-
-                <p className="text-gray-500">
-                  @{u.username}
-                </p>
-
-                <p className="mt-2">
-                  Role:
-                  <b> {u.role} </b>
-                </p>
-
-                <p>
-                  Status:
-                  <b>
-                    {u.is_active
-                      ? ' Active'
-                      : ' Disabled'}
-                  </b>
-                </p>
-
-              </div>
-
-
-
-              <div className="flex flex-wrap gap-3">
-
-                <button
-                  onClick={() =>
-                    handleEditUser(u.id)
-                  }
-                  className="rounded-xl bg-blue-600 px-4 py-2 text-white"
-                >
-                  Edit
-                </button>
-
-
-
-                {u.is_active ? (
-
-                  <button
-                    onClick={() =>
-                      handleDisableUser(
-                        u.id
-                      )
-                    }
-                    className="rounded-xl bg-red-600 px-4 py-2 text-white"
-                  >
-                    Disable
-                  </button>
-
-                ) : (
-
-                  <button
-                    onClick={() =>
-                      handleEnableUser(
-                        u.id
-                      )
-                    }
-                    className="rounded-xl bg-green-600 px-4 py-2 text-white"
-                  >
-                    Enable
-                  </button>
-
-                )}
-
-
-
-                {u.has_active_session && (
-
-                  <button
-                    onClick={() =>
-                      handleForceLogout(
-                        u.id
-                      )
-                    }
-                    className="rounded-xl bg-orange-500 px-4 py-2 text-white"
-                  >
-                    Force Logout
-                  </button>
-
-                )}
-
-              </div>
-
-            </div>
-
-          ))}
-
         </div>
 
+        <div className="mx-auto max-w-2xl mb-12">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="inline-block mb-4">
+              <span className="px-3 py-1 bg-gradient-to-r from-cyan-400/20 to-blue-600/20 border border-cyan-400/30 rounded-full text-xs uppercase font-semibold text-cyan-300">
+                User Management
+              </span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-3">
+              <span className="bg-gradient-to-r from-cyan-400 to-blue-600 bg-clip-text text-transparent">
+                Create New User
+              </span>
+            </h1>
+            <p className="text-slate-400">
+              Add and manage platform users across all roles.
+            </p>
+          </div>
+
+          {/* Form Card */}
+          <form
+            onSubmit={handleCreate}
+            className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 space-y-6 hover:border-cyan-400/20 transition-all duration-300"
+          >
+            {/* First Name Input */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                First Name
+              </label>
+              <input
+                placeholder="Enter first name..."
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:border-cyan-400/50 focus:outline-none transition-all duration-300"
+              />
+            </div>
+
+            {/* Last Name Input */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Last Name
+              </label>
+              <input
+                placeholder="Enter last name..."
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:border-cyan-400/50 focus:outline-none transition-all duration-300"
+              />
+            </div>
+
+            {/* Username Input */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Username <span className="text-red-400">*</span>
+              </label>
+              <input
+                placeholder="Enter username..."
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:border-cyan-400/50 focus:outline-none transition-all duration-300"
+              />
+            </div>
+
+            {/* Password Input */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Password <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="password"
+                placeholder="Enter password..."
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:border-cyan-400/50 focus:outline-none transition-all duration-300"
+              />
+            </div>
+
+            {/* Role Select */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Role <span className="text-red-400">*</span>
+              </label>
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl text-white focus:border-cyan-400/50 focus:outline-none transition-all duration-300"
+              >
+                <option value="student">Student</option>
+                <option value="trainer">Trainer</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+
+            {/* Feedback Message */}
+            {feedback.text && (
+              <div
+                className={`px-4 py-3 rounded-xl border ${
+                  feedback.type === 'success'
+                    ? 'bg-green-500/10 border-green-500/30 text-green-300'
+                    : 'bg-red-500/10 border-red-500/30 text-red-300'
+                }`}
+              >
+                {feedback.text}
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full px-6 py-3 bg-gradient-to-r from-cyan-400 to-blue-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? 'Creating...' : 'Create User'}
+            </button>
+          </form>
+        </div>
+
+        {/* User Management Section */}
+        <div className="mx-auto max-w-4xl">
+          <h2 className="text-3xl font-bold mb-8">
+            <span className="bg-gradient-to-r from-cyan-400 to-blue-600 bg-clip-text text-transparent">
+              Manage Users
+            </span>
+          </h2>
+
+          <div className="grid gap-6">
+            {users.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-slate-400">No users yet. Create one above.</p>
+              </div>
+            ) : (
+              users.map((u) => (
+                <div
+                  key={u.id}
+                  className="group bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-6 hover:border-cyan-400/30 hover:bg-slate-900/60 transition-all duration-300"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                    {/* User Info */}
+                    <div>
+                      <h3 className="text-xl font-semibold text-white mb-1">
+                        {u.first_name} {u.last_name}
+                      </h3>
+                      <p className="text-slate-400 text-sm mb-3">
+                        @{u.username}
+                      </p>
+                      <div className="flex flex-wrap gap-4 text-sm">
+                        <div>
+                          <span className="text-slate-400">Role: </span>
+                          <span className="text-cyan-300 font-semibold capitalize">
+                            {u.role}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400">Status: </span>
+                          <span
+                            className={
+                              u.is_active
+                                ? 'text-green-300 font-semibold'
+                                : 'text-red-300 font-semibold'
+                            }
+                          >
+                            {u.is_active ? 'Active' : 'Disabled'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        onClick={() => handleEditUser(u.id)}
+                        className="px-4 py-2 bg-gradient-to-r from-cyan-400 to-blue-600 text-white font-medium rounded-lg hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300 text-sm"
+                      >
+                        Edit
+                      </button>
+
+                      {u.is_active ? (
+                        <button
+                          onClick={() => handleDisableUser(u.id)}
+                          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-all duration-300 text-sm"
+                        >
+                          Disable
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleEnableUser(u.id)}
+                          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-all duration-300 text-sm"
+                        >
+                          Enable
+                        </button>
+                      )}
+
+                      {u.has_active_session && (
+                        <button
+                          onClick={() => handleForceLogout(u.id)}
+                          className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-all duration-300 text-sm"
+                        >
+                          Force Logout
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
-
-    </section>
-
+    </div>
   );
 
 }

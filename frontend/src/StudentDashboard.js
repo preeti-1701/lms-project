@@ -3,512 +3,412 @@ import { useNavigate } from 'react-router-dom';
 import api from './api';
 
 function StudentDashboard() {
-
   const navigate = useNavigate();
+  const currentUser = JSON.parse(localStorage.getItem('user'));
 
-  const currentUser =
-    JSON.parse(
-      localStorage.getItem('user')
-    );
+  const [showProfile, setShowProfile] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [view, setView] = useState('dashboard');
+  const [courses, setCourses] = useState([]);
+  const [summary, setSummary] = useState({
+    courses: 0,
+    completed: 0,
+    total_videos: 0,
+    progress: 0,
+  });
 
-  const [showProfile, setShowProfile] =
-    useState(false);
+  const initials = (
+    currentUser?.first_name?.[0] ||
+    currentUser?.username?.[0] ||
+    'U'
+  ).toUpperCase();
 
-  const [courses, setCourses] =
-    useState([]);
-
-  const [collapsed, setCollapsed] =
-    useState(false);
-
-
-  const [summary, setSummary] =
-    useState({
-      courses: 0,
-      completed: 0,
-      total_videos: 0,
-      progress: 0
-    });
-
-
-  /* ------------------------
-   Logout
-  -------------------------*/
   const handleLogout = () => {
     localStorage.clear();
     navigate('/login');
   };
 
-
-
-  /* ------------------------
-   Fetch Courses
-  -------------------------*/
   const fetchCourses = async () => {
-
     try {
-
-      const response =
-        await api.get(
-          '/api/student-courses/'
-        );
-
-      setCourses(
-        response.data
-      );
-
+      const response = await api.get('/api/student-courses/');
+      setCourses(response.data);
     } catch (error) {
       console.error(error);
     }
-
   };
 
-
-
-  /* ------------------------
-   Fetch Summary
-  -------------------------*/
   const fetchSummary = async () => {
-
     try {
-
-      const res =
-        await api.get(
-          '/api/student-stats/'
-        );
-
-      setSummary(
-        res.data
-      );
-
+      const res = await api.get('/api/student-stats/');
+      setSummary(res.data);
     } catch (error) {
       console.error(error);
     }
-
   };
-
-
 
   useEffect(() => {
-
     fetchCourses();
     fetchSummary();
 
-  }, []);
-
-
-
-
-  /* ------------------------
-   Mark Complete
-  -------------------------*/
-  const markComplete = async (
-    videoId
-  ) => {
-
-    try {
-
-      await api.post(
-        '/api/mark-complete/',
-        {
-          video_id: videoId
-        }
-      );
-
-      alert(
-        'Video marked completed'
-      );
-
+    const interval = setInterval(() => {
       fetchCourses();
       fetchSummary();
+    }, 30000);
 
+    return () => clearInterval(interval);
+  }, []);
+
+  const markComplete = async (videoId) => {
+    try {
+      await api.post('/api/mark-complete/', { video_id: videoId });
+      alert('Video marked completed');
+      fetchCourses();
+      fetchSummary();
     } catch (error) {
       console.error(error);
     }
-
   };
 
-
-
-
-  /* ------------------------
-   Youtube Embed
-  -------------------------*/
   const getEmbedUrl = (url) => {
+    if (!url) return '';
 
-    if (!url) return "";
+    let videoId = '';
 
-    let videoId = "";
-
-    if (
-      url.includes(
-        "youtu.be"
-      )
-    ) {
-      videoId =
-        url.split("/").pop();
+    if (url.includes('youtu.be')) {
+      videoId = url.split('/').pop();
+    } else if (url.includes('watch?v=')) {
+      videoId = url.split('v=')[1].split('&')[0];
     }
 
-    else if (
-      url.includes(
-        "watch?v="
-      )
-    ) {
-      videoId =
-        url
-          .split("v=")[1]
-          .split("&")[0];
-    }
-
-    if (!videoId) {
-      return url;
-    }
+    if (!videoId) return url;
 
     return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&disablekb=1&controls=1`;
-
   };
 
-
-
+  const navItems = [
+    { label: 'Dashboard', icon: '▣', action: () => setView('dashboard') },
+    { label: 'My Courses', icon: '📚', action: () => setView('courses') },
+    { label: 'Progress', icon: '📈', action: () => setView('progress') },
+    { label: 'Profile', icon: '👤', action: () => setShowProfile(!showProfile) },
+  ];
 
   return (
+    <div className="min-h-screen bg-slate-950 text-slate-100">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.18),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(34,211,238,0.12),_transparent_28%),linear-gradient(180deg,_#0f172a_0%,_#020617_100%)]" />
+      <div className="pointer-events-none absolute left-1/2 top-[-8rem] h-80 w-80 -translate-x-1/2 rounded-full bg-cyan-400/20 blur-3xl" />
 
-    <div className="flex min-h-screen bg-slate-900">
-
-
-
-      {/* SIDEBAR */}
-      <div className={`${collapsed ? 'w-20' : 'w-64'} transition-all duration-300 bg-gradient-to-b from-slate-800 to-slate-900 text-white p-6 border-r border-slate-700`}>
-
-        <div className="flex justify-end mb-6">
-          <button
-            onClick={() =>
-              setCollapsed(
-                !collapsed
-              )
-            }
-            className="p-2 hover:bg-slate-700 rounded-lg transition text-2xl"
-          >
-            {collapsed ? '▶' : '◀'}
-          </button>
-        </div>
-
-
-        {!collapsed && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">Student Portal</h2>
-            <div className="h-0.5 bg-gradient-to-r from-purple-400 to-pink-500 mt-2"></div>
-          </div>
-        )}
-
-        <nav className="space-y-2">
-          <SidebarButton icon="🏠" label="Dashboard" collapsed={collapsed} />
-          <SidebarButton icon="📚" label="My Courses" collapsed={collapsed} />
-          <SidebarButton icon="📈" label="Progress" collapsed={collapsed} />
-          <SidebarButton icon="👤" label="Profile" onClick={() => setShowProfile(!showProfile)} collapsed={collapsed} />
-          <SidebarButton icon="🚪" label="Logout" onClick={handleLogout} collapsed={collapsed} variant="danger" />
-        </nav>
-
-      </div>
-
-
-
-
-
-      {/* MAIN */}
-      <div className="flex-1 overflow-auto">
-        <div className="min-h-screen bg-[radial-gradient(circle_at_10%_10%,rgba(168,85,247,0.1)_0%,transparent_28%),radial-gradient(circle_at_90%_18%,rgba(236,72,153,0.08)_0%,transparent_30%),linear-gradient(155deg,#0f172a_0%,#1e293b_100%)]">
-
-        {/* HEADER */}
-        <div className="px-8 py-8 border-b border-slate-700 bg-slate-800/50 backdrop-blur">
-          <h1 className="text-4xl font-bold text-white mb-2">My Courses</h1>
-          <p className="text-slate-400">Continue learning and track your progress</p>
-        </div>
-
-        {/* CONTENT */}
-        <div className="p-8">
-
-          {/* TOP PROFILE SECTION */}
-          <div className="flex justify-end mb-8 relative">
-
-            <div className="flex items-center gap-4">
-              {/* <div className="text-3xl">🔔</div> */}
-
-
-              <div
-                onClick={() =>
-                  setShowProfile(
-                    !showProfile
-                  )
-                }
-                className="flex items-center gap-3 bg-slate-800 border border-slate-700 px-4 py-2 rounded-full cursor-pointer hover:border-slate-600 transition"
-              >
-
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm">
-                  {
-                    (currentUser?.first_name?.[0]
-                      ||
-                      currentUser?.username?.[0]
-                      ||
-                      'U'
-                    ).toUpperCase()
-                  }
-                </div>
-
-
-                <div>
-
-                  <div className="font-semibold text-white text-sm">
-                    {currentUser?.username}
-                  </div>
-
-                  <div className="text-xs text-slate-400">
-                    Student
-                  </div>
-
-                </div>
-
-                <div className="text-slate-400">
-                  ▼
-                </div>
-
+      <div className="relative flex min-h-screen flex-col lg:flex-row">
+        <aside
+          className={`border-r border-white/10 bg-slate-900/80 backdrop-blur-xl transition-all duration-300 ${
+            collapsed ? 'w-full lg:w-24' : 'w-full lg:w-80'
+          }`}
+        >
+          <div className="flex items-center justify-between border-b border-white/10 px-5 py-5 lg:px-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 text-lg font-bold text-white shadow-lg shadow-cyan-500/20">
+                S
               </div>
+              {!collapsed && (
+                <div>
+                  <p className="text-sm uppercase tracking-[0.35em] text-cyan-300/80">Student</p>
+                  <h1 className="text-xl font-semibold text-white">Learning Studio</h1>
+                </div>
+              )}
+            </div>
 
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm text-white transition hover:border-cyan-400/50 hover:bg-cyan-400/10"
+            >
+              {collapsed ? '›' : '‹'}
+            </button>
+          </div>
 
+          <div className="px-4 py-5 lg:px-5">
+            <nav className="space-y-3.5">
+              {navItems.map((item) => (
+                <button
+                  key={item.label}
+                  onClick={item.action}
+                  className={`group flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition duration-200 hover:-translate-y-0.5 hover:bg-white/8 hover:shadow-lg hover:shadow-cyan-950/20 ${
+                    view === item.label.toLowerCase().replace(/\s+/g, '')
+                      ? 'bg-cyan-400/15 ring-1 ring-cyan-300/25'
+                      : 'bg-white/5'
+                  }`}
+                >
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-sm text-cyan-200">
+                    {item.icon}
+                  </span>
+                  {!collapsed && <span className="flex-1 text-sm font-medium text-slate-100">{item.label}</span>}
+                </button>
+              ))}
 
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center gap-3 rounded-2xl bg-rose-500 px-4 py-3 text-left text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-rose-400"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-sm">🚪</span>
+                {!collapsed && <span className="flex-1">Logout</span>}
+              </button>
+            </nav>
+
+            <div className="mt-8 rounded-3xl border border-white/10 bg-gradient-to-br from-cyan-500/15 to-fuchsia-500/15 p-4">
+              <p className="text-xs uppercase tracking-[0.35em] text-cyan-200/80">Profile</p>
+              {!collapsed && (
+                <>
+                  <div className="mt-4 flex items-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-sm font-semibold text-white">
+                      {initials}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-white">
+                        {currentUser?.first_name || currentUser?.username || 'Student'}
+                      </p>
+                      <p className="text-sm text-slate-300">{currentUser?.email || 'Learner account'}</p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setShowProfile(!showProfile)}
+                    className="mt-4 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                  >
+                    {showProfile ? 'Hide profile' : 'Show profile'}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </aside>
+
+        <main className="flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
+          <div className="mx-auto max-w-7xl">
+            <header className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/8 p-6 shadow-2xl shadow-slate-950/30 backdrop-blur-xl sm:p-8">
+              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),transparent_35%),radial-gradient(circle_at_top_right,rgba(34,211,238,0.22),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(56,189,248,0.14),transparent_28%)]" />
+              <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+                <div className="max-w-3xl">
+                  <p className="inline-flex items-center rounded-full border border-cyan-300/20 bg-cyan-400/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-cyan-200">
+                    Student workspace
+                  </p>
+                  <h2 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
+                    Student Dashboard
+                  </h2>
+                  <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+                    Track progress, watch assigned videos, and jump back into your courses with a polished interface built for focus.
+                  </p>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2 xl:min-w-[360px] xl:grid-cols-1">
+                  <button
+                    onClick={() => setView('courses')}
+                    className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:bg-cyan-50"
+                  >
+                    My courses
+                  </button>
+                  <button
+                    onClick={() => setView('progress')}
+                    className="rounded-2xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/10"
+                  >
+                    View progress
+                  </button>
+                </div>
+              </div>
+            </header>
+
+            <section className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+              <StatCard
+                title="Total Courses"
+                value={summary.courses}
+                hint="Assigned to your account"
+                icon="📚"
+                accent="from-cyan-400 to-blue-500"
+              />
+              <StatCard
+                title="Completed"
+                value={`${summary.completed}/${summary.total_videos}`}
+                hint="Lessons completed"
+                icon="✅"
+                accent="from-emerald-400 to-teal-500"
+              />
+              <StatCard
+                title="Progress"
+                value={`${summary.progress}%`}
+                hint="Current learning momentum"
+                icon="📈"
+                accent="from-fuchsia-400 to-pink-500"
+              />
+              <StatCard
+                title="Time Spent"
+                value="--"
+                hint="Tracking coming soon"
+                icon="⏱️"
+                accent="from-amber-400 to-orange-500"
+              />
+            </section>
 
             {showProfile && (
+              <section className="mt-6 rounded-[2rem] border border-white/10 bg-slate-900/70 p-6 shadow-2xl shadow-slate-950/20 backdrop-blur-xl sm:p-7">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-sm uppercase tracking-[0.35em] text-cyan-300/80">Profile</p>
+                    <h3 className="mt-2 text-2xl font-semibold text-white">{currentUser?.username || 'Student account'}</h3>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="rounded-2xl bg-rose-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-400"
+                  >
+                    Logout
+                  </button>
+                </div>
 
-              <div className="absolute right-0 top-14 w-80 bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl z-50">
-
-                <div className="text-center mb-6">
-
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
-                    {
-                      (currentUser?.first_name?.[0]
-                        ||
-                        currentUser?.username?.[0]
-                        ||
-                        'U'
-                      ).toUpperCase()
-                    }
+                <div className="mt-6 grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
+                  <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 text-center">
+                    <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 text-3xl font-bold text-white shadow-lg shadow-cyan-500/20">
+                      {initials}
+                    </div>
+                    <p className="mt-4 text-lg font-semibold text-white">
+                      {currentUser?.first_name || currentUser?.username || 'Student'} {currentUser?.last_name || ''}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-300">Student dashboard</p>
                   </div>
 
-
-                  <h3 className="text-lg font-bold text-white">
-                    {currentUser?.first_name
-                      ||
-                      currentUser?.username}
-                    {' '}
-                    {currentUser?.last_name || ''}
-                  </h3>
-
-                  <p className="text-slate-400 text-sm">
-                    {currentUser?.role}
-                  </p>
-
+                  <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
+                    <div className="grid gap-3 text-sm text-slate-300">
+                      <InfoRow label="Username" value={currentUser?.username || '—'} />
+                      <InfoRow label="Role" value={currentUser?.role || 'student'} />
+                      <InfoRow label="Courses" value={summary.courses} />
+                      <InfoRow label="Progress" value={`${summary.progress}%`} />
+                    </div>
+                  </div>
                 </div>
-
-                <div className="border-t border-slate-700 pt-4 space-y-3 text-sm">
-
-                  <p className="text-slate-300">
-                    <b className="text-white">Username:</b> {currentUser?.username}
-                  </p>
-
-                  <p className="text-slate-300">
-                    <b className="text-white">Role:</b> {currentUser?.role}
-                  </p>
-
-                  <p className="text-slate-300">
-                    <b className="text-white">Courses:</b> {summary.courses}
-                  </p>
-
-                  <p className="text-slate-300">
-                    <b className="text-white">Progress:</b> {summary.progress}%
-                  </p>
-
-                </div>
-
-                <button
-                  onClick={handleLogout}
-                  className="mt-6 w-full py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-semibold transition"
-                >
-                  Logout
-                </button>
-
-              </div>
-
+              </section>
             )}
 
-          </div>
-
-        </div>
-
-
-
-
-
-        {/* SUMMARY STATS */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <SummaryCard title="Total Courses" value={summary.courses} icon="📚" color="from-blue-500 to-blue-600" />
-          <SummaryCard title="Completed Videos" value={`${summary.completed}/${summary.total_videos}`} icon="✅" color="from-green-500 to-green-600" />
-          <SummaryCard title="Overall Progress" value={`${summary.progress}%`} icon="📈" color="from-purple-500 to-purple-600" />
-          <SummaryCard title="Time Spent" value="--" icon="⏱️" color="from-orange-500 to-orange-600" />
-        </div>
-
-
-
-
-        {courses.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-slate-400 text-lg">No courses assigned yet</p>
-          </div>
-        )}
-
-
-
-        {courses.map((c, index) => (
-
-          <div
-            key={index}
-            className="mb-8 bg-slate-800/50 border border-slate-700 rounded-2xl p-8 backdrop-blur"
-          >
-
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-white mb-2">
-                  {c.course}
-                </h2>
-                <p className="text-slate-400">{c.description}</p>
-              </div>
-              <div className="text-right">
-                <div className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">{c.progress}%</div>
-                <p className="text-slate-400 text-sm">Progress</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4 mb-6 pb-6 border-b border-slate-700">
-              <CourseInfo label="Category" value={c.category} />
-              <CourseInfo label="Level" value={c.level} />
-              <CourseInfo label="Duration" value={c.duration} />
-            </div>
-
-            {/* Progress Bar */}
-            <div className="mb-8">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-semibold text-slate-300">Course Progress</span>
-                <span className="text-sm text-slate-400">{c.progress}%</span>
-              </div>
-              <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
-                <div className="h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all" style={{ width: `${c.progress}%` }}></div>
-              </div>
-            </div>
-
-            {/* Videos Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-
-              {c.videos && c.videos.length > 0 ? (
-
-                c.videos.map((v, i) => (
-
-                  <VideoCard
-                    key={i}
-                    video={v}
-                    username={currentUser?.username}
-                    onMarkComplete={() => markComplete(v.id)}
-                    getEmbedUrl={getEmbedUrl}
-                  />
-
-                ))
-
-              ) : (
-
-                <div className="col-span-full text-center py-8">
-                  <p className="text-slate-400">No videos available for this course</p>
+            <section className="mt-6 rounded-[2rem] border border-white/10 bg-white/8 p-6 shadow-2xl shadow-slate-950/20 backdrop-blur-xl sm:p-7">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-sm uppercase tracking-[0.35em] text-cyan-300/80">My courses</p>
+                  <h3 className="mt-2 text-2xl font-semibold text-white">
+                    {view === 'progress' ? 'Learning progress overview' : 'Course library'}
+                  </h3>
                 </div>
+                <button
+                  onClick={() => setView(view === 'courses' ? 'dashboard' : 'courses')}
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
+                >
+                  Switch view
+                </button>
+              </div>
 
+              {courses.length === 0 ? (
+                <div className="mt-6 rounded-[1.5rem] border border-dashed border-white/15 bg-slate-950/40 p-10 text-center">
+                  <p className="text-lg font-semibold text-white">No courses assigned yet</p>
+                  <p className="mt-2 text-sm text-slate-400">Your trainer will assign courses here when they are ready.</p>
+                </div>
+              ) : (
+                <div className="mt-6 space-y-8">
+                  {courses.map((course) => (
+                    <article
+                      key={course.id || course.course}
+                      className="rounded-[1.75rem] border border-white/10 bg-slate-950/45 p-6 shadow-lg shadow-slate-950/20 transition hover:-translate-y-1 hover:border-cyan-300/20"
+                    >
+                      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.35em] text-cyan-300/80">Course</p>
+                          <h4 className="mt-2 text-2xl font-semibold text-white">{course.course}</h4>
+                          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">{course.description}</p>
+                        </div>
+
+                        <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right">
+                          <div className="bg-gradient-to-r from-cyan-300 to-blue-500 bg-clip-text text-4xl font-bold text-transparent">
+                            {course.progress}%
+                          </div>
+                          <p className="text-sm text-slate-400">Progress</p>
+                        </div>
+                      </div>
+
+                      <div className="grid gap-4 border-b border-white/10 pb-6 md:grid-cols-3">
+                        <Meta label="Category" value={course.category} />
+                        <Meta label="Level" value={course.level} />
+                        <Meta label="Duration" value={course.duration} />
+                      </div>
+
+                      <div className="mb-8 mt-6">
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+                          <div
+                            className="h-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all"
+                            style={{ width: `${course.progress}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid gap-6 lg:grid-cols-3">
+                        {course.videos?.length > 0 ? (
+                          course.videos.map((video) => (
+                            <VideoCard
+                              key={video.id}
+                              video={video}
+                              username={currentUser?.username}
+                              onMarkComplete={() => markComplete(video.id)}
+                              getEmbedUrl={getEmbedUrl}
+                            />
+                          ))
+                        ) : (
+                          <div className="col-span-full rounded-2xl border border-dashed border-white/15 bg-white/5 py-8 text-center text-slate-400">
+                            No videos available
+                          </div>
+                        )}
+                      </div>
+                    </article>
+                  ))}
+                </div>
               )}
-
-            </div>
-
+            </section>
           </div>
+        </main>
+      </div>
+    </div>
+  );
+}
 
-        ))}
-
+function StatCard({ title, value, hint, icon, accent }) {
+  return (
+    <div className="group relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-xl shadow-slate-950/20 backdrop-blur-xl transition hover:-translate-y-1 hover:border-white/20">
+      <div className={`absolute inset-0 bg-gradient-to-br ${accent} opacity-10 transition group-hover:opacity-20`} />
+      <div className="relative flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium text-slate-300">{title}</p>
+          <div className="mt-3 text-4xl font-bold tracking-tight text-white">{value}</div>
+          <p className="mt-2 text-sm text-slate-400">{hint}</p>
         </div>
-
-        </div>
-      </div>
-
-    </div>
-
-  );
-
-}
-
-
-/* ==========================
-   Sidebar Button Component
-========================== */
-function SidebarButton({ icon, label, onClick, collapsed, variant = 'default' }) {
-  const variantClasses = {
-    default: 'hover:bg-slate-700 hover:text-purple-400',
-    danger: 'hover:bg-rose-600/20 hover:text-rose-400'
-  };
-
-  return (
-    <button
-      onClick={onClick}
-      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white transition ${variantClasses[variant]}`}
-    >
-      <span className="text-xl">{icon}</span>
-      {!collapsed && <span className="font-medium">{label}</span>}
-    </button>
-  );
-}
-
-
-/* ==========================
-   Summary Card Component
-========================== */
-function SummaryCard({ title, value, icon, color }) {
-  return (
-    <div className="bg-slate-800/50 backdrop-blur border border-slate-700 rounded-2xl p-6 hover:border-slate-600 transition hover:shadow-xl hover:shadow-purple-500/10">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider">{title}</h3>
-        <span className="text-3xl">{icon}</span>
-      </div>
-      <div className={`text-3xl font-bold bg-gradient-to-r ${color} bg-clip-text text-transparent`}>
-        {value}
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-2xl">{icon}</div>
       </div>
     </div>
   );
 }
 
-
-/* ==========================
-   Course Info Component
-========================== */
-function CourseInfo({ label, value }) {
+function Meta({ label, value }) {
   return (
-    <div>
-      <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">{label}</p>
-      <p className="text-white font-semibold text-sm">{value}</p>
+    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+      <p className="text-xs uppercase tracking-[0.3em] text-slate-400">{label}</p>
+      <p className="mt-2 font-semibold text-white">{value}</p>
     </div>
   );
 }
 
+function InfoRow({ label, value }) {
+  return (
+    <div className="flex items-center justify-between rounded-2xl bg-slate-950/45 px-4 py-3">
+      <span>{label}</span>
+      <span className="font-medium text-white">{value}</span>
+    </div>
+  );
+}
 
-/* ==========================
-   Video Card Component
-========================== */
 function VideoCard({ video, username, onMarkComplete, getEmbedUrl }) {
   return (
-    <div className="bg-slate-700/30 border border-slate-700 rounded-2xl overflow-hidden hover:border-slate-600 transition hover:shadow-lg group">
-
-      {/* Video Container */}
-      <div className="relative bg-black aspect-video overflow-hidden">
-        <div className="absolute top-3 left-3 z-10 bg-slate-900/80 text-white px-3 py-1 rounded-lg text-xs font-semibold backdrop-blur">
+    <div className="group overflow-hidden rounded-[1.5rem] border border-white/10 bg-slate-900/70 shadow-lg shadow-slate-950/20 transition hover:-translate-y-1 hover:border-cyan-300/20">
+      <div className="relative aspect-video bg-black">
+        <div className="absolute left-3 top-3 z-10 rounded-lg bg-slate-950/80 px-3 py-1 text-xs text-white">
           {username}
         </div>
         <iframe
@@ -519,40 +419,30 @@ function VideoCard({ video, username, onMarkComplete, getEmbedUrl }) {
           frameBorder="0"
           allow="encrypted-media"
           allowFullScreen
-          className="w-full h-full"
-        ></iframe>
+        />
       </div>
 
-      {/* Content */}
-      <div className="p-4">
-        <h4 className="font-bold text-white mb-2 line-clamp-2">{video.title}</h4>
-        <p className="text-slate-400 text-sm mb-4 line-clamp-2">{video.description}</p>
+      <div className="p-5">
+        <h4 className="mb-2 text-lg font-semibold text-white">{video.title}</h4>
+        <p className="mb-4 text-sm leading-6 text-slate-300">{video.description}</p>
 
-        {/* Status */}
-        <div className="flex items-center justify-between mb-4">
-          <span className={`text-sm font-semibold ${
-            video.completed 
-              ? 'text-green-400' 
-              : 'text-yellow-400'
-          }`}>
+        <div className="mb-4">
+          <span className={video.completed ? 'text-emerald-300' : 'text-amber-300'}>
             {video.completed ? '✅ Completed' : '⏳ Not Completed'}
           </span>
         </div>
 
-        {/* Mark Complete Button */}
         {!video.completed && (
           <button
             onClick={onMarkComplete}
-            className="w-full py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg transition group-hover:shadow-lg"
+            className="w-full rounded-lg bg-gradient-to-r from-cyan-400 to-blue-600 py-2 font-semibold text-white transition hover:from-cyan-300 hover:to-blue-500"
           >
             Mark Completed
           </button>
         )}
       </div>
-
     </div>
   );
 }
-
 
 export default StudentDashboard;

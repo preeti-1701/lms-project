@@ -1,207 +1,322 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from './api';
 
-
-
 function AdminDashboard() {
+  const navigate = useNavigate();
+  const [collapsed, setCollapsed] = useState(false);
+  const [stats, setStats] = useState({
+    users: 0,
+    courses: 0,
+    videos: 0,
+    enrollments: 0,
+  });
 
-    // Navigation
-    const navigate = useNavigate();
+  const currentUser = JSON.parse(localStorage.getItem('user'));
+  const initials = (
+    currentUser?.first_name?.[0] ||
+    currentUser?.username?.[0] ||
+    'A'
+  ).toUpperCase();
 
-    // Navigation State
-    const [collapsed, setCollapsed] = useState(false);
-
-    // Stats State
-    const [stats, setStats] = useState({
-        users: 0,
-        courses: 0,
-        videos: 0,
-        enrollments: 0
-    });
-
-    useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                const res = await api.get(
-                    '/api/admin-stats/'
-                );
-                setStats(
-                    res.data
-                );
-
-            } catch (error) {
-                console.error(error);
-            }
-        };
-        fetchStats();
-
-    }, []);
-
-    // Logout
-    const handleLogout = () => {
-        localStorage.clear();
-        navigate('/login');
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await api.get('/api/admin-stats/');
+        setStats(res.data);
+      } catch (error) {
+        console.error(error);
+      }
     };
 
+    fetchStats();
+  }, []);
 
-    // UI
-    return (
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate('/login');
+  };
 
-        <div className="flex min-h-screen bg-slate-900">
+  const navItems = [
+    { label: 'Create User', icon: '👤', action: () => navigate('/create-user') },
+    { label: 'Create Course', icon: '📚', action: () => navigate('/create-course') },
+    { label: 'Manage Courses', icon: '🗂', action: () => navigate('/manage-courses') },
+    { label: 'Add Videos', icon: '🎥', action: () => navigate('/add-video') },
+    { label: 'Enroll Students', icon: '🎓', action: () => navigate('/enroll') },
+  ];
 
-            {/* ======================Sidebar====================== */}
-            <div className={`${collapsed ? 'w-20' : 'w-64'} transition-all duration-300 bg-gradient-to-b from-slate-800 to-slate-900 text-white p-6 border-r border-slate-700`}>
+  const statCards = [
+    { title: 'Users', value: stats.users, hint: 'Active platform accounts', icon: '👥', accent: 'from-cyan-400 to-blue-500' },
+    { title: 'Courses', value: stats.courses, hint: 'Learning paths created', icon: '📚', accent: 'from-fuchsia-400 to-pink-500' },
+    { title: 'Videos', value: stats.videos, hint: 'Uploaded course videos', icon: '🎬', accent: 'from-emerald-400 to-teal-500' },
+    { title: 'Enrollments', value: stats.enrollments, hint: 'Assigned student seats', icon: '🎓', accent: 'from-amber-400 to-orange-500' },
+  ];
 
-                <div className="flex justify-end mb-6">
-                    <button
-                        onClick={() => setCollapsed(!collapsed)}
-                        className="p-2 hover:bg-slate-700 rounded-lg transition text-2xl"
-                    >
-                        {collapsed ? '▶' : '◀'}
-                    </button>
-                </div>
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.18),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(236,72,153,0.16),_transparent_28%),linear-gradient(180deg,_#0f172a_0%,_#020617_100%)]" />
+      <div className="pointer-events-none absolute left-1/2 top-[-8rem] h-80 w-80 -translate-x-1/2 rounded-full bg-cyan-400/20 blur-3xl" />
 
-                {!collapsed && (
-                    <div className="mb-8">
-                        <h2 className="text-2xl font-bold bg-gradient-to-r from-teal-400 to-blue-500 bg-clip-text text-transparent">Admin Portal</h2>
-                        <div className="h-0.5 bg-gradient-to-r from-teal-400 to-blue-500 mt-2"></div>
-                    </div>
-                )}
-
-                <nav className="space-y-2">
-                    <SidebarButton icon="👤" label="Create User" onClick={() => navigate('/create-user')} collapsed={collapsed} />
-                    <SidebarButton icon="📚" label="Create Course" onClick={() => navigate('/create-course')} collapsed={collapsed} />
-                    <SidebarButton icon="🎥" label="Add Videos" onClick={() => navigate('/add-video')} collapsed={collapsed} />
-                    <SidebarButton icon="🎓" label="Enroll Students" onClick={() => navigate('/enroll')} collapsed={collapsed} />
-                    <SidebarButton icon="🚪" label="Logout" onClick={handleLogout} collapsed={collapsed} variant="danger" />
-                </nav>
-
-            </div>
-
-
-            {/* ======================Main Content====================== */}
-            <div className="flex-1 overflow-auto">
-                <div className="min-h-screen bg-[radial-gradient(circle_at_10%_10%,rgba(255,184,77,0.08)_0%,transparent_28%),radial-gradient(circle_at_90%_18%,rgba(13,142,123,0.1)_0%,transparent_30%),linear-gradient(155deg,#0f172a_0%,#1e293b_100%)]">
-
-                    {/* Header */}
-                    <div className="px-8 py-10 border-b border-slate-700 bg-slate-800/50 backdrop-blur">
-                        <h1 className="text-4xl font-bold text-white mb-2">Welcome Admin</h1>
-                        <p className="text-slate-400 text-lg">Manage your LMS platform with ease</p>
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-8">
-
-                        {/* Stats Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                            <StatCard title="Users" value={stats.users} icon="👥" color="from-blue-500 to-blue-600" />
-                            <StatCard title="Courses" value={stats.courses} icon="📚" color="from-purple-500 to-purple-600" />
-                            <StatCard title="Videos" value={stats.videos} icon="🎬" color="from-pink-500 to-pink-600" />
-                            <StatCard title="Enrollments" value={stats.enrollments} icon="🎓" color="from-green-500 to-green-600" />
-                        </div>
-
-                        {/* Quick Actions */}
-                        <div>
-                            <h2 className="text-2xl font-bold text-white mb-6">Quick Actions</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <QuickActionCard
-                                    label="Create New User"
-                                    icon="➕"
-                                    description="Add a new user to the system"
-                                    click={() => navigate('/create-user')}
-                                    color="from-blue-500 to-blue-600"
-                                />
-                                <QuickActionCard
-                                    label="Create Course"
-                                    icon="➕"
-                                    description="Set up a new course"
-                                    click={() => navigate('/create-course')}
-                                    color="from-purple-500 to-purple-600"
-                                />
-                                <QuickActionCard
-                                    label="Enroll Student"
-                                    icon="➕"
-                                    description="Assign students to courses"
-                                    click={() => navigate('/enroll')}
-                                    color="from-green-500 to-green-600"
-                                />
-                            </div>
-                        </div>
-
-                    </div>
-
-                </div>
-            </div>
-
-        </div>
-
-    );
-
-}
-
-
-
-/* ==========================
-   Sidebar Button Component
-========================== */
-function SidebarButton({ icon, label, onClick, collapsed, variant = 'default' }) {
-    const variantClasses = {
-        default: 'hover:bg-slate-700 hover:text-teal-400',
-        danger: 'hover:bg-red-600/20 hover:text-red-400'
-    };
-
-    return (
-        <button
-            onClick={onClick}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white transition ${variantClasses[variant]}`}
+      <div className="relative flex min-h-screen flex-col lg:flex-row">
+        <aside
+          className={`border-r border-white/10 bg-slate-900/80 backdrop-blur-xl transition-all duration-300 ${
+            collapsed ? 'w-full lg:w-24' : 'w-full lg:w-80'
+          }`}
         >
-            <span className="text-xl">{icon}</span>
-            {!collapsed && <span className="font-medium">{label}</span>}
-        </button>
-    );
-}
-
-
-
-/* ==========================
-   Stats Card Component
-========================== */
-function StatCard({ title, value, icon, color }) {
-    return (
-        <div className="bg-slate-800/50 backdrop-blur border border-slate-700 rounded-2xl p-6 hover:border-slate-600 transition hover:shadow-xl hover:shadow-teal-500/10">
-            <div className="flex items-center justify-between mb-4">
-                <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider">{title}</h3>
-                <span className="text-3xl">{icon}</span>
+          <div className="flex items-center justify-between border-b border-white/10 px-5 py-5 lg:px-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 text-lg font-bold text-white shadow-lg shadow-cyan-500/20">
+                A
+              </div>
+              {!collapsed && (
+                <div>
+                  <p className="text-sm uppercase tracking-[0.35em] text-cyan-300/80">Admin</p>
+                  <h1 className="text-xl font-semibold text-white">Learning Studio</h1>
+                </div>
+              )}
             </div>
-            <div className={`text-4xl font-bold bg-gradient-to-r ${color} bg-clip-text text-transparent`}>
-                {value}
-            </div>
-        </div>
-    );
-}
 
-
-
-/* ==========================
-   Quick Action Card Component
-========================== */
-function QuickActionCard({ label, icon, description, click, color }) {
-    return (
-        <div className="bg-slate-800/50 backdrop-blur border border-slate-700 rounded-2xl p-8 hover:border-slate-600 transition hover:shadow-xl hover:shadow-teal-500/10 group cursor-pointer" onClick={click}>
-            <div className={`inline-block text-5xl mb-4 p-3 rounded-xl bg-gradient-to-r ${color} bg-opacity-20`}>
-                {icon}
-            </div>
-            <h3 className="text-lg font-bold text-white mb-2">{label}</h3>
-            <p className="text-slate-400 text-sm mb-6">{description}</p>
             <button
-                className={`w-full px-4 py-2 bg-gradient-to-r ${color} text-white font-semibold rounded-lg hover:shadow-lg transition group-hover:shadow-lg`}
+              onClick={() => setCollapsed(!collapsed)}
+              className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm text-white transition hover:border-cyan-400/50 hover:bg-cyan-400/10"
             >
-                Open
+              {collapsed ? '›' : '‹'}
             </button>
-        </div>
-    );
+          </div>
+
+          <div className="px-4 py-5 lg:px-5">
+            <nav className="space-y-3.5">
+              {navItems.map((item) => (
+                <button
+                  key={item.label}
+                  onClick={item.action}
+                  className="group flex w-full items-center gap-3 rounded-2xl bg-white/5 px-4 py-3 text-left transition duration-200 hover:-translate-y-0.5 hover:bg-white/8 hover:shadow-lg hover:shadow-cyan-950/20"
+                >
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-sm text-cyan-200">
+                    {item.icon}
+                  </span>
+                  {!collapsed && <span className="flex-1 text-sm font-medium text-slate-100">{item.label}</span>}
+                </button>
+              ))}
+
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center gap-3 rounded-2xl bg-rose-500 px-4 py-3 text-left text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-rose-400"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-sm">🚪</span>
+                {!collapsed && <span className="flex-1">Logout</span>}
+              </button>
+            </nav>
+
+            <div className="mt-8 rounded-3xl border border-white/10 bg-gradient-to-br from-cyan-500/15 to-fuchsia-500/15 p-4">
+              <p className="text-xs uppercase tracking-[0.35em] text-cyan-200/80">Profile</p>
+              {!collapsed && (
+                <>
+                  <div className="mt-4 flex items-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-sm font-semibold text-white">
+                      {initials}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-white">
+                        {currentUser?.first_name || currentUser?.username || 'Admin'}
+                      </p>
+                      <p className="text-sm text-slate-300">{currentUser?.email || 'Platform manager'}</p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleLogout}
+                    className="mt-4 w-full rounded-2xl bg-rose-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-400"
+                  >
+                    Logout
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </aside>
+
+        <main className="flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
+          <div className="mx-auto max-w-7xl">
+            <header className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/8 p-6 shadow-2xl shadow-slate-950/30 backdrop-blur-xl sm:p-8">
+              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),transparent_35%),radial-gradient(circle_at_top_right,rgba(34,211,238,0.22),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(56,189,248,0.14),transparent_28%)]" />
+              <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+                <div className="max-w-3xl">
+                  <p className="inline-flex items-center rounded-full border border-cyan-300/20 bg-cyan-400/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-cyan-200">
+                    Admin workspace
+                  </p>
+                  <h2 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
+                    Admin Dashboard
+                  </h2>
+                  <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+                    Manage users, courses, videos, and enrollments from one polished control panel.
+                  </p>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2 xl:min-w-[360px] xl:grid-cols-1">
+                  <button
+                    onClick={() => navigate('/create-user')}
+                    className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:bg-cyan-50"
+                  >
+                    Create user
+                  </button>
+                  <button
+                    onClick={() => navigate('/manage-courses')}
+                    className="rounded-2xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/10"
+                  >
+                    Manage courses
+                  </button>
+                </div>
+              </div>
+            </header>
+
+            <section className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+              {statCards.map((card) => (
+                <StatCard key={card.title} {...card} />
+              ))}
+            </section>
+
+            <section className="mt-6 grid gap-5 xl:grid-cols-[1.35fr_0.65fr]">
+              <div className="rounded-[2rem] border border-white/10 bg-white/8 p-6 shadow-2xl shadow-slate-950/20 backdrop-blur-xl sm:p-7">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-sm uppercase tracking-[0.35em] text-cyan-300/80">Quick actions</p>
+                    <h3 className="mt-2 text-2xl font-semibold text-white">Core admin workflows</h3>
+                  </div>
+                </div>
+
+                <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  <ActionCard
+                    label="Create a new user"
+                    description="Register trainers, students, or staff in seconds."
+                    buttonLabel="Open"
+                    onClick={() => navigate('/create-user')}
+                    accent="from-cyan-400/20 to-blue-500/20"
+                  />
+                  <ActionCard
+                    label="Build or edit a course"
+                    description="Launch structured course content with a modern editor flow."
+                    buttonLabel="Open"
+                    onClick={() => navigate('/create-course')}
+                    accent="from-fuchsia-400/20 to-pink-500/20"
+                  />
+                  <ActionCard
+                    label="Manage enrollments"
+                    description="Assign students to the correct courses and keep records clean."
+                    buttonLabel="Open"
+                    onClick={() => navigate('/enroll')}
+                    accent="from-emerald-400/20 to-teal-500/20"
+                  />
+                  <ActionCard
+                    label="Review courses"
+                    description="Audit, update, and organize existing courses in one place."
+                    buttonLabel="Open"
+                    onClick={() => navigate('/manage-courses')}
+                    accent="from-amber-400/20 to-orange-500/20"
+                  />
+                  <ActionCard
+                    label="Add videos"
+                    description="Upload video lessons to keep your catalog fresh."
+                    buttonLabel="Open"
+                    onClick={() => navigate('/add-video')}
+                    accent="from-cyan-400/20 to-sky-500/20"
+                  />
+                  <ActionCard
+                    label="Logout"
+                    description="End the current admin session securely."
+                    buttonLabel="Logout"
+                    onClick={handleLogout}
+                    accent="from-rose-400/20 to-red-500/20"
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-[2rem] border border-white/10 bg-slate-900/70 p-6 shadow-2xl shadow-slate-950/20 backdrop-blur-xl">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm uppercase tracking-[0.35em] text-cyan-300/80">Profile</p>
+                    <h3 className="mt-2 text-xl font-semibold text-white">{currentUser?.username || 'Admin account'}</h3>
+                  </div>
+                </div>
+
+                <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 text-lg font-bold text-white shadow-lg shadow-cyan-500/20">
+                      {initials}
+                    </div>
+                    <div>
+                      <p className="text-lg font-semibold text-white">
+                        {currentUser?.first_name || currentUser?.username || 'Admin'} {currentUser?.last_name || ''}
+                      </p>
+                      <p className="text-sm text-slate-300">Platform administrator</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 grid gap-3 text-sm text-slate-300">
+                    <InfoRow label="Username" value={currentUser?.username || '—'} />
+                    <InfoRow label="Role" value={currentUser?.role || 'admin'} />
+                    <InfoRow label="Users" value={stats.users} />
+                    <InfoRow label="Enrollments" value={stats.enrollments} />
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
+                  <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Workspace summary</p>
+                  <div className="mt-4 space-y-3 text-sm text-slate-300">
+                    <InfoRow label="Courses" value={stats.courses} />
+                    <InfoRow label="Videos" value={stats.videos} />
+                    <InfoRow label="Status" value="All systems ready" />
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
 }
 
+function StatCard({ title, value, hint, icon, accent }) {
+  return (
+    <div className="group relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-xl shadow-slate-950/20 backdrop-blur-xl transition hover:-translate-y-1 hover:border-white/20">
+      <div className={`absolute inset-0 bg-gradient-to-br ${accent} opacity-10 transition group-hover:opacity-20`} />
+      <div className="relative flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium text-slate-300">{title}</p>
+          <div className="mt-3 text-4xl font-bold tracking-tight text-white">{value}</div>
+          <p className="mt-2 text-sm text-slate-400">{hint}</p>
+        </div>
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-2xl">
+          {icon}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ActionCard({ label, description, buttonLabel, onClick, accent }) {
+  return (
+    <div className={`rounded-[1.75rem] border border-white/10 bg-gradient-to-br ${accent} p-5 shadow-lg shadow-slate-950/20 transition hover:-translate-y-1`}>
+      <h4 className="text-lg font-semibold text-white">{label}</h4>
+      <p className="mt-2 text-sm leading-6 text-slate-300">{description}</p>
+      <button
+        onClick={onClick}
+        className="mt-5 rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
+      >
+        {buttonLabel}
+      </button>
+    </div>
+  );
+}
+
+function InfoRow({ label, value }) {
+  return (
+    <div className="flex items-center justify-between rounded-2xl bg-slate-950/45 px-4 py-3">
+      <span>{label}</span>
+      <span className="font-medium text-white">{value}</span>
+    </div>
+  );
+}
 
 export default AdminDashboard;

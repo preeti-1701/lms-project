@@ -1,3 +1,5 @@
+from urllib import request
+
 from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -43,6 +45,153 @@ def create_course(request):
     )
 
     return Response({'message': 'Course created successfully'})
+
+# Endpoint for editing course details (Admin can edit all, Trainer can edit own courses)
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def edit_course(request, course_id):
+
+    session_check= validate_session(request)
+
+    if session_check:
+        return session_check
+
+
+    if request.user.role not in [
+      'admin',
+      'trainer'
+    ]:
+        return Response(
+         {'error':'Unauthorized'},
+         status=403
+        )
+
+
+    try:
+
+        course=Course.objects.get(
+          id=course_id
+        )
+
+    except Course.DoesNotExist:
+
+        return Response(
+         {'error':'Course not found'},
+         status=404
+        )
+
+
+    # trainer can edit only own course
+    if (request.user.role=='trainer' and course.trainer != request.user):
+
+        return Response(
+         {'error':'Unauthorized'},
+         status=403
+        )
+
+
+    course.title= request.data.get('title', course.title)
+    course.description= request.data.get('description', course.description)
+    course.category= request.data.get('category', course.category)
+    course.level= request.data.get('level', course.level)
+    course.duration= request.data.get( 'duration', course.duration)
+    course.save()
+
+
+    return Response({
+      'message':
+      'Course updated successfully'
+    })
+
+# Admin can see all courses, Trainer can see their courses, Student can see all courses (for enrollment)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def all_courses(request):
+
+    session_check=validate_session(request)
+    if session_check:
+        return session_check
+
+    if request.user.role!='admin':
+        return Response(
+          {'error':'Unauthorized'},
+          status=403
+        )
+
+    courses=Course.objects.filter(is_archived=False)
+
+    data=[]
+
+    for c in courses:
+
+        data.append({
+         'id':c.id,
+         'title':c.title,
+         'description':c.description,
+         'category':c.category,
+         'level':c.level,
+         'duration':c.duration,
+         'videos_count':
+            c.video_set.count(),
+         'trainer':
+            c.trainer.username
+            if c.trainer else ''
+        })
+
+    return Response(data)
+
+
+# Admin can archive any course, Trainer can archive own courses. Archived courses won't be visible to students for enrollment, but existing enrollments remain unaffected.
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def archive_course(request, course_id):
+
+    session_check = validate_session(request)
+
+    if session_check:
+        return session_check
+
+
+    if request.user.role not in [
+      'admin',
+      'trainer'
+    ]:
+        return Response(
+         {'error':'Unauthorized'},
+         status=403
+        )
+
+    try:
+        course = Course.objects.get(id=course_id)
+
+    except Course.DoesNotExist:
+
+        return Response(
+         {'error':'Not found'},
+         status=404
+        )
+
+
+    if(
+      request.user.role=='trainer'
+      and
+      course.trainer!=request.user
+    ):
+        return Response(
+         {'error':'Unauthorized'},
+         status=403
+        )
+
+
+    course.is_archived=True
+    course.save()
+
+
+    return Response({
+      'message':
+      'Course archived'
+    })
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -95,6 +244,7 @@ def add_video(request):
         }
     })
 
+# Admin can enroll any student to any course, Trainer can enroll students to their courses, but cannot enroll themselves. Students cannot enroll others.
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def enroll_student(request):
@@ -145,6 +295,8 @@ def enroll_student(request):
         'course': course.title
     })
 
+
+# Student can see their enrolled courses with progress, Admin can see all courses, Trainer can see their courses. Archived courses won't be visible to students for enrollment, but existing enrollments remain unaffected.
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def student_courses(request):
@@ -162,7 +314,7 @@ def student_courses(request):
         )
 
     enrollments = Enrollment.objects.filter(
-        student=request.user
+        student=request.user, course__is_archived=False
     )
 
     data=[]
@@ -315,7 +467,6 @@ enrollment_id
 # Trainer can see their courses and progress stats
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-
 def trainer_courses(request):
 
     session_check=validate_session(request)
@@ -332,7 +483,7 @@ def trainer_courses(request):
 
 
     courses=Course.objects.filter(
-      trainer=request.user
+      trainer=request.user, is_archived=False
     )
 
     data=[]
