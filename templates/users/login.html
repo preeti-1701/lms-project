@@ -1,0 +1,23 @@
+{% include 'base/header.html' %}
+
+<div class="container mt-5">
+    <h2>Login</h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label>Email / Username</label>
+            <input type="text" class="form-control" name="username">
+        </div>
+
+        <div class="mb-3">
+            <label>Password</label>
+            <input type="password" class="form-control" name="password">
+        </div>
+
+        <button class="btn btn-primary">Login</button>
+    </form>
+</div>
+
+{% include 'base/footer.html' %}

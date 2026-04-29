@@ -1,0 +1,38 @@
+{% include 'base/header.html' %}
+
+<div class="container mt-5">
+    <h2>Register</h2>
+
+    <form method="post">
+        {% if error %}
+            <div class="alert alert-danger">
+                {{ error }}
+            </div>
+        {% endif %}
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label>Username</label>
+            <input type="text" class="form-control" name="username">
+        </div>
+
+        <div class="mb-3">
+            <label>Email</label>
+            <input type="email" class="form-control" name="email">
+        </div>
+
+        <div class="mb-3">
+            <label>Mobile</label>
+            <input type="text" class="form-control" name="mobile">
+        </div>
+
+        <div class="mb-3">
+            <label>Password</label>
+            <input type="password" class="form-control" name="password">
+        </div>
+
+        <button class="btn btn-success">Register</button>
+    </form>
+</div>
+
+{% include 'base/footer.html' %}
