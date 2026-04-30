@@ -369,6 +369,44 @@
         }
       ]
     }
+    ,
+    {
+      "name": "Admin Enrollments",
+      "item": [
+        {
+          "name": "List All Enrollments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/enrollments/"
+          }
+        }
+      ]
+    }
+    ,
+    {
+      "name": "Admin Users",
+      "item": [
+        {
+          "name": "List All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/users/"
+          }
+        }
+      ]
+    }
   ],
   "variable": [
     {

@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .views import (
+	AdminUsersView,
     ApproveTrainerView,
     LoginView,
     LogoutView,
@@ -20,5 +21,6 @@ urlpatterns = [
     path('auth/me/', MeView.as_view(), name='auth-me'),
 	path('admin/trainers/pending/', PendingTrainersView.as_view(), name='admin-trainers-pending'),
 	path('admin/trainers/approve/', ApproveTrainerView.as_view(), name='admin-trainers-approve'),
+    path('admin/users/', AdminUsersView.as_view(), name='admin-users-list'),
 	path('admin/users/promote-admin/', PromoteAdminView.as_view(), name='admin-users-promote-admin'),
 ]

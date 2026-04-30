@@ -247,3 +247,30 @@ class AdminRejectCourseView(APIView):
         course.rejected_reason = reason
         course.save(update_fields=['status', 'approved_by', 'approved_at', 'rejected_reason', 'updated_at'])
         return Response(serialize_course(course), status=status.HTTP_200_OK)
+
+
+class AdminEnrollmentsView(APIView):
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        enrollments = (
+            Enrollment.objects.all()
+            .select_related('course', 'student')
+            .order_by('-enrolled_at')
+        )
+        return Response(
+            [
+                {
+                    'id': e.id,
+                    'enrolled_at': e.enrolled_at.isoformat() if e.enrolled_at else None,
+                    'course': serialize_course(e.course),
+                    'student': {
+                        'id': e.student_id,
+                        'username': e.student.get_username(),
+                        'email': e.student.email,
+                    },
+                }
+                for e in enrollments
+            ],
+            status=status.HTTP_200_OK,
+        )

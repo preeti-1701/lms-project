@@ -293,3 +293,36 @@ class PromoteAdminView(APIView):
 			status=status.HTTP_200_OK,
 		)
 
+
+class AdminUsersView(APIView):
+	permission_classes = [IsAdmin]
+
+	def get(self, request):
+		User = get_user_model()
+		users = User.objects.all().order_by('id')
+		payload = []
+		for u in users:
+			role = _effective_role(u)
+			approved = _is_approved(u)
+			mobile = None
+			try:
+				mobile = u.profile.mobile
+			except Exception:
+				mobile = None
+
+			payload.append(
+				{
+					'id': u.id,
+					'username': u.get_username(),
+					'email': u.email,
+					'mobile': mobile,
+					'role': role,
+					'approved': approved,
+					'is_active': bool(u.is_active),
+					'is_staff': bool(u.is_staff),
+					'is_superuser': bool(u.is_superuser),
+				}
+			)
+
+		return Response(payload, status=status.HTTP_200_OK)
+

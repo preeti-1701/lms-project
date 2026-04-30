@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views import (
     AdminApproveCourseView,
+    AdminEnrollmentsView,
     AdminPendingCoursesView,
     AdminRejectCourseView,
     CourseDetailView,
@@ -22,4 +23,6 @@ urlpatterns = [
     path('admin/courses/pending/', AdminPendingCoursesView.as_view(), name='admin-courses-pending'),
     path('admin/courses/<int:course_id>/approve/', AdminApproveCourseView.as_view(), name='admin-courses-approve'),
     path('admin/courses/<int:course_id>/reject/', AdminRejectCourseView.as_view(), name='admin-courses-reject'),
+
+    path('admin/enrollments/', AdminEnrollmentsView.as_view(), name='admin-enrollments'),
 ]

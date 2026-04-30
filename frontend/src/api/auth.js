@@ -1,24 +1,42 @@
-const DEFAULT_BASE_URL = "http://127.0.0.1:8000";
-
-function getBaseUrl() {
-  return import.meta.env.VITE_API_BASE_URL || DEFAULT_BASE_URL;
-}
+import { apiFetch, clearStoredAuth, getStoredAuth, setStoredAuth } from "./client";
 
 export async function login({ identifier, password }) {
-  const res = await fetch(`${getBaseUrl()}/api/auth/login/`, {
+  const data = await apiFetch("/api/auth/login/", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ identifier, password }),
+    body: { identifier, password },
   });
 
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    throw new Error(data?.detail || "Login failed");
-  }
-
-  localStorage.setItem("lms_access", data.access);
-  localStorage.setItem("lms_refresh", data.refresh);
-  localStorage.setItem("lms_user", JSON.stringify(data.user));
-
+  setStoredAuth({ access: data.access, refresh: data.refresh, user: data.user });
   return data;
+}
+
+export async function signup({ role, email, mobile, username, password }) {
+  return apiFetch("/api/auth/signup/", {
+    method: "POST",
+    body: { role, email, mobile, username, password },
+  });
+}
+
+export async function refreshAccessToken() {
+  const { refresh } = getStoredAuth();
+  if (!refresh) throw new Error("Missing refresh token");
+  const data = await apiFetch("/api/auth/refresh/", { method: "POST", body: { refresh } });
+  setStoredAuth({ access: data.access });
+  return data.access;
+}
+
+export async function me() {
+  const { access } = getStoredAuth();
+  const data = await apiFetch("/api/auth/me/", { method: "GET", accessToken: access });
+  setStoredAuth({ user: data });
+  return data;
+}
+
+export async function logout() {
+  const { access } = getStoredAuth();
+  try {
+    if (access) await apiFetch("/api/auth/logout/", { method: "POST", accessToken: access });
+  } finally {
+    clearStoredAuth();
+  }
 }
