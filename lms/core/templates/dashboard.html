@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>LMS Dashboard</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f1f5f9;
+}
+
+.navbar {
+    background: linear-gradient(90deg, #0f172a, #1e293b);
+    color: white;
+    padding: 18px 30px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.navbar a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+}
+
+.container {
+    padding: 40px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+}
+
+.btn {
+    display: inline-block;
+    margin-top: 15px;
+    background: linear-gradient(90deg, #3b82f6, #06b6d4);
+    padding: 10px 16px;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <div>🎓 LMS Dashboard</div>
+    <div>
+        <a href="{% url 'profile' %}">Profile</a>
+        <a href="{% url 'logout' %}">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+
+<h2>Welcome, {{ request.user.username }}</h2>
+
+<div class="grid">
+{% for course in courses %}
+    <div class="card">
+        <h3>{{ course.title }}</h3>
+        <p>{{ course.description }}</p>
+
+        <a href="{% url 'course_detail' course.id %}" class="btn">
+            Open Course →
+        </a>
+    </div>
+{% empty %}
+    <p>No courses available</p>
+{% endfor %}
+</div>
+
+</div>
+
+</body>
+</html>

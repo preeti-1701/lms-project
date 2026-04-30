@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Profile</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f1f5f9;
+}
+
+/* Navbar */
+.navbar {
+    background: #0f172a;
+    color: white;
+    padding: 15px 25px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.navbar a {
+    color: white;
+    text-decoration: none;
+}
+
+/* Profile Card */
+.container {
+    display: flex;
+    justify-content: center;
+    margin-top: 50px;
+}
+
+.profile-card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 400px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.profile-card h2 {
+    margin-bottom: 10px;
+}
+
+.profile-info {
+    text-align: left;
+    margin-top: 20px;
+}
+
+.profile-info p {
+    margin: 8px 0;
+    color: #334155;
+}
+
+.btn {
+    margin-top: 20px;
+    display: inline-block;
+    padding: 10px 15px;
+    background: #3b82f6;
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="navbar">
+    <div>LMS Profile</div>
+    <div>
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="profile-card">
+
+        <h2>{{ request.user.username }}</h2>
+
+        <div class="profile-info">
+            <p><b>Email:</b> {{ request.user.email }}</p>
+            <p><b>User ID:</b> {{ request.user.id }}</p>
+        </div>
+
+        <a href="{% url 'dashboard' %}" class="btn">⬅ Back</a>
+
+    </div>
+</div>
+
+</body>
+</html>
