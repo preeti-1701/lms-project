@@ -15,21 +15,23 @@ class SignupRequestSerializer(serializers.Serializer):
     ROLE_TRAINER = 'trainer'
 
     role = serializers.ChoiceField(choices=(ROLE_STUDENT, ROLE_TRAINER))
-    email = serializers.EmailField(required=False, allow_blank=True)
-    mobile = serializers.CharField(required=False, allow_blank=True)
+    name = serializers.CharField()
+    email = serializers.EmailField()
     username = serializers.CharField(required=False, allow_blank=True)
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
+        name = (attrs.get('name') or '').strip()
         email = (attrs.get('email') or '').strip()
-        mobile = (attrs.get('mobile') or '').strip()
         username = (attrs.get('username') or '').strip()
 
-        if not email and not mobile:
-            raise serializers.ValidationError('Provide at least one of email or mobile.')
+        if not name:
+            raise serializers.ValidationError('Name is required.')
+        if not email:
+            raise serializers.ValidationError('Email is required.')
 
-        attrs['email'] = email or None
-        attrs['mobile'] = mobile or None
+        attrs['name'] = name
+        attrs['email'] = email
         attrs['username'] = username or None
         return attrs
 

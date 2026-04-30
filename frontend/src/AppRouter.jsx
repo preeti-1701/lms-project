@@ -4,6 +4,8 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppContext } from "./context/AppContext";
 
 const LandingPage = lazy(() => import("./pages/LandingPage.jsx"));
+const LoginPage = lazy(() => import("./pages/LoginPage.jsx"));
+const SignupPage = lazy(() => import("./pages/SignupPage.jsx"));
 const StudentDashboard = lazy(() => import("./pages/StudentDashboard.jsx"));
 const TrainerDashboard = lazy(() => import("./pages/TrainerDashboard.jsx"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard.jsx"));
@@ -34,6 +36,8 @@ export default function AppRouter() {
       <Suspense fallback={<Loader />}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
           <Route
             path="/sudentDashboard"
             element={

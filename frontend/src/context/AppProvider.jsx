@@ -105,6 +105,9 @@ export function AppProvider({ children }) {
           approveTrainer: adminApi.approveTrainer,
           enrollments: adminApi.listEnrollments,
           users: adminApi.listUsers,
+          usersByRole: adminApi.listUsersByRole,
+          userDetail: adminApi.getUserDetail,
+          promoteAdmin: adminApi.promoteAdmin,
         },
       },
     };

@@ -24,6 +24,7 @@ class SignupAndApprovalTests(TestCase):
 			'/api/auth/signup/',
 			{
 				'role': 'student',
+				'name': 'Student One',
 				'email': 'student@example.com',
 				'password': 'Passw0rd!',
 			},
@@ -49,6 +50,7 @@ class SignupAndApprovalTests(TestCase):
 			'/api/auth/signup/',
 			{
 				'role': 'trainer',
+				'name': 'Trainer One',
 				'email': 'trainer@example.com',
 				'password': 'Passw0rd!',
 			},

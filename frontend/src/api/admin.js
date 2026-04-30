@@ -34,3 +34,20 @@ export function listEnrollments() {
 export function listUsers() {
   return apiFetchWithAuth("/api/admin/users/", { method: "GET" });
 }
+
+export function listUsersByRole(role) {
+  const roleValue = String(role || "").toLowerCase();
+  const qs = new URLSearchParams({ role: roleValue });
+  return apiFetchWithAuth(`/api/admin/users/?${qs.toString()}`, { method: "GET" });
+}
+
+export function getUserDetail(userId) {
+  return apiFetchWithAuth(`/api/admin/users/${Number(userId)}/`, { method: "GET" });
+}
+
+export function promoteAdmin(userId) {
+  return apiFetchWithAuth("/api/admin/users/promote-admin/", {
+    method: "POST",
+    body: { user_id: Number(userId) },
+  });
+}

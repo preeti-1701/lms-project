@@ -49,7 +49,7 @@ class LoginView(APIView):
 		if '@' in identifier:
 			user = User.objects.filter(email__iexact=identifier).first()
 		else:
-			user = User.objects.filter(profile__mobile=identifier).first()
+			user = User.objects.filter(username__iexact=identifier).first()
 
 		if user is None or not user.check_password(password):
 			return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -158,8 +158,8 @@ class SignupView(APIView):
 		data = serializer.validated_data
 
 		role = data['role']
+		name = data['name']
 		email = data.get('email')
-		mobile = data.get('mobile')
 		username = data.get('username')
 		password = data['password']
 
@@ -167,27 +167,27 @@ class SignupView(APIView):
 		is_approved = role == Profile.ROLE_STUDENT
 
 		User = get_user_model()
-		username_value = username or email or mobile
+		username_value = username or email
 		if not username_value:
-			return Response({'detail': 'Invalid username/email/mobile.'}, status=status.HTTP_400_BAD_REQUEST)
+			return Response({'detail': 'Invalid username/email.'}, status=status.HTTP_400_BAD_REQUEST)
 
 		try:
 			with transaction.atomic():
 				if email and User.objects.filter(email__iexact=email).exists():
 					return Response({'detail': 'Email already in use.'}, status=status.HTTP_400_BAD_REQUEST)
 
-				# mobile is stored on Profile and must be unique
-				if mobile and Profile.objects.filter(mobile=mobile).exists():
-					return Response({'detail': 'Mobile already in use.'}, status=status.HTTP_400_BAD_REQUEST)
-
 				user = User.objects.create(username=username_value, email=email or '')
+				# Store display name on the built-in name fields.
+				parts = [p for p in (name or '').strip().split(' ') if p]
+				user.first_name = parts[0] if parts else ''
+				user.last_name = ' '.join(parts[1:]) if len(parts) > 1 else ''
 				user.set_password(password)
-				user.save(update_fields=['password', 'email'])
+				user.save(update_fields=['password', 'email', 'first_name', 'last_name'])
 
 				profile, _ = Profile.objects.get_or_create(user=user)
 				profile.role = role
 				profile.is_approved = is_approved
-				profile.mobile = mobile
+				profile.mobile = None
 				profile.save(update_fields=['role', 'is_approved', 'mobile'])
 
 				UserSession.objects.get_or_create(user=user)
@@ -299,23 +299,26 @@ class AdminUsersView(APIView):
 
 	def get(self, request):
 		User = get_user_model()
+		role = (request.query_params.get('role') or '').strip().lower()
+		if role and role not in (Profile.ROLE_TRAINER, Profile.ROLE_STUDENT):
+			return Response({'detail': 'Invalid role filter.'}, status=status.HTTP_400_BAD_REQUEST)
+
 		users = User.objects.all().order_by('id')
+		if role:
+			user_ids = Profile.objects.filter(role=role).values_list('user_id', flat=True)
+			users = users.filter(id__in=user_ids)
+
 		payload = []
 		for u in users:
 			role = _effective_role(u)
 			approved = _is_approved(u)
-			mobile = None
-			try:
-				mobile = u.profile.mobile
-			except Exception:
-				mobile = None
-
+			full_name = (u.get_full_name() or '').strip() or None
 			payload.append(
 				{
 					'id': u.id,
 					'username': u.get_username(),
+					'name': full_name,
 					'email': u.email,
-					'mobile': mobile,
 					'role': role,
 					'approved': approved,
 					'is_active': bool(u.is_active),
@@ -325,4 +328,34 @@ class AdminUsersView(APIView):
 			)
 
 		return Response(payload, status=status.HTTP_200_OK)
+
+
+class AdminUserDetailView(APIView):
+	permission_classes = [IsAdmin]
+
+	def get(self, request, user_id: int):
+		User = get_user_model()
+		u = User.objects.filter(id=user_id).first()
+		if u is None:
+			return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+		Profile.objects.get_or_create(user=u)
+		session, _ = UserSession.objects.get_or_create(user=u)
+
+		full_name = (u.get_full_name() or '').strip() or None
+		return Response(
+			{
+				'id': u.id,
+				'username': u.get_username(),
+				'name': full_name,
+				'email': u.email,
+				'role': _effective_role(u),
+				'approved': _is_approved(u),
+				'is_active': bool(u.is_active),
+				'last_login_at': session.last_login_at,
+				'ip': session.ip_address,
+				'device_name': (session.user_agent or '').strip() or None,
+			},
+			status=status.HTTP_200_OK,
+		)
 

@@ -10,10 +10,10 @@ export async function login({ identifier, password }) {
   return data;
 }
 
-export async function signup({ role, email, mobile, username, password }) {
+export async function signup({ role, name, email, username, password }) {
   return apiFetch("/api/auth/signup/", {
     method: "POST",
-    body: { role, email, mobile, username, password },
+    body: { role, name, email, username, password },
   });
 }
 
