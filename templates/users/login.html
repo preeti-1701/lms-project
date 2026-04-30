@@ -4,10 +4,15 @@
     <h2>Login</h2>
 
     <form method="post">
+        {% if error %}
+            <div class="alert alert-danger">
+                {{ error }}
+            </div>
+        {% endif %}
         {% csrf_token %}
 
         <div class="mb-3">
-            <label>Email / Username</label>
+            <label>Username</label>
             <input type="text" class="form-control" name="username">
         </div>
 

@@ -1,0 +1,33 @@
+{% include 'base/header.html' %}
+
+<div class="container mt-5">
+
+    <h1>Courses</h1>
+
+    {% for course in courses %}
+
+        <div class="card mt-3 p-3">
+
+            <h3>{{ course.title }}</h3>
+
+            <p>{{ course.description }}</p>
+
+            <a href="{{ course.youtube_link }}"
+               target="_blank"
+               class="btn btn-primary">
+
+               Watch Video
+
+            </a>
+
+        </div>
+
+    {% empty %}
+
+        <p>No courses available.</p>
+
+    {% endfor %}
+
+</div>
+
+{% include 'base/footer.html' %}

@@ -11,8 +11,20 @@
         <a class="navbar-brand" href="/">LMS</a>
 
         <div>
-            <a class="btn btn-light me-2" href="{% url 'login' %}">Login</a>
-            <a class="btn btn-warning" href="{% url 'register' %}">Register</a>
+            {% if user.is_authenticated %}
+                <a class="btn btn-info me-2" href="{% url 'courses' %}">
+                    Courses
+                </a>
+                <span class="text-white me-3">
+                    Welcome, {{ user.username }}
+                </span>
+                <a class="btn btn-danger" href="{% url 'logout' %}">
+                    Logout
+                </a>
+            {% else %}
+                <a class="btn btn-light me-2" href="{% url 'login' %}">Login</a>
+                <a class="btn btn-warning" href="{% url 'register' %}">Register</a>
+            {% endif %}
         </div>
     </div>
 </nav>
