@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Courses</h2>
+
+{% for course in courses %}
+    <p>{{ course.title }} - {{ course.description }}</p>
+{% empty %}
+    <p>No courses available</p>
+{% endfor %}
+
+<a href="/">Go Back</a>
+
+</body>
+</html>
