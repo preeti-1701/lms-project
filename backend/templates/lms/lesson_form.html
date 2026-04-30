@@ -1,0 +1,29 @@
+{% extends 'lms/base.html' %}
+{% block title %}{{ action }} Lesson{% endblock %}
+{% block page_title %}{{ action }} Lesson — {{ course.title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="form-card">
+      <h5 class="mb-4"><i class="fas fa-video me-2 text-primary"></i>{{ action }} Lesson</h5>
+      <div class="alert alert-info" style="font-size:.85rem;">
+        <i class="fab fa-youtube me-2"></i>Paste a YouTube URL like <code>https://www.youtube.com/watch?v=VIDEO_ID</code> — the ID will be extracted automatically.
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="mb-3">
+          <label class="form-label">{{ field.label }}</label>
+          {{ field }}
+          {% for e in field.errors %}<div style="color:#ef4444;font-size:.8rem;">{{ e }}</div>{% endfor %}
+        </div>
+        {% endfor %}
+        <div class="d-flex gap-2 mt-3">
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>Save Lesson</button>
+          <a href="{% url 'manage_lessons' course.pk %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

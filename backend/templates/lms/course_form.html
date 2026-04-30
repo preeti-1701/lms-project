@@ -1,0 +1,26 @@
+{% extends 'lms/base.html' %}
+{% block title %}{{ action }} Course{% endblock %}
+{% block page_title %}{{ action }} Course{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="form-card">
+      <h5 class="mb-4"><i class="fas fa-book me-2 text-primary"></i>{{ action }} Course</h5>
+      <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="mb-3">
+          <label class="form-label">{{ field.label }}</label>
+          {{ field }}
+          {% for e in field.errors %}<div style="color:#ef4444;font-size:.8rem;">{{ e }}</div>{% endfor %}
+        </div>
+        {% endfor %}
+        <div class="d-flex gap-2 mt-3">
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>Save Course</button>
+          <a href="{% url 'manage_courses' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

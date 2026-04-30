@@ -1,0 +1,58 @@
+{% extends 'lms/base.html' %}
+{% load lms_tags %}
+{% block title %}{{ course.title }}{% endblock %}
+{% block page_title %}{{ course.title }}{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-8">
+    <div class="form-card mb-3">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <div>
+          <h5 class="mb-1">{{ course.title }}</h5>
+          <small class="text-muted">By {{ course.trainer.get_full_name|default:"Trainer" }}</small>
+        </div>
+        {% if enrollment.completed %}<span class="badge bg-success fs-6"><i class="fas fa-trophy me-1"></i>Completed!</span>{% endif %}
+      </div>
+      <p class="text-muted" style="font-size:.9rem;">{{ course.description }}</p>
+      <div class="mb-1 d-flex justify-content-between" style="font-size:.82rem;color:#64748b;">
+        <span>Overall Progress</span><span>{{ progress_percent }}%</span>
+      </div>
+      <div class="progress"><div class="progress-bar" style="width:{{ progress_percent }}%;background:#2563eb;border-radius:10px;"></div></div>
+    </div>
+    <div class="table-card">
+      <div class="table-header"><h5><i class="fas fa-list me-2"></i>Lessons</h5></div>
+      <table class="table">
+        <thead><tr><th>#</th><th>Title</th><th>Duration</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>
+          {% for lesson in lessons %}
+          <tr>
+            <td>{{ lesson.order }}</td>
+            <td>{{ lesson.title }}</td>
+            <td>{{ lesson.duration_minutes }} min</td>
+            <td>
+              {% if progress_map|key:lesson.id %}
+                <span class="badge bg-success"><i class="fas fa-check me-1"></i>Done</span>
+              {% else %}
+                <span class="badge bg-secondary">Pending</span>
+              {% endif %}
+            </td>
+            <td><a href="{% url 'watch_lesson' lesson.pk %}" class="btn btn-sm btn-outline-primary"><i class="fab fa-youtube me-1"></i>Watch</a></td>
+          </tr>
+          {% empty %}<tr><td colspan="5" class="text-muted text-center">No lessons.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="form-card">
+      <h6 class="fw-bold mb-3">Course Info</h6>
+      <ul class="list-unstyled" style="font-size:.88rem;color:#374151;">
+        <li class="mb-2"><i class="fas fa-layer-group me-2 text-primary"></i>{{ course.get_level_display }}</li>
+        <li class="mb-2"><i class="fas fa-video me-2 text-primary"></i>{{ course.total_lessons }} Lessons</li>
+        <li class="mb-2"><i class="fas fa-user me-2 text-primary"></i>{{ course.trainer.get_full_name|default:"—" }}</li>
+        <li class="mb-2"><i class="fas fa-calendar me-2 text-primary"></i>{{ enrollment.enrolled_at|date:"d M Y" }}</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

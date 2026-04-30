@@ -1,0 +1,52 @@
+{% extends 'lms/base.html' %}
+{% block title %}Login - LMS Portal{% endblock %}
+{% block auth_content %}
+<style>
+  body{background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#0f172a 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;}
+  .auth-card{background:#fff;border-radius:20px;padding:2.5rem;width:100%;max-width:420px;box-shadow:0 25px 60px rgba(0,0,0,.4);}
+  .auth-logo{text-align:center;margin-bottom:2rem;}
+  .auth-logo .icon-wrap{width:64px;height:64px;background:linear-gradient(135deg,#2563eb,#1d4ed8);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;}
+  .auth-logo h2{font-size:1.5rem;font-weight:700;color:#0f172a;margin:0;}
+  .auth-logo p{color:#64748b;font-size:.875rem;margin:.25rem 0 0;}
+  .form-floating label{color:#94a3b8;font-size:.875rem;}
+  .form-floating .form-control{border-radius:10px;border:2px solid #e2e8f0;padding-top:1.5rem;font-size:.95rem;}
+  .form-floating .form-control:focus{border-color:#2563eb;box-shadow:none;}
+  .btn-login{width:100%;padding:.8rem;border-radius:10px;font-weight:600;font-size:1rem;background:linear-gradient(135deg,#2563eb,#1d4ed8);border:none;transition:all .3s;}
+  .btn-login:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(37,99,235,.4);}
+  .divider{text-align:center;color:#94a3b8;font-size:.8rem;margin:1.25rem 0;position:relative;}
+  .divider::before,.divider::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:#e2e8f0;}
+  .divider::before{left:0;} .divider::after{right:0;}
+  .errorlist{list-style:none;padding:0;margin:.25rem 0 0;color:#ef4444;font-size:.8rem;}
+  .alert-danger{background:#fef2f2;color:#991b1b;border-radius:10px;font-size:.875rem;}
+</style>
+<div class="auth-card">
+  <div class="auth-logo">
+    <div class="icon-wrap"><i class="fas fa-graduation-cap fa-2x text-white"></i></div>
+    <h2>LMS Portal</h2>
+    <p>Sign in to your account</p>
+  </div>
+  {% for message in messages %}
+  <div class="alert alert-danger mb-3">{{ message }}</div>
+  {% endfor %}
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label fw-semibold" style="font-size:.85rem;color:#374151;">Username</label>
+      <input type="text" name="username" class="form-control" placeholder="Enter your username" required value="{{ form.username.value|default:'' }}">
+      {% for e in form.username.errors %}<div style="color:#ef4444;font-size:.8rem;">{{ e }}</div>{% endfor %}
+    </div>
+    <div class="mb-4">
+      <label class="form-label fw-semibold" style="font-size:.85rem;color:#374151;">Password</label>
+      <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+      {% for e in form.password.errors %}<div style="color:#ef4444;font-size:.8rem;">{{ e }}</div>{% endfor %}
+    </div>
+    <button type="submit" class="btn btn-primary btn-login">
+      <i class="fas fa-sign-in-alt me-2"></i>Sign In
+    </button>
+  </form>
+  <div class="divider">or</div>
+  <p class="text-center" style="font-size:.875rem;color:#64748b;margin:0;">
+    Don't have an account? <a href="{% url 'register' %}" style="color:#2563eb;font-weight:600;">Register here</a>
+  </p>
+</div>
+{% endblock %}

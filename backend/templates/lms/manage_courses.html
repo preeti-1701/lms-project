@@ -1,0 +1,32 @@
+{% extends 'lms/base.html' %}
+{% block title %}Manage Courses{% endblock %}
+{% block page_title %}Manage Courses{% endblock %}
+{% block content %}
+<div class="table-card">
+  <div class="table-header">
+    <h5><i class="fas fa-book me-2"></i>All Courses</h5>
+    <a href="{% url 'create_course' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Add Course</a>
+  </div>
+  <table class="table table-hover">
+    <thead><tr><th>#</th><th>Title</th><th>Trainer</th><th>Level</th><th>Lessons</th><th>Students</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for c in courses %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td><strong>{{ c.title }}</strong></td>
+        <td>{{ c.trainer.get_full_name|default:c.trainer.username|default:"—" }}</td>
+        <td><span class="badge bg-info text-dark">{{ c.get_level_display }}</span></td>
+        <td>{{ c.total_lessons }}</td>
+        <td>{{ c.enrolled_count }}</td>
+        <td>{% if c.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
+        <td>
+          <a href="{% url 'manage_lessons' c.pk %}" class="btn btn-sm btn-outline-info" title="Lessons"><i class="fas fa-list"></i></a>
+          <a href="{% url 'edit_course' c.pk %}" class="btn btn-sm btn-outline-warning" title="Edit"><i class="fas fa-edit"></i></a>
+          <a href="{% url 'delete_course' c.pk %}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></a>
+        </td>
+      </tr>
+      {% empty %}<tr><td colspan="8" class="text-muted text-center">No courses yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

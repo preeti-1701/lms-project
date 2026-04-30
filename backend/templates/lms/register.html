@@ -1,0 +1,73 @@
+{% extends 'lms/base.html' %}
+{% block title %}Register - LMS Portal{% endblock %}
+{% block auth_content %}
+<style>
+  body{background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#0f172a 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem 0;}
+  .auth-card{background:#fff;border-radius:20px;padding:2.5rem;width:100%;max-width:480px;box-shadow:0 25px 60px rgba(0,0,0,.4);}
+  .auth-logo{text-align:center;margin-bottom:1.75rem;}
+  .auth-logo .icon-wrap{width:64px;height:64px;background:linear-gradient(135deg,#2563eb,#1d4ed8);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;}
+  .auth-logo h2{font-size:1.4rem;font-weight:700;color:#0f172a;margin:0;}
+  .auth-logo p{color:#64748b;font-size:.875rem;margin:.25rem 0 0;}
+  .form-control,.form-select{border-radius:10px;border:2px solid #e2e8f0;font-size:.9rem;}
+  .form-control:focus,.form-select:focus{border-color:#2563eb;box-shadow:none;}
+  .btn-register{width:100%;padding:.8rem;border-radius:10px;font-weight:600;font-size:1rem;background:linear-gradient(135deg,#2563eb,#1d4ed8);border:none;}
+  .btn-register:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(37,99,235,.4);}
+  .errorlist{list-style:none;padding:0;margin:.25rem 0 0;}
+  .errorlist li{color:#ef4444;font-size:.8rem;}
+</style>
+<div class="auth-card">
+  <div class="auth-logo">
+    <div class="icon-wrap"><i class="fas fa-user-plus fa-2x text-white"></i></div>
+    <h2>Create Account</h2>
+    <p>Join the LMS Portal today</p>
+  </div>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="row g-3">
+      <div class="col-6">
+        <label class="form-label fw-semibold" style="font-size:.82rem;color:#374151;">First Name</label>
+        {{ form.first_name }}
+        {{ form.first_name.errors }}
+      </div>
+      <div class="col-6">
+        <label class="form-label fw-semibold" style="font-size:.82rem;color:#374151;">Last Name</label>
+        {{ form.last_name }}
+        {{ form.last_name.errors }}
+      </div>
+      <div class="col-12">
+        <label class="form-label fw-semibold" style="font-size:.82rem;color:#374151;">Username</label>
+        {{ form.username }}
+        {{ form.username.errors }}
+      </div>
+      <div class="col-12">
+        <label class="form-label fw-semibold" style="font-size:.82rem;color:#374151;">Email</label>
+        {{ form.email }}
+        {{ form.email.errors }}
+      </div>
+      <div class="col-12">
+        <label class="form-label fw-semibold" style="font-size:.82rem;color:#374151;">Role</label>
+        {{ form.role }}
+        {{ form.role.errors }}
+      </div>
+      <div class="col-12">
+        <label class="form-label fw-semibold" style="font-size:.82rem;color:#374151;">Password</label>
+        {{ form.password1 }}
+        {{ form.password1.errors }}
+      </div>
+      <div class="col-12">
+        <label class="form-label fw-semibold" style="font-size:.82rem;color:#374151;">Confirm Password</label>
+        {{ form.password2 }}
+        {{ form.password2.errors }}
+      </div>
+      <div class="col-12 mt-2">
+        <button type="submit" class="btn btn-primary btn-register">
+          <i class="fas fa-user-plus me-2"></i>Create Account
+        </button>
+      </div>
+    </div>
+  </form>
+  <p class="text-center mt-3" style="font-size:.875rem;color:#64748b;margin:0;">
+    Already have an account? <a href="{% url 'login' %}" style="color:#2563eb;font-weight:600;">Sign in</a>
+  </p>
+</div>
+{% endblock %}
