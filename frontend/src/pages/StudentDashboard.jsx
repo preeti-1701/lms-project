@@ -154,7 +154,10 @@ export default function StudentDashboard() {
                           key={item.id}
                           className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
                           <div className="flex items-start gap-4">
-                            <div className="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
+                            <div
+                              className="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full"
+                              style={{ background: "rgba(79,70,229,0.1)" }}
+                            >
                               <PlayCircle className="w-6 h-6 text-primary" />
                             </div>
                             <div className="flex-grow">
@@ -199,7 +202,7 @@ export default function StudentDashboard() {
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
-                        className="bg-primary h-2 rounded-full"
+                        className="bg-indigo-600 h-2 rounded-full"
                         style={{ width: `${(enrollments.length / Math.max(courses.length, 1)) * 100}%` }}
                       />
                     </div>
@@ -220,7 +223,7 @@ export default function StudentDashboard() {
                         onClick={() => handleViewItems(enrollment.course?.id)}
                         className={`w-full text-left p-3 rounded-lg transition ${
                           String(selectedCourseId) === String(enrollment.course?.id)
-                            ? "bg-primary/10 border-2 border-primary"
+                            ? "border-2 bg-indigo-50"
                             : "bg-gray-50 border border-gray-200 hover:bg-gray-100"
                         }`}>
                         <p className="font-medium text-sm text-secondary">{enrollment.course?.title}</p>

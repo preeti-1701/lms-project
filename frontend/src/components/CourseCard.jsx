@@ -4,8 +4,13 @@ export default function CourseCard({ course, isEnrolled, onEnroll, onView, disab
   return (
     <div className="card cursor-pointer h-full flex flex-col">
       {/* Course Image Placeholder */}
-      <div className="w-full h-40 bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-        <span className="text-white text-4xl font-bold opacity-50">{course.title.charAt(0)}</span>
+      <div
+        className="w-full h-40 flex items-center justify-center"
+        style={{ background: "linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%)" }}
+      >
+        <span className="text-white text-4xl font-bold" style={{ opacity: 0.55 }}>
+          {course.title.charAt(0)}
+        </span>
       </div>
 
       {/* Course Content */}

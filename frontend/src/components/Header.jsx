@@ -28,17 +28,21 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition">
-            <BookOpen className="w-8 h-8 text-primary" />
-            <span className="text-xl font-bold text-secondary hidden sm:inline">LearnHub</span>
+            <BookOpen className="w-8 h-8" style={{ color: "var(--primary)" }} />
+            <span className="text-xl font-bold hidden sm:inline" style={{ color: "var(--secondary)" }}>LearnHub</span>
           </Link>
 
           {/* Navigation Links - Desktop */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link to="/" className="text-gray-700 hover:text-primary font-medium transition">
+            <Link to="/" className="font-medium transition" style={{ color: "#374151" }}
+              onMouseEnter={e => e.currentTarget.style.color = "var(--primary)"}
+              onMouseLeave={e => e.currentTarget.style.color = "#374151"}>
               Home
             </Link>
             {user && (
-              <Link to={getDashboardLink()} className="text-gray-700 hover:text-primary font-medium transition">
+              <Link to={getDashboardLink()} className="font-medium transition" style={{ color: "#374151" }}
+                onMouseEnter={e => e.currentTarget.style.color = "var(--primary)"}
+                onMouseLeave={e => e.currentTarget.style.color = "#374151"}>
                 Dashboard
               </Link>
             )}
