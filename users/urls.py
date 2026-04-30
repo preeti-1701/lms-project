@@ -6,6 +6,7 @@ from .views import enroll
 from .views import my_courses
 from .views import course_videos
 from .views import logout_view
+from . import views
 
 urlpatterns = [
     path('login/', login_view, name='login'),
@@ -16,4 +17,6 @@ urlpatterns = [
     path('my-courses/',my_courses),
     path('course/<int:course_id>/', course_videos, name='course_videos'),
     path('logout/', logout_view, name='logout'),
+    path('trainer/', views.trainer_dashboard, name='trainer_dashboard'),
+    path('trainer/course/<int:id>/', views.trainer_course, name='trainer_course'),
 ]

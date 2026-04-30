@@ -1,0 +1,32 @@
+<h2>{{ course.title }}</h2>
+
+<h3>Videos</h3>
+{% for video in videos %}
+    <p>{{ video.title }}</p>
+{% endfor %}
+
+<h3>Students Enrolled</h3>
+
+{% for student in students %}
+    <p>{{ student.name }} ({{ student.email }})</p>
+{% empty %}
+    <p>No students enrolled</p>
+{% endfor %}
+
+<h3>Add Video</h3>
+
+<form method="POST">
+    {% csrf_token %}
+    <input type="text" name="title" placeholder="Video Title" required>
+    <input type="text" name="youtube_link" placeholder="YouTube Link" required>
+    <button type="submit">Add Video</button>
+</form>
+
+<h3>Videos</h3>
+
+{% for video in videos %}
+    <p>{{ video.title }}</p>
+    <a href="{{ video.youtube_link }}" target="_blank">Watch</a>
+{% empty %}
+    <p>No videos added</p>
+{% endfor %}

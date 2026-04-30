@@ -5,6 +5,10 @@
 </head>
 <body>
 
+    {% if error %}
+<p style="color:red;">{{ error }}</p>
+{% endif %}
+
     <h2>Login Page</h2>
 
     <form method="POST">

@@ -1,0 +1,20 @@
+<h2>Trainer Dashboard</h2>
+
+<h3>My Courses</h3>
+
+{% for course in courses %}
+    <div style="border:1px solid black; padding:10px; margin:10px;">
+        <h4>{{ course.title }}</h4>
+        <p>{{ course.description }}</p>
+
+        <a href="/trainer/course/{{ course.id }}/">Manage Course</a>
+    </div>
+{% endfor %}
+
+<h3>Students Enrolled</h3>
+
+{% for s in students %}
+    <p>{{ s.student.name }}</p>
+{% empty %}
+    <p>No students enrolled.</p>
+{% endfor %}
