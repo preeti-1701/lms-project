@@ -19,10 +19,11 @@ class Profile(models.Model):
 		related_name='profile',
 	)
 	role = models.CharField(max_length=16, choices=ROLE_CHOICES, default=ROLE_STUDENT)
+	is_approved = models.BooleanField(default=True)
 	mobile = models.CharField(max_length=20, blank=True, null=True, unique=True)
 
 	def __str__(self) -> str:
-		return f"Profile(user_id={self.user_id}, role={self.role})"
+		return f"Profile(user_id={self.user_id}, role={self.role}, approved={self.is_approved})"
 
 
 class UserSession(models.Model):

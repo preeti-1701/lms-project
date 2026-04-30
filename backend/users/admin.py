@@ -5,9 +5,9 @@ from .models import Profile, UserSession
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-	list_display = ('user', 'role', 'mobile')
+	list_display = ('user', 'role', 'is_approved', 'mobile')
 	search_fields = ('user__username', 'user__email', 'mobile')
-	list_filter = ('role',)
+	list_filter = ('role', 'is_approved')
 
 
 @admin.register(UserSession)

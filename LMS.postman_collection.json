@@ -1,0 +1,430 @@
+{
+  "info": {
+    "_postman_id": "b7d90c09-9c45-4b05-bb4a-6d0cbf2fd7bc",
+    "name": "LMS Backend API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Django REST API collection for the LMS project.\n\nNotes:\n- Set collection variables `baseUrl`, `identifier`, and `password` before running.\n- `Login` stores `accessToken` and `refreshToken` as collection variables.\n- `Refresh` updates `accessToken`.\n- Protected requests use `Authorization: Bearer {{accessToken}}`.\n"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Signup (Student or Trainer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/signup/",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"student\",\n  \"email\": \"student@example.com\",\n  \"mobile\": \"\",\n  \"username\": \"\",\n  \"password\": \"Passw0rd!\"\n}"
+            },
+            "description": "Creates a user. Students are approved immediately; Trainers are created as pending approval.\n\nAllowed roles: student | trainer"
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login/",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"{{identifier}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "description": "Login using email OR mobile + password. Response includes `access` and `refresh`."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var data = {};",
+                  "try { data = pm.response.json(); } catch (e) { data = {}; }",
+                  "",
+                  "if (data && data.access) {",
+                  "  pm.collectionVariables.set('accessToken', data.access);",
+                  "}",
+                  "if (data && data.refresh) {",
+                  "  pm.collectionVariables.set('refreshToken', data.refresh);",
+                  "}",
+                  "if (data && data.user) {",
+                  "  pm.collectionVariables.set('userId', String(data.user.id || ''));",
+                  "  pm.collectionVariables.set('userEmail', String(data.user.email || ''));",
+                  "  pm.collectionVariables.set('userRole', String(data.user.role || ''));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh Access Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/refresh/",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refreshToken}}\"\n}"
+            },
+            "description": "Exchange refresh token for a new access token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var data = {};",
+                  "try { data = pm.response.json(); } catch (e) { data = {}; }",
+                  "",
+                  "if (data && data.access) {",
+                  "  pm.collectionVariables.set('accessToken', data.access);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/me/",
+            "description": "Returns the currently authenticated user."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/logout/",
+            "description": "Clears the active session token JTIs on the server."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204', function () {",
+                  "  pm.response.to.have.status(204);",
+                  "});",
+                  "",
+                  "pm.collectionVariables.unset('accessToken');",
+                  "pm.collectionVariables.unset('refreshToken');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+    ,
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "List Pending Trainers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/trainers/pending/",
+            "description": "Admin-only. Lists trainers awaiting approval."
+          }
+        },
+        {
+          "name": "Approve Trainer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/trainers/approve/",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{pendingTrainerUserId}}\"\n}"
+            },
+            "description": "Admin-only. Approves a trainer account by user_id."
+          }
+        },
+        {
+          "name": "Promote User to Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/users/promote-admin/",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{targetUserId}}\"\n}"
+            },
+            "description": "Admin-only. Promotes a user to admin (sets Profile.role=admin and is_staff=True)."
+          }
+        }
+      ]
+    }
+    ,
+    {
+      "name": "Courses",
+      "item": [
+        {
+          "name": "List Courses (role-based)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/courses/",
+            "description": "Students see approved courses. Trainers see their own. Admins see all."
+          }
+        },
+        {
+          "name": "Create Course (trainer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/courses/",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Intro to Python\",\n  \"description\": \"Basics for beginners\",\n  \"total_hours\": \"3.50\",\n  \"items\": [\n    {\n      \"title\": \"Lesson 1\",\n      \"description\": \"Setup\",\n      \"youtube_url\": \"https://www.youtube.com/watch?v=dQw4w9WgXcQ\",\n      \"hours\": \"1.00\",\n      \"order\": 1\n    },\n    {\n      \"title\": \"Lesson 2\",\n      \"description\": \"Variables\",\n      \"youtube_url\": \"https://www.youtube.com/watch?v=dQw4w9WgXcQ\",\n      \"hours\": \"2.50\",\n      \"order\": 2\n    }\n  ]\n}"
+            },
+            "description": "Creates a pending course (needs admin approval to be visible to students)."
+          }
+        },
+        {
+          "name": "Get Course Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/courses/{{courseId}}/"
+          }
+        },
+        {
+          "name": "Enroll in Course (student)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/courses/{{courseId}}/enroll/"
+          }
+        },
+        {
+          "name": "My Enrollments (student)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/enrollments/"
+          }
+        },
+        {
+          "name": "Get Course Items (enrolled students)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/courses/{{courseId}}/items/",
+            "description": "Returns YouTube URLs; requires enrollment for students."
+          }
+        }
+      ]
+    }
+    ,
+    {
+      "name": "Admin Courses",
+      "item": [
+        {
+          "name": "List Pending Courses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/courses/pending/"
+          }
+        },
+        {
+          "name": "Approve Course",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/courses/{{courseId}}/approve/"
+          }
+        },
+        {
+          "name": "Reject Course",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/courses/{{courseId}}/reject/",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Please add clearer titles\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "identifier",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "pendingTrainerUserId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "targetUserId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "courseId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userRole",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
