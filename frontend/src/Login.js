@@ -16,82 +16,61 @@ function Login({ setUser }) {
   // =========================Login Handler==========================
   const handleLogin = async () => {
 
-    // Validation
     if (!username || !password) {
-      alert(
-        "Please enter username and password"
-      );
+      alert("Please enter username and password");
       return;
     }
 
+    // ✅ Clear old tokens
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('session_token');
 
     try {
 
-      const response = await api.post(
-        '/api/login/',
-        {
-          username,
-          password
+      const response = await api.post('/api/login/', {
+        username,
+        password
+      });
+
+      console.log("Login response:", response.data);
+
+      // ✅ Store ALL tokens FIRST
+      localStorage.setItem('access_token', response.data.access_token);
+      localStorage.setItem('session_token', response.data.session_token);
+      localStorage.setItem('user', JSON.stringify(response.data));
+
+      console.log("Saved session_token:", localStorage.getItem('session_token'));
+
+      // ✅ Update state
+      setUser(response.data);
+
+      alert("Login successful: " + response.data.role);
+
+      setTimeout(() => {
+
+        // ✅ Single navigation (NO setTimeout needed)
+        if (response.data.role === 'admin') {
+          navigate('/admin');
         }
-      );
+        else if (response.data.role === 'trainer') {
+          navigate('/trainer');
+        }
+        else {
+          navigate('/student');
+        }
+      }, 150);
 
-
-      // ==========================Store Tokens==========================
-      localStorage.setItem(
-        'access_token',
-        response.data.access
-      );
-
-      localStorage.setItem(
-        'session_token',
-        response.data.session_token
-      );
-
-      localStorage.setItem(
-        'user',
-        JSON.stringify(
-          response.data
-        )
-      );
-
-
-      // Update App State
-      setUser(
-        response.data
-      );
-
-
-      alert(
-        "Login successful: " +
-        response.data.role
-      );
-
-
-
-      // ==========================Role Based Redirect==========================
-      if (response.data.role === 'admin') {
-        navigate('/admin');
-      }
-
-      else if (response.data.role === 'trainer') {
-        navigate('/trainer');
-      }
-
-      else if (response.data.role === 'student') {
-        navigate('/student');
-      }
 
     } catch (error) {
-      console.error(
-        error.response
-      );
+
+      console.error("Login error:", error?.response || error);
 
       alert(
+        error?.response?.data?.error ||
         "Invalid login"
       );
 
     }
-
   };
 
   // ==========================Back Handler==========================

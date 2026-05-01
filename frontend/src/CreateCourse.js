@@ -18,74 +18,29 @@ const LEVEL_OPTIONS = [
 function CreateCourse() {
 
     const navigate = useNavigate();
+    const location = useLocation();
+    const editMode = location.state?.editMode;
+    const editCourse = location.state?.course;
 
-    const location =
-        useLocation();
-
-    const editMode =
-        location.state?.editMode;
-
-    const editCourse =
-        location.state?.course;
-
-
-
-    const [title, setTitle] =
-        useState('');
-
-    const [description,
-        setDescription] =
-        useState('');
-
-    const [category, setCategory] =
-        useState('');
-
-    const [level, setLevel] =
-        useState('');
-
-    const [duration, setDuration] =
-        useState('');
-
-    const [isSubmitting,
-        setIsSubmitting] =
-        useState(false);
-
-    const [feedback, setFeedback] =
-        useState({
-            type: '',
-            text: ''
-        });
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [category, setCategory] = useState('');
+    const [level, setLevel] = useState('');
+    const [duration, setDuration] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [feedback, setFeedback] = useState({ type: '', text: '' });
 
 
 
     /* preload form in edit mode */
     useEffect(() => {
 
-        if (
-            editMode &&
-            editCourse
-        ) {
-
-            setTitle(
-                editCourse.title || ''
-            );
-
-            setDescription(
-                editCourse.description || ''
-            );
-
-            setCategory(
-                editCourse.category || ''
-            );
-
-            setLevel(
-                editCourse.level || ''
-            );
-
-            setDuration(
-                editCourse.duration || ''
-            );
-
+        if (editMode && editCourse) {
+            setTitle(editCourse.title || '');
+            setDescription(editCourse.description || '');
+            setCategory(editCourse.category || '');
+            setLevel(editCourse.level || '');
+            setDuration(editCourse.duration || '');
         }
 
     }, [
@@ -117,21 +72,12 @@ function CreateCourse() {
 
 
     const handleCreate = async (e) => {
-
         e.preventDefault();
 
         if (!title.trim()) {
-
-            setFeedback({
-                type: 'error',
-                text:
-                    'Please enter a course title.'
-            });
-
+            setFeedback({type: 'error', text: 'Please enter a course title.'});
             return;
-
         }
-
 
         setIsSubmitting(true);
 
@@ -139,7 +85,6 @@ function CreateCourse() {
             type: '',
             text: ''
         });
-
 
         const payload = {
             title,
@@ -149,93 +94,78 @@ function CreateCourse() {
             duration
         };
 
-
-
         try {
 
+            let response;
 
-            /* EDIT */
-            if (editMode && editCourse) {
+            // ✅ EDIT MODE (reliable check)
+            if (editCourse?.id) {
 
-                const response =
-                    await api.put(
-                        `/api/edit-course/${editCourse.id}/`,
-                        payload
-                    );
+                console.log("Updating course:", editCourse.id);
+
+                response = await api.put(
+                    `/api/edit-course/${editCourse.id}/`,
+                    payload
+                );
 
                 setFeedback({
                     type: 'success',
-                    text:
-                        response?.data?.message
-                        ||
-                        'Course updated successfully.'
+                    text: response?.data?.message || 'Course updated successfully.'
                 });
 
             }
 
-
-            /* CREATE */
+            // ✅ CREATE MODE
             else {
 
-                const response =
-                    await api.post(
-                        '/api/create-course/',
-                        payload
-                    );
+                console.log("Creating course");
 
+                response = await api.post(
+                    '/api/create-course/',
+                    payload
+                );
 
                 setFeedback({
                     type: 'success',
-                    text:
-                        response?.data?.message
-                        ||
-                        'Course created successfully.'
+                    text: response?.data?.message || 'Course created successfully.'
                 });
 
-
+                // Reset form
                 setTitle('');
                 setDescription('');
                 setCategory('');
                 setLevel('');
                 setDuration('');
-
             }
 
-
+            // ✅ Navigate AFTER success
             setTimeout(() => {
 
                 if (user?.role === 'admin') {
                     navigate('/manage-courses');
-                }
-                else {
+                } else {
                     navigate('/trainer');
                 }
 
             }, 1200);
 
-
         } catch (error) {
+
+            console.error("Course Error:", error?.response || error);
 
             setFeedback({
                 type: 'error',
                 text:
-                    error?.response?.data?.message
-                    ||
-                    (
-                        editMode
-                            ?
-                            'Error updating course.'
-                            :
-                            'Error creating course.'
-                    )
+                    error?.response?.data?.error ||   // backend error
+                    error?.response?.data?.message || // fallback
+                    (editCourse?.id
+                        ? 'Error updating course.'
+                        : 'Error creating course.')
             });
 
-        }
-
-        finally {
+        } finally {
             setIsSubmitting(false);
         }
-
     };
 
 

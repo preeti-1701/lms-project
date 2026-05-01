@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from './api';
+import ReadMoreText from './components/ReadMoreText';
 
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -32,9 +33,17 @@ function AdminDashboard() {
     fetchStats();
   }, []);
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await api.post('/api/logout/');
+    } catch (e) {
+      // ignore network/auth errors and proceed to clear client state
+    } finally {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('session_token');
+      localStorage.removeItem('user');
+      window.location.href = '/';
+    }
   };
 
   const navItems = [
@@ -299,7 +308,10 @@ function ActionCard({ label, description, buttonLabel, onClick, accent }) {
   return (
     <div className={`rounded-[1.75rem] border border-white/10 bg-gradient-to-br ${accent} p-5 shadow-lg shadow-slate-950/20 transition hover:-translate-y-1`}>
       <h4 className="text-lg font-semibold text-white">{label}</h4>
-      <p className="mt-2 text-sm leading-6 text-slate-300">{description}</p>
+      <ReadMoreText
+        text={description}
+        className="mt-2 text-sm leading-6 text-slate-300"
+      />
       <button
         onClick={onClick}
         className="mt-5 rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"

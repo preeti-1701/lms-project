@@ -13,6 +13,7 @@ User = get_user_model()
 from django.utils import timezone
 
 
+# Create Course 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_course(request):
@@ -45,6 +46,7 @@ def create_course(request):
     )
 
     return Response({'message': 'Course created successfully'})
+
 
 # Endpoint for editing course details (Admin can edit all, Trainer can edit own courses)
 @api_view(['PUT'])
@@ -81,7 +83,7 @@ def edit_course(request, course_id):
         )
 
 
-    # trainer can edit only own course
+    # Trainer can edit only own course
     if (request.user.role=='trainer' and course.trainer != request.user):
 
         return Response(
@@ -125,17 +127,17 @@ def all_courses(request):
     for c in courses:
 
         data.append({
-         'id':c.id,
-         'title':c.title,
-         'description':c.description,
-         'category':c.category,
-         'level':c.level,
-         'duration':c.duration,
-         'videos_count':
-            c.video_set.count(),
-         'trainer':
-            c.trainer.username
+         'id': c.id,
+         'title': c.title,
+         'description': c.description,
+         'category': c.category,
+         'level': c.level,
+         'duration': c.duration,
+         'videos_count': c.video_set.count(),
+         'created_by': (
+            f"{c.trainer.role.capitalize()} ({c.trainer.username})"
             if c.trainer else ''
+        )
         })
 
     return Response(data)
@@ -421,7 +423,7 @@ def list_enrollments(request):
         )
 
 
-    enrollments=Enrollment.objects.all()
+    enrollments=Enrollment.objects.filter(course__is_archived=False)
 
 
     data=[]
@@ -499,8 +501,8 @@ def trainer_courses(request):
          'category':c.category,
          'level':c.level,
          'duration':c.duration,
-         'videos_count':videos_count
-
+         'videos_count':videos_count,
+         'created_by': f"{c.trainer.role.capitalize()} ({c.trainer.username})"
         })
 
 

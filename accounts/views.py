@@ -1,3 +1,4 @@
+from rest_framework.authtoken.models import Token
 from urllib import request
 import uuid
 
@@ -24,85 +25,95 @@ User = get_user_model()
 @permission_classes([IsAuthenticated])
 def create_user(request):
 
+    # 🔐 validate session
     session_check = validate_session(request)
     if session_check:
         return session_check
-    
-    #Only Admin Allowed
+
+    # 👮 admin only
     if request.user.role != 'admin':
         return Response({'error': 'Unauthorized'}, status=403)
-    
+
+    # 📥 get data
     first_name = request.data.get('first_name')
     last_name = request.data.get('last_name')
     username = request.data.get('username')
     password = request.data.get('password')
     role = request.data.get('role')
-    
-    user = User.objects.create_user(
-        username=username,
-        password=password,
-        role=role
-    )
 
-    user.first_name = first_name
-    user.last_name = last_name
-    user.save()
+    # ❗ validation
+    if not username or not password or not role:
+        return Response(
+            {'error': 'username, password and role are required'},
+            status=400
+        )
 
-    return Response({'message': 'User created successfully'},)
+    # ❗ check duplicate user
+    if User.objects.filter(username=username).exists():
+        return Response(
+            {'error': 'Username already exists'},
+            status=400
+        )
+
+    try:
+        # ✅ create user (password hashed automatically)
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            role=role
+        )
+
+        user.first_name = first_name or ''
+        user.last_name = last_name or ''
+        user.save()
+
+        return Response({
+            'message': 'User created successfully'
+        })
+
+    except Exception as e:
+        return Response(
+            {'error': str(e)},
+            status=500
+        )
 
 
 @api_view(['POST'])
 def login_api(request):
+
     username = request.data.get('username')
     password = request.data.get('password')
 
-    # 🔴 Validation
-    if not username or not password:
-        return Response({'error': 'Username and password required'}, status=400)
+    user = authenticate(request, username=username, password=password)
 
-    user = authenticate(username=username, password=password)
+    if user is None:
+        return Response({'error': 'Invalid username or password'}, status=401)
 
-    if user:
-        # 🔐 Generate JWT tokens
-        refresh = RefreshToken.for_user(user)
+    if not user.is_active:
+        return Response({'error': 'User disabled'}, status=403)
 
-        # 🔥 Generate new session token
-        session_token = str(uuid.uuid4())
+    # 🔥 Remove old sessions (optional but recommended)
+    UserSession.objects.filter(user=user).delete()
 
-        # ❗ Deactivate old sessions (enforces single session)
-        UserSession.objects.filter(user=user, is_active=True).update(is_active=False)
+    # ✅ Create new session
+    session_token = str(uuid.uuid4())
 
-        # 🌐 Get IP address
-        ip = request.META.get('REMOTE_ADDR')
+    UserSession.objects.create(
+        user=user,
+        session_token=session_token,
+        is_active=True
+    )
 
-        # 📱 Get device info
-        device = request.META.get('HTTP_USER_AGENT')
 
-        # ✅ Create new session record
-        UserSession.objects.create(
-            user=user,
-            session_key=session_token,
-            ip_address=ip,
-            device_info=device,
-            is_active=True
-        )
+    # Token (DRF)
+    token, _ = Token.objects.get_or_create(user=user)
 
-        # ✅ Save session token in User (for quick validation if needed)
-        user.session_token = session_token
-        user.save()
-
-        return Response({
-            'message': 'Login successful',
-            'access': str(refresh.access_token),
-            'refresh': str(refresh),
-            'role': user.role,
-            'username': user.username,
-            'session_token': session_token,
-            'ip_address': ip,
-            'device': device
-        })
-
-    return Response({'error': 'Invalid credentials'}, status=401)
+    return Response({
+        'access_token': token.key,
+        'session_token': session_token,
+        'role': user.role,
+        'username': user.username
+    })
 
 
 @api_view(['GET'])
@@ -342,11 +353,13 @@ def edit_user(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def active_sessions(request):
+ 
+ session_check = validate_session(request)
+ if session_check:
+    return session_check
 
  if request.user.role!='admin':
-   return Response(
-    {'error':'Unauthorized'},
-    status=403
+   return Response({'error':'Unauthorized'}, status=403
    )
 
  sessions=UserSession.objects.filter(
@@ -383,6 +396,34 @@ def admin_stats(request):
     }
 
     return Response(data)
+
+
+# ========================= Self logout =========================
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def logout_api(request):
+
+    # Validate active session for this request
+    session_check = validate_session(request)
+    if session_check:
+        return session_check
+
+    session_token = request.headers.get('Session-Token')
+
+    if not session_token:
+        return Response({'error': 'Session token missing'}, status=400)
+
+    # Deactivate the session associated with this user and token
+    updated = UserSession.objects.filter(
+        user=request.user,
+        session_token=session_token,
+        is_active=True
+    ).update(is_active=False)
+
+    return Response({
+        'message': 'Logged out',
+        'affected_sessions': updated
+    })
 
 
 @api_view(['GET'])

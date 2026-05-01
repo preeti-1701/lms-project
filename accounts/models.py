@@ -1,8 +1,10 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.contrib.auth import get_user_model
+from django.conf import settings
+from django.utils import timezone
 
-# Create your models here.
+
+# ===================== USER MODEL =====================
 class User(AbstractUser):
     ROLE_CHOICES = (
         ('admin', 'Admin'),
@@ -15,21 +17,21 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
-    
-session_token = models.CharField(max_length=500, blank=True, null=True)
 
-#Creating User Session Model
-User = get_user_model()
 
+# ===================== SESSION MODEL =====================
 class UserSession(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    session_key = models.CharField(max_length=200)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    # ✅ TEMP: allow null for migration safety
+    session_token = models.CharField(max_length=255, unique=True, null=True, blank=True)
 
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     device_info = models.TextField(null=True, blank=True)
 
-    login_time = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_activity = models.DateTimeField(default=timezone.now)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.ip_address}"
+        return f"{self.user.username} - {self.session_token}"

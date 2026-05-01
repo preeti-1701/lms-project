@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from './api';
+import ReadMoreText from './components/ReadMoreText';
 
 function StudentDashboard() {
   const navigate = useNavigate();
@@ -23,9 +24,17 @@ function StudentDashboard() {
     'U'
   ).toUpperCase();
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await api.post('/api/logout/');
+    } catch (e) {
+      // ignore
+    } finally {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('session_token');
+      localStorage.removeItem('user');
+      window.location.href = '/';
+    }
   };
 
   const fetchCourses = async () => {
@@ -82,7 +91,8 @@ function StudentDashboard() {
 
     if (!videoId) return url;
 
-    return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&disablekb=1&controls=1`;
+    // Return a watch URL (opens YouTube page) instead of embed
+    return `https://www.youtube.com/watch?v=${videoId}`;
   };
 
   const navItems = [
@@ -315,7 +325,10 @@ function StudentDashboard() {
                         <div>
                           <p className="text-xs uppercase tracking-[0.35em] text-cyan-300/80">Course</p>
                           <h4 className="mt-2 text-2xl font-semibold text-white">{course.course}</h4>
-                          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">{course.description}</p>
+                          <ReadMoreText
+                            text={course.description}
+                            className="mt-2 max-w-3xl text-sm leading-6 text-slate-300"
+                          />
                         </div>
 
                         <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right">
@@ -407,24 +420,55 @@ function InfoRow({ label, value }) {
 function VideoCard({ video, username, onMarkComplete, getEmbedUrl }) {
   return (
     <div className="group overflow-hidden rounded-[1.5rem] border border-white/10 bg-slate-900/70 shadow-lg shadow-slate-950/20 transition hover:-translate-y-1 hover:border-cyan-300/20">
-      <div className="relative aspect-video bg-black">
-        <div className="absolute left-3 top-3 z-10 rounded-lg bg-slate-950/80 px-3 py-1 text-xs text-white">
-          {username}
+        <div className="relative aspect-video bg-black flex items-center justify-center">
+          <div className="absolute left-3 top-3 z-10 rounded-lg bg-slate-950/80 px-3 py-1 text-xs text-white">
+            {username}
+          </div>
+
+          <div className="flex flex-col items-center gap-4">
+            {(() => {
+              let videoId = '';
+              const url = video.link || '';
+              if (url.includes('youtu.be')) {
+                videoId = url.split('/').pop();
+              } else if (url.includes('watch?v=')) {
+                videoId = url.split('v=')[1].split('&')[0];
+              }
+
+              if (videoId) {
+                return (
+                  <img
+                    src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
+                    alt={video.title}
+                    className="w-80 rounded-lg shadow-lg"
+                  />
+                );
+              }
+
+              return (
+                <div className="w-80 h-44 rounded-lg bg-gray-800 flex items-center justify-center text-sm text-slate-300">
+                  No preview available
+                </div>
+              );
+            })()}
+
+            <a
+              href={getEmbedUrl(video.link)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block rounded-lg bg-gradient-to-r from-cyan-400 to-blue-600 py-2 px-4 font-semibold text-white hover:opacity-90"
+            >
+              Watch on YouTube
+            </a>
+          </div>
         </div>
-        <iframe
-          width="100%"
-          height="100%"
-          src={getEmbedUrl(video.link)}
-          title={video.title}
-          frameBorder="0"
-          allow="encrypted-media"
-          allowFullScreen
-        />
-      </div>
 
       <div className="p-5">
         <h4 className="mb-2 text-lg font-semibold text-white">{video.title}</h4>
-        <p className="mb-4 text-sm leading-6 text-slate-300">{video.description}</p>
+        <ReadMoreText
+          text={video.description}
+          className="mb-4 text-sm leading-6 text-slate-300"
+        />
 
         <div className="mb-4">
           <span className={video.completed ? 'text-emerald-300' : 'text-amber-300'}>

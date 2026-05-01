@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from './api';
+import ReadMoreText from './components/ReadMoreText';
 
 function ManageCourses() {
   const navigate = useNavigate();
@@ -53,9 +54,10 @@ function ManageCourses() {
           {course.title}
         </h3>
 
-        <p className="text-slate-300 text-sm mb-4 line-clamp-2">
-          {course.description}
-        </p>
+        <ReadMoreText
+          text={course.description}
+          className="text-slate-300 text-sm mb-4"
+        />
 
         <div className="space-y-2 mb-4 text-sm">
           <p className="text-slate-400">
@@ -76,7 +78,7 @@ function ManageCourses() {
           </p>
           <p className="text-slate-400">
             <span className="text-cyan-400 font-semibold">Created By:</span>{' '}
-            <span className="text-slate-300">{course.trainer}</span>
+            <span className="text-slate-300">{course.created_by}</span>
           </p>
         </div>
 

@@ -1,8 +1,8 @@
 from django.http import JsonResponse
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from django.contrib.auth import get_user_model
+from rest_framework.authentication import TokenAuthentication
 
-User = get_user_model()
+from accounts.models import UserSession
+from accounts.utils import _check_session
 
 class SingleSessionMiddleware:
     def __init__(self, get_response):
@@ -11,21 +11,21 @@ class SingleSessionMiddleware:
     def __call__(self, request):
 
         if request.path.startswith('/api/'):
-            jwt_auth = JWTAuthentication()
+            token_auth = TokenAuthentication()
 
             try:
-                user_auth_tuple = jwt_auth.authenticate(request)
+                user_auth_tuple = token_auth.authenticate(request)
 
                 if user_auth_tuple is not None:
-                    user, token = user_auth_tuple
+                    user, _ = user_auth_tuple
+                    request.user = user
 
-                    # 🔥 Get session token from header
-                    session_token = request.headers.get('Session-Token')
+                    _, error_message, status_code = _check_session(request, touch=True)
 
-                    if user.session_token != session_token:
-                        return JsonResponse({'error': 'Session expired'}, status=401)
+                    if error_message:
+                        return JsonResponse({'error': error_message}, status=status_code)
 
             except Exception:
-                pass
+                return JsonResponse({'error': 'Unauthorized'}, status=401)
 
         return self.get_response(request)

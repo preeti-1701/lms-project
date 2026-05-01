@@ -59,22 +59,32 @@ const api = axios.create({
 // 🔐 Attach tokens
 api.interceptors.request.use((config) => {
 
-  const token = localStorage.getItem('access_token');
-  const sessionToken = localStorage.getItem('session_token');
+  const url = config.url || '';
+  
+  if (!url.includes('/login')) {
+    
+    const token = localStorage.getItem('access_token');
+    const sessionToken = localStorage.getItem('session_token');
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+    if (token) {
+      config.headers['Authorization'] = `Token ${token}`;
+    }
 
-  if (sessionToken) {
-    config.headers['Session-Token'] = sessionToken;
+    if (sessionToken) {
+      config.headers['Session-Token'] = sessionToken;
+    }
+    
+    // 🔥 ADD THIS
+    console.log("SESSION TOKEN:", sessionToken);
+    console.log("HEADERS SENT:", config.headers);
   }
 
   return config;
 });
 
+// 🚨 Handle session expiry (IMPROVED)
+let isRedirecting = false;
 
-// 🚨 Handle session expiry (FIXED)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -82,15 +92,42 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const url = error.config?.url || '';
 
-    // ❗ Skip login endpoint
+    // ❗ Ignore login endpoint
     if (url.includes('/login')) {
       return Promise.reject(error);
     }
 
-    if (status === 401) {
+    // 🔐 Handle expired/invalid session
+    if (status === 401 && !isRedirecting) {
+
+      const url = error.config?.url || '';
+      // ❗ Skip logout for safe endpoints (like initial load)
+      if (url.includes('/login')) {
+        return Promise.reject(error);
+      }
+
+      // ❗ Only logout if token actually exists
+      const token = localStorage.getItem('access_token');
+
+      if (!token) {
+        return Promise.reject(error);
+      }
+
+      isRedirecting = true;
+
+      console.warn("Session expired → clearing tokens");
+
+      // Remove auth and user cache to avoid stale app state
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('session_token');
+      localStorage.removeItem('user');
+
       alert("Session expired. Please login again.");
-      localStorage.clear();
-      window.location.href = '/login';
+
+      // Avoid redirect loop
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
     }
 
     return Promise.reject(error);

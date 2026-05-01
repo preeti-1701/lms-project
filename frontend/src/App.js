@@ -1,5 +1,6 @@
 import './App.css';
 import React, { useEffect, useState } from 'react';
+import api from './api';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 /* Pages */
@@ -153,11 +154,17 @@ function App() {
 
   /* ========================= Logout========================= */
   const handleLogout = () => {
-
-    localStorage.clear();
-    setUser(null);
-    window.location.href = '/';
-
+    (async () => {
+      try {
+        await api.post('/api/logout/');
+      } catch (e) {
+        // ignore
+      } finally {
+        localStorage.clear();
+        setUser(null);
+        window.location.href = '/';
+      }
+    })();
   };
 
 
