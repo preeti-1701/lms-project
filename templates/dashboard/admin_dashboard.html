@@ -1,8 +1,136 @@
 {% include 'base/header.html' %}
 
 <div class="container mt-5">
-    <h1>Admin Dashboard</h1>
-    <p>Welcome Admin</p>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h1 class="fw-bold">
+                Admin Dashboard
+            </h1>
+
+            <p class="text-muted">
+                Monitor users, courses, and LMS activity.
+            </p>
+
+        </div>
+
+        <span class="badge bg-danger fs-6 p-2">
+            Admin
+        </span>
+
+    </div>
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-4">
+
+            <div class="card dashboard-card p-4 text-center h-100">
+
+                <h1 class="fw-bold">
+                    {{ user_count }}
+                </h1>
+
+                <p class="text-muted mb-0">
+                    Total Users
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="card dashboard-card p-4 text-center h-100">
+
+                <h1 class="fw-bold">
+                    {{ course_count }}
+                </h1>
+
+                <p class="text-muted mb-0">
+                    Total Courses
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-md-4">
+
+            <div class="card dashboard-card p-4 h-100">
+
+                <h3>
+                    Manage Users
+                </h3>
+
+                <p class="text-muted">
+                    View and manage students/trainers.
+                </p>
+
+                <a href="/admin/users/customuser/"
+                   class="btn btn-dark mt-2">
+
+                   Open Users
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="card dashboard-card p-4 h-100">
+
+                <h3>
+                    Manage Courses
+                </h3>
+
+                <p class="text-muted">
+                    Create and manage LMS courses.
+                </p>
+
+                <a href="/admin/courses/course/"
+                   class="btn btn-primary mt-2">
+
+                   Open Courses
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="card dashboard-card p-4 h-100">
+
+                <h3>
+                    View Platform
+                </h3>
+
+                <p class="text-muted">
+                    Access complete LMS course data.
+                </p>
+
+                <a href="{% url 'courses' %}"
+                   class="btn btn-success mt-2">
+
+                   View Courses
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
 
 {% include 'base/footer.html' %}

@@ -13,6 +13,7 @@ class CustomUser(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
     last_login_ip = models.GenericIPAddressField(null=True, blank=True)
     device_info = models.TextField(null=True, blank=True)
+    current_session_key = models.CharField(max_length=40, null=True, blank=True)
 
     def __str__(self):
         return self.username
