@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}{{ course.title }} — Coursify{% endblock %}
+
+{% block content %}
+<section class="course-hero">
+    <div class="course-hero-inner">
+        <div>
+            <div class="emoji">{{ course.thumbnail_emoji }}</div>
+            <div class="course-meta">
+                <span class="tag">{{ course.level|title }}</span>
+                <span class="tag">{{ course.category }}</span>
+            </div>
+            <h1>{{ course.title }}</h1>
+            <p class="desc">{{ course.description }}</p>
+            <div class="meta-row">
+                <span>
+                    <span class="instructor-avatar" style="background: {{ course.instructor.avatar_color }}; width: 28px; height: 28px;">
+                        {{ course.instructor.initials }}
+                    </span>
+                    {{ course.instructor.first_name }} {{ course.instructor.last_name }}
+                </span>
+                <span>📖 {{ course.lesson_count }} lessons</span>
+                <span>👥 {{ course.enrollment_count }} students</span>
+                {% if quizzes %}<span>🧠 {{ quizzes|length }} quiz{{ quizzes|length|pluralize:"zes" }}</span>{% endif %}
+            </div>
+        </div>
+        <aside class="enroll-panel">
+            <div class="label">Free access</div>
+            <div class="headline">Start learning</div>
+            {% if user.is_authenticated and user.is_student %}
+                {% if is_enrolled %}
+                    <div style="margin-bottom:1rem; font-size:0.9rem; color: var(--mist)">
+                        Your progress: <strong style="color: var(--lime)">{{ enrollment.progress_percent }}%</strong>
+                    </div>
+                    <div class="progress-bar" style="margin-bottom: 1rem">
+                        <div class="progress-fill" style="width: {{ enrollment.progress_percent }}%"></div>
+                    </div>
+                    {% if lessons %}
+                        <a href="{% url 'lesson' course.slug lessons.0.id %}" class="btn btn-primary">
+                            {% if enrollment.progress_percent == 0 %}Start course →{% else %}Continue →{% endif %}
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <form method="post" action="{% url 'enroll_course' course.slug %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">Enroll now →</button>
+                    </form>
+                {% endif %}
+            {% elif user.is_authenticated and user.is_instructor %}
+                <p style="color: var(--mist); font-size: 0.9rem">Instructor accounts cannot enroll in courses.</p>
+            {% else %}
+                <a href="{% url 'signup' %}" class="btn btn-primary">Sign up to enroll</a>
+            {% endif %}
+        </aside>
+    </div>
+</section>
+
+<section class="lessons-list">
+    <h2 style="font-family: var(--font-display); font-size: 2rem; font-weight: 700; margin-bottom: 2rem; letter-spacing: -0.01em;">
+        Course <em style="font-style: italic; color: var(--lime); font-weight: 400;">content</em>
+    </h2>
+    {% for lesson in lessons %}
+        {% if is_enrolled %}
+            <a href="{% url 'lesson' course.slug lesson.id %}" style="display:block">
+        {% endif %}
+        <div class="lesson-item">
+            <div class="num">{{ forloop.counter|stringformat:"02d" }}</div>
+            <div>
+                <div class="title">{{ lesson.title }}</div>
+                <div class="duration">⏱ {{ lesson.duration_minutes }} min</div>
+            </div>
+            <div>
+                {% if is_enrolled %}
+                    <span style="color: var(--lime); font-family: var(--font-mono); font-size: 0.85rem">→</span>
+                {% else %}
+                    <span style="color: var(--mist); font-size: 0.85rem">🔒</span>
+                {% endif %}
+            </div>
+        </div>
+        {% if is_enrolled %}</a>{% endif %}
+    {% empty %}
+        <div class="empty">
+            <div class="icon">📝</div>
+            <p>No lessons added yet.</p>
+        </div>
+    {% endfor %}
+
+    {% if quizzes %}
+        <h2 style="font-family: var(--font-display); font-size: 2rem; font-weight: 700; margin: 3rem 0 2rem; letter-spacing: -0.01em;">
+            <em style="font-style: italic; color: var(--lime); font-weight: 400;">Quizzes</em>
+        </h2>
+        {% for quiz in quizzes %}
+            <div class="lesson-item">
+                <div class="num">🧠</div>
+                <div>
+                    <div class="title">{{ quiz.title }}</div>
+                    <div class="duration">{{ quiz.question_count }} questions · Pass at {{ quiz.pass_score }}%</div>
+                </div>
+                <div>
+                    {% if is_enrolled %}
+                        <a href="{% url 'take_quiz' quiz.id %}" class="btn btn-primary" style="padding: 0.5rem 1rem">Take →</a>
+                    {% else %}
+                        <span style="color: var(--mist)">🔒</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</section>
+{% endblock %}

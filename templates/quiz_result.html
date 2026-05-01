@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Quiz Result — {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="quiz-result">
+    <div class="kicker" style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--lime); text-transform: uppercase; letter-spacing: 0.15em">
+        ◆ Result
+    </div>
+    <h1 style="font-family: var(--font-display); font-size: 3rem; font-weight: 700; letter-spacing: -0.02em; margin-top: 1rem">
+        {% if attempt.passed %}
+            You <em style="font-style: italic; color: var(--lime); font-weight: 400">passed!</em> 🎉
+        {% else %}
+            Not quite <em style="font-style: italic; color: var(--danger); font-weight: 400">yet</em>.
+        {% endif %}
+    </h1>
+
+    <div class="score-ring {% if not attempt.passed %}failed{% endif %}">
+        <div class="score">{{ attempt.score }}<span style="font-size: 1.5rem">%</span></div>
+        <div class="label">{{ correct }} / {{ total }} correct</div>
+    </div>
+
+    <p style="color: var(--mist); margin-bottom: 2rem">
+        {% if attempt.passed %}
+            Great work — you scored above the {{ quiz.pass_score }}% passing threshold.
+        {% else %}
+            You needed {{ quiz.pass_score }}% to pass. Review the lessons and try again.
+        {% endif %}
+    </p>
+
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap">
+        <a href="{% url 'course_detail' quiz.course.slug %}" class="btn btn-secondary">Back to course</a>
+        <a href="{% url 'take_quiz' quiz.id %}" class="btn btn-primary">Try again →</a>
+    </div>
+</div>
+{% endblock %}
