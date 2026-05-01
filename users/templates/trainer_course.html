@@ -1,3 +1,7 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
 <h2>{{ course.title }}</h2>
 
 <h3>Videos</h3>
@@ -30,3 +34,24 @@
 {% empty %}
     <p>No videos added</p>
 {% endfor %}
+
+<form method="POST">
+    {% csrf_token %}
+    <button name="toggle_status">Toggle Active</button>
+</form>
+
+<p>Status:
+{% if course.is_active %}
+    Active ✅
+{% else %}
+    Inactive ❌
+{% endif %}
+</p>
+
+<h3>Students</h3>
+
+{% for en in enrollments %}
+    <p>{{ en.student }} - {{ en.progress }}%</p>
+{% endfor %}
+
+{% endblock %}

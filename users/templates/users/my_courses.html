@@ -1,9 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
 <h2>My Courses</h2>
 
 {% for e in enrollments %}
     <div>
         <h3>{{ e.course.title }}</h3>
 
-        <a href="/course/{{ e.course.id }}/">View Videos</a>
+        <a href="/course/{{ course.id }}/">View Videos</a>
     </div>
 {% endfor %}
+
+{% endblock %}

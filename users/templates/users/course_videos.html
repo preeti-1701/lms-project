@@ -1,3 +1,8 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,19 +11,53 @@
 
 <body>
 
+<!-- 🔥 WATERMARK -->
+<div style="
+    position: fixed;
+    top: 0;
+    right: 0;
+    background: red;
+    color: white;
+    padding: 10px;
+    font-size: 18px;
+    z-index: 999999;
+">
+    USER ID: {{ user_id }}
+</div>
+
 <h1>{{ course.title }} Videos</h1>
 
 {% for video in videos %}
-    <div style="margin-bottom:20px;">
+    <div>
         <h3>{{ video.title }}</h3>
-
-        <a href="{{ video.youtube_link }}" target="_blank">
-            ▶ Watch Video
-        </a>
+        <a href="{{ video.youtube_link }}" target="_blank">▶ Watch</a>
     </div>
-{% empty %}
-    <p>No videos available for this course.</p>
 {% endfor %}
 
+<hr>
+
+<h3>Progress: {{ progress|default:0 }}%</h3>
+
+<div style="width:300px; height:25px; background:#ddd; border-radius:5px; overflow:hidden;">
+    
+    <div style="background:green; height:100%; border-radius:5px;"
+         data-width="{{ progress|default:0 }}">
+         
+        <span style="color:white; padding-left:10px;">
+            {{ progress|default:0 }}%
+        </span>
+
+    </div>
+
+</div>
+
+<script>
+    const bar = document.querySelector('[data-width]');
+    if (bar) {
+        bar.style.width = bar.getAttribute('data-width') + '%';
+    }
+</script>
 </body>
 </html>
+
+{% endblock %}

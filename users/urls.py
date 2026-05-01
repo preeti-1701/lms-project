@@ -19,4 +19,7 @@ urlpatterns = [
     path('logout/', logout_view, name='logout'),
     path('trainer/', views.trainer_dashboard, name='trainer_dashboard'),
     path('trainer/course/<int:id>/', views.trainer_course, name='trainer_course'),
+    path('accounts/login/', login_view),
+    path('certificate/<int:course_id>/', views.generate_certificate),
+    path('course/<int:course_id>/', views.course_videos),
 ]

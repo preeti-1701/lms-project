@@ -31,12 +31,15 @@ class Course(models.Model):
     def __str__(self):
         return self.title
     
+    is_active = models.BooleanField(default=True)
+    
 class Enrollment(models.Model):
     student = models.ForeignKey(User, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.student.name} - {self.course.title}"
+    progress = models.IntegerField(default=0)
     
     from django.db import models
 
@@ -47,3 +50,5 @@ class Video(models.Model):
 
     def __str__(self):
         return self.title
+    
+    

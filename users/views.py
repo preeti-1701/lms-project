@@ -1,33 +1,28 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from .models import User, Course
-from .models import Enrollment
-from .models import Video
-from .models import Video , Course , Enrollment , User
-from django.http import HttpResponse
+
+# ✅ use ONLY CustomUser
+from .models import User as CustomUser
 from .models import Course, Video, Enrollment
-from django.contrib.auth import authenticate, login
-from .models import User
 
 
-# LOGIN
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
-
-from django.shortcuts import render, redirect
-from .models import User
-
+# ================= LOGIN =================
 def login_view(request):
     if request.method == "POST":
         email = request.POST.get("email")
         password = request.POST.get("password")
 
         try:
-            user = User.objects.get(email=email, password=password)
+            user = CustomUser.objects.get(email=email, password=password)
 
-            # ✅ correct indentation (4 spaces)
             request.session['user_id'] = user.id
+            request.session['user_email'] = user.email
             request.session['role'] = user.role
+
+            # handle next redirect
+            next_url = request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
 
             if user.role == "trainer":
                 return redirect('/trainer/')
@@ -41,53 +36,55 @@ def login_view(request):
 
     return render(request, 'users/login.html')
 
-# DASHBOARD
+
+# ================= DASHBOARD =================
 def dashboard(request):
     if request.session.get('role') != "student":
         return render(request, 'users/access_denied.html')
 
     return render(request, 'users/dashboard.html')
 
-# ADD COURSE (Trainer)
+
+# ================= ADD COURSE =================
 def add_course(request):
-    email = request.GET.get('email')
-    user = User.objects.get(email=email)
+    user_id = request.session.get('user_id')
+
+    if not user_id:
+        return redirect('/login/')
+
+    user = CustomUser.objects.get(id=user_id)
+
+    if user.role != "trainer":
+        return HttpResponse("Access Denied ❌")
 
     if request.method == "POST":
-        title = request.POST.get('title')
-        description = request.POST.get('description')
-        topics = request.POST.get('topics')
-        duration = request.POST.get('duration')
-        status = request.POST.get('status')
-
         Course.objects.create(
-            title=title,
-            description=description,
+            title=request.POST.get('title'),
+            description=request.POST.get('description'),
             trainer=user,
-            topics=topics,
-            duration=duration,
-            status=status
+            topics=request.POST.get('topics'),
+            duration=request.POST.get('duration'),
+            status=request.POST.get('status')
         )
-
         return HttpResponse("Course Added ✅")
 
-    return render(request, 'users/add_course.html', {'email': email})
+    return render(request, 'users/add_course.html')
 
-# VIEW COURSES (Student)
+
+# ================= VIEW COURSES =================
 def view_courses(request):
-    courses = Course.objects.all()
+    courses = Course.objects.filter(is_active=True)
+    return render(request, 'users/view_courses.html', {'courses': courses})
 
-    return render(request, 'users/view_courses.html', {
-        'courses': courses
-    })
 
+# ================= ENROLL =================
 def enroll(request):
     user_id = request.session.get('user_id')
 
     if not user_id:
         return HttpResponse("Login first")
 
-    user = User.objects.get(id=user_id)
+    user = CustomUser.objects.get(id=user_id)
 
     course_id = request.GET.get('course_id')
     course = Course.objects.get(id=course_id)
@@ -99,13 +96,15 @@ def enroll(request):
 
     return HttpResponse("Enrolled successfully")
 
+
+# ================= MY COURSES =================
 def my_courses(request):
     user_id = request.session.get('user_id')
 
     if not user_id:
         return HttpResponse("Login first")
 
-    user = User.objects.get(id=user_id)
+    user = CustomUser.objects.get(id=user_id)
 
     enrollments = Enrollment.objects.filter(student=user)
 
@@ -113,94 +112,114 @@ def my_courses(request):
         'enrollments': enrollments
     })
 
-def dashboard(request):
-    if request.session.get('role') != "student":
-        return render(request, 'users/access_denied.html')
 
-    return render(request, 'users/dashboard.html')
-
-from .models import Video, Course
-
-from django.http import HttpResponse
-from .models import Video, Course, Enrollment, User
-
+# ================= COURSE VIDEOS =================
 def course_videos(request, course_id):
+    print("INSIDE COURSE VIDEOS")   # DEBUG
+
     course = Course.objects.get(id=course_id)
 
-    # get user from session
     user_id = request.session.get('user_id')
-
     if not user_id:
-        return HttpResponse("Please login first")
+        return HttpResponse("Login first")
 
-    user = User.objects.get(id=user_id)
+    user = CustomUser.objects.get(id=user_id)
 
-    is_enrolled = Enrollment.objects.filter(
-        student=user,
-        course=course
-    ).exists()
-
-    if not is_enrolled:
-        return HttpResponse("You are not enrolled in this course")
+    enrollment = Enrollment.objects.get(student=user, course=course)
 
     videos = Video.objects.filter(course=course)
 
     return render(request, 'users/course_videos.html', {
         'course': course,
-        'videos': videos
+        'videos': videos,
+        'progress': enrollment.progress,
+        'user_id': user_id
     })
-
+# ================= LOGOUT =================
 def logout_view(request):
-    request.session.flush()   # clears session (logs out user)
-    return redirect('/login/')  # goes back to login page
+    request.session.flush()
+    return redirect('/login/')
 
-from django.contrib.auth.decorators import login_required
 
-@login_required
+# ================= TRAINER DASHBOARD =================
 def trainer_dashboard(request):
-    if request.session.get('role') != "trainer":
-        return render(request, 'users/access_denied.html')
-
     user_id = request.session.get('user_id')
 
-    courses = Course.objects.filter(trainer_id=user_id)
+    if not user_id:
+        return redirect('/login/')
+
+    user = CustomUser.objects.get(id=user_id)
+
+    if user.role != "trainer":
+        return render(request, 'users/access_denied.html')
+
+    courses = Course.objects.filter(trainer=user)
 
     return render(request, 'trainer_dashboard.html', {
         'courses': courses
     })
 
 
+# ================= TRAINER COURSE =================
 def trainer_course(request, id):
     user_id = request.session.get('user_id')
 
     if not user_id:
         return redirect('/login/')
 
-    user = User.objects.get(id=user_id)
+    user = CustomUser.objects.get(id=user_id)
 
     if user.role != "trainer":
         return HttpResponse("Access Denied ❌")
 
     course = Course.objects.get(id=id)
 
-    videos = Video.objects.filter(course=course)
+    # ensure trainer owns this course
+    if course.trainer != user:
+        return HttpResponse("Access Denied ❌")
 
+    videos = Video.objects.filter(course=course)
     enrollments = Enrollment.objects.filter(course=course)
     students = [en.student for en in enrollments]
 
-    # ADD VIDEO
     if request.method == "POST":
-        title = request.POST.get('title')
-        link = request.POST.get('youtube_link')
-
         Video.objects.create(
-            title=title,
-            youtube_link=link,
+            title=request.POST.get('title'),
+            youtube_link=request.POST.get('youtube_link'),
             course=course
         )
+
+        if request.method == "POST":
+           if "toggle_status" in request.POST:
+               course.is_active = not course.is_active
+        course.save()
 
     return render(request, 'trainer_course.html', {
         'course': course,
         'videos': videos,
         'students': students
     })
+
+from reportlab.pdfgen import canvas
+from django.http import HttpResponse
+
+def generate_certificate(request, course_id):
+    user_id = request.session.get('user_id')
+    user = CustomUser.objects.get(id=user_id)
+    course = Course.objects.get(id=course_id)
+
+    enrollment = Enrollment.objects.get(student=user, course=course)
+
+    if enrollment.progress < 100:
+        return HttpResponse("Complete course first")
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
+
+    p = canvas.Canvas(response)
+    p.drawString(200, 750, "Certificate of Completion")
+    p.drawString(200, 700, f"{user}")
+    p.drawString(200, 650, f"Completed {course.title}")
+
+    p.save()
+    return response
