@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Users</h2>
+
+{% for user in users %}
+    <p>{{ user.name }} - {{ user.email }}</p>
+{% empty %}
+    <p>No users available</p>
+{% endfor %}
+
+<a href="/">Go Back</a>
+
+</body>
+</html>
