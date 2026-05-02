@@ -1,34 +1,454 @@
-{% extends 'base.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trainer Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-hover: #7c3aed;
+            --bg-dark: #1f2937;
+            --bg-light: #f3f4f6;
+            --text-dark: #111827;
+            --text-muted: #6b7280;
+            --card-bg: #ffffff;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
 
-{% block title %}Trainer Dashboard - LMS{% endblock %}
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-light); color: var(--text-dark); display: flex; height: 100vh; overflow: hidden; }
 
-{% block content %}
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <h1>Trainer Dashboard</h1>
-        <span class="btn btn-outline" style="border-color: #f59e0b; color: #f59e0b;">Role: {{ user.get_role_display }}</span>
-    </div>
+        /* Sidebar */
+        .sidebar { width: 280px; background-color: var(--bg-dark); color: #fff; display: flex; flex-direction: column; z-index: 100; box-shadow: 4px 0 10px rgba(0,0,0,0.05); }
+        .sidebar-header { padding: 30px 24px; font-size: 24px; font-weight: 700; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); color: #fff; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .sidebar-header i { color: var(--primary); font-size: 28px; }
+        .sidebar-menu { flex: 1; padding: 20px 0; overflow-y: auto; }
+        .menu-item { padding: 16px 30px; display: flex; align-items: center; color: #9ca3af; text-decoration: none; transition: all 0.3s ease; cursor: pointer; border-left: 4px solid transparent; font-weight: 500; font-size: 15px; }
+        .menu-item i { margin-right: 18px; width: 20px; text-align: center; font-size: 18px; transition: transform 0.3s ease; }
+        .menu-item:hover { background-color: rgba(255,255,255,0.03); color: #fff; }
+        .menu-item:hover i { transform: translateX(3px); color: var(--primary); }
+        .menu-item.active { background-color: rgba(139,92,246,0.1); color: #fff; border-left-color: var(--primary); }
+        .menu-item.active i { color: var(--primary); }
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
-        <!-- Assigned Courses -->
-        <div class="card">
-            <h3>My Assigned Courses</h3>
-            <p style="color: var(--text-light); margin: 1rem 0;"></p>
-            <ul style="list-style: none; padding: 0;">
-                <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">No courses assigned yet.</li>
-            </ul>
-        </div>
+        /* Submenu */
+        .submenu { display: none; background: rgba(0,0,0,0.2); padding: 5px 0; }
+        .submenu.open { display: block; }
+        .submenu-item { padding: 12px 30px 12px 65px; color: #9ca3af; cursor: pointer; font-size: 14px; transition: color 0.2s; }
+        .submenu-item:hover, .submenu-item.active { color: #fff; }
 
-        <!-- Course Management -->
-        <div class="card">
-            <h3>Course Management</h3>
-            <p style="color: var(--text-light); margin-bottom: 1.5rem;">Manage your learning materials.</p>
-            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                <button class="btn btn-primary" disabled>Add New Material</button>
-                <button class="btn btn-outline" disabled>Upload YouTube Link</button>
-                <button class="btn btn-outline" disabled>View Student Progress</button>
+        /* Main Content */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar { height: 80px; background-color: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 40px; z-index: 90; }
+        .topbar-title { font-size: 22px; font-weight: 700; color: var(--text-dark); }
+        .user-profile { display: flex; align-items: center; gap: 15px; background: #fff; padding: 8px 16px; border-radius: 30px; border: 1px solid var(--border); box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        .user-info { text-align: right; }
+        .user-name { font-weight: 600; font-size: 14px; }
+        .user-role { font-size: 12px; color: var(--text-muted); }
+        .avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #a78bfa); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; }
+
+        .content-area { flex: 1; padding: 40px; overflow-y: auto; scroll-behavior: smooth; }
+        .content-section { display: none; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .content-section.active { display: block; }
+        @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 30px; }
+        .stat-card { background: var(--card-bg); padding: 28px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: space-between; transition: transform 0.3s; position: relative; overflow: hidden; }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--primary), #a78bfa); opacity: 0; transition: opacity 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 12px 25px rgba(0,0,0,0.06); }
+        .stat-card:hover::before { opacity: 1; }
+        .stat-info h4 { font-size: 14px; color: var(--text-muted); font-weight: 600; margin-bottom: 8px; text-transform: uppercase; }
+        .stat-info h2 { font-size: 32px; font-weight: 700; color: var(--text-dark); }
+        .stat-icon { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+        .icon-primary { background: rgba(139,92,246,0.1); color: var(--primary); }
+
+        /* Cards & Tables */
+        .card-panel { background: var(--card-bg); border-radius: 20px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); margin-bottom: 30px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .card-title { font-size: 20px; font-weight: 700; }
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 12px; background: rgba(243,244,246,0.5); }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background-color: rgba(139,92,246,0.02); }
+        
+        .badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge-draft { background: #f3f4f6; color: #4b5563; }
+        .badge-published { background: rgba(16,185,129,0.1); color: var(--success); }
+        .badge-primary { background: rgba(139,92,246,0.1); color: var(--primary); }
+
+        /* Buttons */
+        .btn { padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), #a78bfa); color: white; box-shadow: 0 4px 10px rgba(139,92,246,0.2); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(139,92,246,0.3); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-dark); }
+        .btn-outline:hover { background: var(--bg-light); border-color: var(--text-muted); }
+        .btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 6px; }
+        .btn-icon { width: 34px; height: 34px; padding: 0; border-radius: 8px; }
+        .btn-danger { background: rgba(239,68,68,0.1); color: var(--danger); }
+        
+        /* Actions */
+        .actions-group { display: flex; gap: 8px; }
+        
+        /* Forms */
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; }
+        .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; transition: all 0.2s; background: #fafbfe; }
+        .form-control:focus { outline: none; border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(139,92,246,0.1); }
+        select.form-control { cursor: pointer; }
+        
+        /* Toolbar */
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        .search-bar { display: flex; align-items: center; background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; padding: 10px 16px; width: 320px; }
+        .search-bar input { border: none; background: transparent; outline: none; width: 100%; padding-left: 12px; font-size: 14px; }
+        
+        /* Alert */
+        .alert { padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; font-weight: 500; display: flex; align-items: center; gap: 10px; }
+        .alert-success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: var(--success); }
+        
+        /* Video Items */
+        .video-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #fafbfe; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; }
+        .video-title { display: flex; align-items: center; gap: 15px; font-weight: 500; }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <a href="#" class="sidebar-header">
+            <i class="fa-solid fa-graduation-cap"></i>
+            <span>Trainer Portal</span>
+        </a>
+        <div class="sidebar-menu">
+            <div class="menu-item active" onclick="switchTab('dashboard', this)">
+                <i class="fa-solid fa-chart-pie"></i> Dashboard
+            </div>
+            
+            <div class="menu-item" onclick="toggleSubmenu('coursesMenu', this)">
+                <i class="fa-solid fa-book-open"></i> My Courses
+                <i class="fa-solid fa-chevron-down" style="margin-left: auto; margin-right: 0; font-size: 14px;"></i>
+            </div>
+            <div class="submenu" id="coursesMenu">
+                <div class="submenu-item" onclick="switchTab('course-list', this)">View All Courses</div>
+                <div class="submenu-item" onclick="switchTab('create-course', this)">Create Course</div>
+            </div>
+            
+            <div class="menu-item" onclick="switchTab('students', this)">
+                <i class="fa-solid fa-users"></i> Enrolled Students
+            </div>
+            
+            <div style="margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+                <form action="{% url 'logout' %}" method="post" style="display:inline;" id="logout-form">
+                    {% csrf_token %}
+                    <div class="menu-item" style="color: #ef4444;" onclick="document.getElementById('logout-form').submit();">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
+
+    <!-- Main Content -->
+    <div class="main-wrapper">
+        <header class="topbar">
+            <div class="topbar-title" id="topbar-title">Dashboard Overview</div>
+            <div class="user-profile">
+                <div class="user-info">
+                    <div class="user-name">{{ user.full_name }}</div>
+                    <div class="user-role">{{ user.get_role_display }}</div>
+                </div>
+                <div class="avatar">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-area">
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success">
+                        <i class="fa-solid fa-circle-check"></i> {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- 1. DASHBOARD OVERVIEW -->
+            <section id="dashboard" class="content-section active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h4>My Courses</h4>
+                            <h2>{{ total_courses }}</h2>
+                        </div>
+                        <div class="stat-icon icon-primary"><i class="fa-solid fa-book"></i></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h4>Uploaded Videos</h4>
+                            <h2>{{ total_videos }}</h2>
+                        </div>
+                        <div class="stat-icon icon-primary"><i class="fa-solid fa-video"></i></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h4>Total Enrolled Students</h4>
+                            <h2>{{ total_students }}</h2>
+                        </div>
+                        <div class="stat-icon icon-primary"><i class="fa-solid fa-user-graduate"></i></div>
+                    </div>
+                </div>
+
+                <div class="card-panel">
+                    <div class="card-header">
+                        <div class="card-title">Recently Created Courses</div>
+                        <button class="btn btn-outline btn-sm" onclick="switchTab('course-list')">View All</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <tr>
+                                <th>Course Title</th>
+                                <th>Difficulty</th>
+                                <th>Status</th>
+                                <th>Created On</th>
+                            </tr>
+                            {% for course in my_courses|slice:":5" %}
+                            <tr>
+                                <td><strong>{{ course.title }}</strong></td>
+                                <td><span class="badge badge-primary">{{ course.get_difficulty_level_display }}</span></td>
+                                <td>
+                                    {% if course.status == 'PUBLISHED' %}
+                                        <span class="badge badge-published">Published</span>
+                                    {% else %}
+                                        <span class="badge badge-draft">Draft</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ course.created_at|date:"M d, Y" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4">You haven't created any courses yet.</td></tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. COURSE LIST -->
+            <section id="course-list" class="content-section">
+                <div class="card-panel">
+                    <div class="toolbar">
+                        <div class="search-bar">
+                            <i class="fa-solid fa-search"></i>
+                            <input type="text" placeholder="Search my courses...">
+                        </div>
+                        <button class="btn btn-primary" onclick="switchTab('create-course')"><i class="fa-solid fa-plus"></i> Create New Course</button>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Course Title</th>
+                                    <th>Status</th>
+                                    <th>Videos</th>
+                                    <th>Enrolled</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in my_courses %}
+                                <tr>
+                                    <td><strong>{{ course.title }}</strong></td>
+                                    <td>
+                                        {% if course.status == 'PUBLISHED' %}
+                                            <span class="badge badge-published">Published</span>
+                                        {% else %}
+                                            <span class="badge badge-draft">Draft</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ course.videos.count }} Videos</td>
+                                    <td>{{ course.enrollments.count }} Students</td>
+                                    <td>
+                                        <div class="actions-group">
+                                            <a href="{% url 'manage_course_videos' course.id %}" class="btn btn-outline btn-sm"><i class="fa-solid fa-video"></i> Manage Videos</a>
+                                            <button class="btn btn-outline btn-icon" title="Edit Course"><i class="fa-solid fa-pen"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="5">You have no courses. Start by creating one!</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. CREATE COURSE FORM -->
+            <section id="create-course" class="content-section">
+                <div class="card-panel" style="max-width: 800px; margin: 0 auto;">
+                    <div class="card-header">
+                        <div class="card-title">Create a New Course</div>
+                        <button class="btn btn-outline btn-sm" onclick="switchTab('course-list')"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                    </div>
+                    
+                    <form method="POST" action="{% url 'trainer_dashboard' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="create_course">
+                        
+                        <div class="form-group">
+                            <label class="form-label">Course Title *</label>
+                            <input type="text" name="title" class="form-control" required placeholder="e.g. Master React in 30 Days">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Description</label>
+                            <textarea name="description" class="form-control" rows="4" placeholder="What will students learn in this course?"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Thumbnail URL or Base64</label>
+                            <input type="text" name="thumbnail" class="form-control" placeholder="https://example.com/image.png or data:image/png;base64,...">
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="form-group">
+                                <label class="form-label">Difficulty Level</label>
+                                <select name="difficulty_level" class="form-control">
+                                    <option value="BEGINNER">Beginner</option>
+                                    <option value="INTERMEDIATE">Intermediate</option>
+                                    <option value="ADVANCED">Advanced</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Publish Status</label>
+                                <select name="status" class="form-control">
+                                    <option value="DRAFT">Draft (Not visible to students)</option>
+                                    <option value="PUBLISHED">Published (Live)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 15px;">
+                            <button type="button" class="btn btn-outline" onclick="switchTab('course-list')">Cancel</button>
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Save Course</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Removed Global Manage Videos UI -->
+
+            <!-- 5. ENROLLED STUDENTS -->
+            <section id="students" class="content-section">
+                <div class="card-panel">
+                    <div class="toolbar">
+                        <div class="search-bar">
+                            <i class="fa-solid fa-search"></i>
+                            <input type="text" placeholder="Search student name or email...">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <select class="form-control" style="width: 250px;">
+                                <option value="">Filter by Course (All)</option>
+                                {% for course in my_courses %}
+                                <option value="{{ course.id }}">{{ course.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Email Address</th>
+                                    <th>Enrolled Course</th>
+                                    <th>Enrollment Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for enrollment in my_enrollments %}
+                                <tr>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <div class="avatar" style="width: 32px; height: 32px; font-size: 12px;">{{ enrollment.student.full_name|make_list|first }}</div>
+                                            <strong>{{ enrollment.student.full_name }}</strong>
+                                        </div>
+                                    </td>
+                                    <td>{{ enrollment.student.email }}</td>
+                                    <td><span class="badge badge-primary">{{ enrollment.course.title }}</span></td>
+                                    <td>{{ enrollment.enrolled_at|date:"M d, Y" }}</td>
+                                    <td><button class="btn btn-outline btn-sm">View Profile</button></td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="5">No students are currently enrolled in your courses.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <script>
+        function toggleSubmenu(id, el) {
+            const submenu = document.getElementById(id);
+            submenu.classList.toggle('open');
+            
+            // Remove active from all main menu items
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function switchTab(tabId, el) {
+            // Manage Active States
+            if (el) {
+                if (el.classList.contains('submenu-item')) {
+                    document.querySelectorAll('.submenu-item').forEach(item => item.classList.remove('active'));
+                    el.classList.add('active');
+                } else if (el.classList.contains('menu-item')) {
+                    document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+                    el.classList.add('active');
+                    // Close submenus if clicking a direct menu item that isn't the submenu parent
+                    if (!el.nextElementSibling || !el.nextElementSibling.classList.contains('submenu')) {
+                        document.querySelectorAll('.submenu').forEach(sub => sub.classList.remove('open'));
+                    }
+                }
+            }
+
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Show selected section
+            const targetSection = document.getElementById(tabId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+                
+                // Update Topbar Title
+                const titleMap = {
+                    'dashboard': 'Dashboard Overview',
+                    'course-list': 'My Courses',
+                    'create-course': 'Create New Course',
+                    'students': 'Enrolled Students'
+                };
+                document.getElementById('topbar-title').innerText = titleMap[tabId] || 'Trainer Portal';
+            }
+        }
+    </script>
+</body>
+</html>

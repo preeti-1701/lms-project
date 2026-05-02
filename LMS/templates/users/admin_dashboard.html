@@ -1,41 +1,1300 @@
-{% extends 'base.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
 
-{% block title %}Admin Dashboard - LMS{% endblock %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMS Admin Dashboard</title>
+    <!-- Modern Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-{% block content %}
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <h1>Admin Control Panel</h1>
-        <span class="btn btn-outline">Role: {{ user.get_role_display }}</span>
-    </div>
+    <style>
+        :root {
+            /* Vibrant Modern Palette */
+            --primary: #4361ee;
+            --primary-hover: #3a53cc;
+            --secondary: #3f3f46;
+            --bg-dark: #1e1e2d;
+            /* Sidebar bg */
+            --bg-light: #f4f7fe;
+            /* Main content bg */
+            --text-dark: #2b3674;
+            --text-muted: #8f9bba;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+        }
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
-        <!-- User Management Card -->
-        <div class="card" style="border-left: 5px solid var(--primary);">
-            <h3 style="margin-bottom: 1rem;">User Management</h3>
-            <p style="color: var(--text-light); margin-bottom: 1.5rem;">Manage trainers and students in the system.</p>
-            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                <a href="{% url 'trainer_register' %}" class="btn mary">Register New Trainer</a>
-                <a href="{% url 'user_list' %}?role=TRAINER" class="btn btn-outline">View All Trainers</a>
-                <a href="{% url 'user_list' %}?role=STUDENT" class="btn btn-outline">View All Students</a>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ----- Sidebar ----- */
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-dark);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            z-index: 100;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .sidebar-header {
+            padding: 30px 24px;
+            font-size: 26px;
+            font-weight: 700;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            letter-spacing: 1px;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .sidebar-header i {
+            color: var(--primary);
+            font-size: 28px;
+        }
+
+        .sidebar-menu {
+            flex: 1;
+            padding: 20px 0;
+            overflow-y: auto;
+        }
+
+        .menu-item {
+            padding: 16px 30px;
+            display: flex;
+            align-items: center;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        .menu-item i {
+            margin-right: 18px;
+            width: 20px;
+            text-align: center;
+            font-size: 18px;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.03);
+            color: #fff;
+        }
+
+        .menu-item:hover i {
+            transform: translateX(3px);
+            color: var(--primary);
+        }
+
+        .menu-item.active {
+            background-color: rgba(67, 97, 238, 0.1);
+            color: #fff;
+            border-left-color: var(--primary);
+        }
+
+        .menu-item.active i {
+            color: var(--primary);
+        }
+
+        /* ----- Main Content Wrapper ----- */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Topbar */
+        .topbar {
+            height: 80px;
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            z-index: 90;
+        }
+
+        .topbar-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 30px;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+            border: 1px solid var(--border);
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .content-section {
+            display: none;
+            animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes slideUpFade {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ----- UI Components ----- */
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 28px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), #8b5cf6);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.06);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-info h4 {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-info h2 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .icon-primary {
+            background: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+        }
+
+        .icon-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .icon-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .icon-info {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--info);
+        }
+
+        /* Tables & Cards */
+        .card-panel {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            margin-bottom: 30px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 16px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            background-color: rgba(244, 247, 254, 0.5);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr {
+            transition: background-color 0.2s ease;
+        }
+
+        tr:hover {
+            background-color: rgba(67, 97, 238, 0.02);
+        }
+
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-cell-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-active {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .badge-inactive {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .badge-primary {
+            background: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #5a76ee);
+            color: white;
+            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-dark);
+        }
+
+        .btn-outline:hover {
+            background: var(--bg-light);
+            border-color: var(--text-muted);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+        }
+
+        .btn-icon {
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            border-radius: 8px;
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Actions group */
+        .actions-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Toolbars / Filters */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 16px;
+            width: 320px;
+            transition: all 0.2s ease;
+        }
+
+        .search-bar:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+
+        .search-bar input {
+            border: none;
+            background: transparent;
+            outline: none;
+            width: 100%;
+            padding-left: 12px;
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+
+        .search-bar i {
+            color: var(--text-muted);
+        }
+
+        /* Forms */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background-color: #fafbfe;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.1);
+        }
+
+        /* Video List items */
+        .video-list {
+            list-style: none;
+        }
+
+        .video-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #fafbfe;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+        }
+
+        .video-item:hover {
+            transform: translateX(5px);
+            border-color: var(--primary);
+        }
+
+        .video-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 500;
+        }
+
+        .video-drag {
+            color: var(--text-muted);
+            cursor: grab;
+        }
+
+        /* Modals */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-card {
+            background: var(--card-bg);
+            width: 90%;
+            max-width: 600px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            animation: slideUpFade 0.3s;
+        }
+
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .modal-body {
+            padding: 25px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 14px;
+            width: 40%;
+            flex-shrink: 0;
+        }
+
+        .detail-value {
+            font-weight: 500;
+            font-size: 14px;
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .list-item {
+            background: var(--bg-light);
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <a href="#" class="sidebar-header">
+            <i class="fa-solid fa-graduation-cap"></i>
+            <span>LMS</span>
+        </a>
+        <div class="sidebar-menu">
+            <div class="menu-item active" onclick="switchTab('dashboard')">
+                <i class="fa-solid fa-chart-line"></i> Dashboard
+            </div>
+            <div class="menu-item" onclick="switchTab('students')">
+                <i class="fa-solid fa-user-graduate"></i> Students
+            </div>
+            <div class="menu-item" onclick="switchTab('trainers')">
+                <i class="fa-solid fa-chalkboard-user"></i> Trainers
+            </div>
+            <div class="menu-item" onclick="switchTab('courses')">
+                <i class="fa-solid fa-book-open"></i> Courses
+            </div>
+            <div class="menu-item" onclick="switchTab('enrollments')">
+                <i class="fa-solid fa-users-rectangle"></i> Enrollments
+            </div>
+            <div class="menu-item" onclick="switchTab('reports')">
+                <i class="fa-solid fa-chart-pie"></i> Reports
+            </div>
+            <div class="menu-item" onclick="switchTab('settings')">
+                <i class="fa-solid fa-gear"></i> Settings
+            </div>
+
+            <div style="margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+                <form action="{% url 'logout' %}" method="post" style="display:inline;" id="logout-form">
+                    {% csrf_token %}
+                    <div class="menu-item" style="color: #ef4444;"
+                        onclick="document.getElementById('logout-form').submit();">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                    </div>
+                </form>
             </div>
         </div>
+    </div>
 
-        <!-- Course Management Card -->
-        <div class="card" style="border-left: 5px solid #10b981;">
-            <h3 style="margin-bottom: 1rem;">Course Management</h3>
-            <p style="color: var(--text-light); margin-bottom: 1.5rem;"> Manage LMS curriculum.</p>
-            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                <button class="btn btn-outline" disabled>Add New Course</button>
-                <button class="btn btn-outline" disabled>Assign Courses</button>
+    <!-- Main Content -->
+    <div class="main-wrapper">
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-title" id="topbar-title">Dashboard Overview</div>
+            <div class="user-profile">
+                <div class="user-info">
+                    <div class="user-name">{{ user.full_name|default:"Admin User" }}</div>
+                    <div class="user-role">{{ user.get_role_display|default:"Administrator" }}</div>
+                </div>
+                <div class="avatar">
+                    <i class="fa-solid fa-user"></i>
+                </div>
             </div>
+        </header>
+
+        <!-- Dynamic Content Area -->
+        <div class="content-area">
+
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-success">
+                <i class="fa-solid fa-circle-check"></i> {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <!-- 1. DASHBOARD SECTION -->
+            <section id="dashboard" class="content-section active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h4>Total Students</h4>
+                            <h2>{{ total_students }}</h2>
+                        </div>
+                        <div class="stat-icon icon-primary"><i class="fa-solid fa-user-graduate"></i></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h4>Total Trainers</h4>
+                            <h2>{{ total_trainers }}</h2>
+                        </div>
+                        <div class="stat-icon icon-info"><i class="fa-solid fa-chalkboard-user"></i></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h4>Active Courses</h4>
+                            <h2>{{ total_courses }}</h2>
+                        </div>
+                        <div class="stat-icon icon-warning"><i class="fa-solid fa-book-open"></i></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h4>Total Enrollments</h4>
+                            <h2>{{ total_enrollments }}</h2>
+                        </div>
+                        <div class="stat-icon icon-success"><i class="fa-solid fa-certificate"></i></div>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="card-panel">
+                        <div class="card-header">
+                            <div class="card-title">Recent Student Registrations</div>
+                            <button class="btn btn-outline btn-sm" onclick="switchTab('students')">View All</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Date Joined</th>
+                                    <th>Status</th>
+                                </tr>
+                                {% for student in students|slice:":5" %}
+                                <tr>
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-cell-avatar">{{ student.full_name|make_list|first }}</div>
+                                            {{ student.full_name }}
+                                        </div>
+                                    </td>
+                                    <td>{{ student.date_joined|date:"M d, Y" }}</td>
+                                    <td>
+                                        {% if student.is_active %}
+                                        <span class="badge badge-active">Active</span>
+                                        {% else %}
+                                        <span class="badge badge-inactive">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3">No students found.</td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card-panel">
+                        <div class="card-header">
+                            <div class="card-title">Recently Added Courses</div>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <tr>
+                                    <th>Course Name</th>
+                                    <th>Trainer</th>
+                                    <th>Students</th>
+                                </tr>
+                                {% for course in courses|slice:":5" %}
+                                <tr>
+                                    <td><strong>{{ course.title }}</strong></td>
+                                    <td>{{ course.created_by.full_name }}</td>
+                                    <td>{{ course.enrollments.count }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3">No courses found.</td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. STUDENTS SECTION -->
+            <section id="students" class="content-section">
+                <div class="card-panel">
+                    <div class="toolbar">
+                        <div class="search-bar">
+                            <i class="fa-solid fa-search"></i>
+                            <input type="text" placeholder="Search students by name or email...">
+                        </div>
+                        <div class="actions-group">
+                            <button class="btn btn-outline"><i class="fa-solid fa-filter"></i> Filter</button>
+                            <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Student</button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Email Address</th>
+                                    <th>Assigned Courses</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                <tr>
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-cell-avatar">{{ student.full_name|make_list|first }}</div>
+                                            {{ student.full_name }}
+                                        </div>
+                                    </td>
+                                    <td>{{ student.email }}</td>
+                                    <td>{{ student.enrollments.count }} Courses</td>
+                                    <td>
+                                        {% if student.is_active %}
+                                        <span class="badge badge-active">Active</span>
+                                        {% else %}
+                                        <span class="badge badge-inactive">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="actions-group">
+                                            <button class="btn btn-outline btn-icon" title="View Details"
+                                                onclick="openModal('student-modal-{{ student.id }}')"><i
+                                                    class="fa-solid fa-eye"></i></button>
+                                            <button class="btn btn-outline btn-icon" title="Edit"><i
+                                                    class="fa-solid fa-pen"></i></button>
+                                            <button class="btn btn-danger btn-icon" title="Disable"><i
+                                                    class="fa-solid fa-ban"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5">No students registered yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. TRAINERS SECTION -->
+            <section id="trainers" class="content-section">
+                <div class="card-panel">
+                    <div class="toolbar">
+                        <div class="search-bar">
+                            <i class="fa-solid fa-search"></i>
+                            <input type="text" placeholder="Search trainers...">
+                        </div>
+                        <a href="{% url 'trainer_register' %}" class="btn btn-primary" style="text-decoration: none;"><i
+                                class="fa-solid fa-plus"></i> Register Trainer</a>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Trainer Name</th>
+                                    <th>Email Address</th>
+                                    <th>Courses Created</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for trainer in trainers %}
+                                <tr>
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-cell-avatar">{{ trainer.full_name|make_list|first }}</div>
+                                            {{ trainer.full_name }}
+                                        </div>
+                                    </td>
+                                    <td>{{ trainer.email }}</td>
+                                    <td><span class="badge badge-primary">{{ trainer.created_courses.count }}</span>
+                                    </td>
+                                    <td>
+                                        {% if trainer.is_active %}
+                                        <span class="badge badge-active">Active</span>
+                                        {% else %}
+                                        <span class="badge badge-inactive">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="actions-group">
+                                            <button class="btn btn-outline btn-icon" title="View Details"
+                                                onclick="openModal('trainer-modal-{{ trainer.id }}')"><i
+                                                    class="fa-solid fa-eye"></i></button>
+                                            <button class="btn btn-outline btn-icon" title="Edit Details"><i
+                                                    class="fa-solid fa-pen"></i></button>
+
+                                            <button class="btn btn-danger btn-icon" title="Disable"><i
+                                                    class="fa-solid fa-power-off"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5">No trainers registered yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. COURSES SECTION -->
+            <section id="courses" class="content-section">
+                <div class="card-panel">
+                    <div class="toolbar">
+                        <div class="search-bar">
+                            <i class="fa-solid fa-search"></i>
+                            <input type="text" placeholder="Search courses...">
+                        </div>
+                        <!-- <button class="btn btn-primary" onclick="showCourseVideos()"><i class="fa-solid fa-plus"></i>
+                            Create Course</button> -->
+                    </div>
+
+                    <div class="table-responsive" id="course-list-view">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Course Title</th>
+                                    <th>Created By</th>
+                                    <th>Videos</th>
+                                    <th>Enrolled</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in courses %}
+                                <tr>
+                                    <td><strong>{{ course.title }}</strong></td>
+                                    <td>{{ course.created_by.full_name }}</td>
+                                    <td>{{ course.videos.count }} Videos</td>
+                                    <td>{{ course.enrollments.count }} Students</td>
+                                    <td>
+                                        <div class="actions-group">
+                                            <a href="{% url 'admin_course_videos' course.id %}" class="btn btn-outline btn-icon" title="View Videos"><i class="fa-solid fa-eye"></i></a>
+                                            <button class="btn btn-outline btn-icon"><i
+                                                    class="fa-solid fa-pen"></i></button>
+                                            <button class="btn btn-danger btn-icon"><i
+                                                    class="fa-solid fa-trash"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5">No courses created yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+
+
+            <!-- 5. ENROLLMENTS SECTION -->
+            <section id="enrollments" class="content-section">
+                <div class="form-grid">
+                    <!-- Enrollment Table -->
+                    <div class="card-panel">
+                        <div class="card-header">
+                            <div class="card-title">Active Enrollments</div>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Course</th>
+                                    <th>Action</th>
+                                </tr>
+                                {% for enrollment in enrollments %}
+                                <tr>
+                                    <td>{{ enrollment.student.full_name }}</td>
+                                    <td>{{ enrollment.course.title }}</td>
+                                    <td><button class="btn btn-danger btn-sm">Remove</button></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3">No enrollments yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. REPORTS SECTION -->
+            <section id="reports" class="content-section">
+                <div class="card-panel">
+                    <div class="card-header">
+                        <div class="card-title">Analytics & Reports</div>
+                        <button class="btn btn-outline"><i class="fa-solid fa-download"></i> Export CSV</button>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card" style="flex-direction: column; align-items: flex-start; gap: 15px;">
+                            <h4>Total Courses</h4>
+                            <h2 style="font-size: 20px;">{{ total_courses }} Courses Active</h2>
+                            <div class="progress"
+                                style="width: 100%; height: 8px; background: var(--border); border-radius: 4px;">
+                                <div style="width: 100%; height: 100%; background: var(--primary); border-radius: 4px;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-card" style="flex-direction: column; align-items: flex-start; gap: 15px;">
+                            <h4>Total Enrollments</h4>
+                            <h2 style="font-size: 20px;">{{ total_enrollments }} Total</h2>
+                            <div class="progress"
+                                style="width: 100%; height: 8px; background: var(--border); border-radius: 4px;">
+                                <div style="width: 68%; height: 100%; background: var(--success); border-radius: 4px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 7. SETTINGS SECTION -->
+            <section id="settings" class="content-section">
+                <div class="card-panel" style="max-width: 600px; margin: 0 auto;">
+                    <div class="card-header">
+                        <div class="card-title">Admin Profile Settings</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-control" value="{{ user.full_name|default:'Admin User' }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-control" value="{{ user.email|default:'admin@lms.com' }}"
+                            disabled>
+                    </div>
+
+                    <hr style="border: none; border-top: 1px solid var(--border); margin: 30px 0;">
+                    <form method="POST" action="{% url 'admin_dashboard' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="change_password">
+                        <div class="form-group">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" name="old_password" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">New Password</label>
+                            <input type="password" name="new_password" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" name="confirm_password" class="form-control" required>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 30px;">
+                            <button type="button" class="btn btn-outline"
+                                onclick="document.getElementById('settings-form').reset();">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
         </div>
     </div>
 
-    <div class="card" style="margin-top: 2rem; background-color: #f3f4f6; border: none;">
-        <h3>System Overview</h3>
-        <p>Logged in as: <strong>{{ user.full_name }}</strong> ({{ user.email }})</p>
-        <p>Last login: {{ user.last_login|date:"M d, Y H:i" }}</p>
+    <!-- Modals -->
+    {% for student in students %}
+    <div class="modal-overlay" id="student-modal-{{ student.id }}" onclick="closeModal(event, this)">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">Student Details</div>
+                <button class="modal-close" onclick="closeModalBtn('student-modal-{{ student.id }}')"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div class="avatar" style="width: 80px; height: 80px; font-size: 32px; margin: 0 auto 10px auto;">{{ student.full_name|make_list|first }}</div>
+                    <h3>{{ student.full_name }}</h3>
+                    <div style="color: var(--text-muted); font-size: 14px;">{{ student.email }}</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Phone Number</div>
+                    <div class="detail-value">{{ student.mobile|default:"Not Provided" }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Joined Date</div>
+                    <div class="detail-value">{{ student.date_joined|date:"M d, Y" }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Enrolled Courses</div>
+                    <div class="detail-value" style="text-align: left;">
+                        {% if student.enrollments.count > 0 %}
+                        {% for enrollment in student.enrollments.all %}
+                        <div class="list-item"><i class="fa-solid fa-book"
+                                style="color: var(--primary); margin-right: 5px;"></i> {{ enrollment.course.title }}
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <span style="color: var(--text-muted);">No courses enrolled.</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
-{% endblock %}
+    {% endfor %}
+
+    {% for trainer in trainers %}
+    <div class="modal-overlay" id="trainer-modal-{{ trainer.id }}" onclick="closeModal(event, this)">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">Trainer Details</div>
+                <button class="modal-close" onclick="closeModalBtn('trainer-modal-{{ trainer.id }}')"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div class="avatar" style="width: 80px; height: 80px; font-size: 32px; margin: 0 auto 10px auto; background: var(--warning);">{{ trainer.full_name|make_list|first }}</div>
+                    <h3>{{ trainer.full_name }}</h3>
+                    <div style="color: var(--text-muted); font-size: 14px;">{{ trainer.email }}</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Phone Number</div>
+                    <div class="detail-value">{{ trainer.mobile|default:"Not Provided" }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Joined Date</div>
+                    <div class="detail-value">{{ trainer.date_joined|date:"M d, Y" }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Courses Created</div>
+                    <div class="detail-value" style="text-align: left;">
+                        {% if trainer.created_courses.count > 0 %}
+                        {% for course in trainer.created_courses.all %}
+                        <div class="list-item" style="margin-bottom: 10px;">
+                            <div style="font-weight: 600; margin-bottom: 4px;"><i class="fa-solid fa-book"
+                                    style="color: var(--primary); margin-right: 5px;"></i> {{ course.title }}</div>
+                            <div style="font-size: 12px; color: var(--text-muted); padding-left: 18px;">
+                                {{ course.videos.count }} Videos Uploaded
+                                <ul style="margin-top: 4px; padding-left: 15px; list-style-type: circle;">
+                                    {% for video in course.videos.all %}
+                                    <li style="margin-bottom: 2px;">{{ video.title }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <span style="color: var(--text-muted);">No courses created.</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- JavaScript for Navigation -->
+    <script>
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModalBtn(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function closeModal(event, element) {
+            if (event.target === element) {
+                element.classList.remove('active');
+            }
+        }
+
+        function switchTab(tabId) {
+            // Update Menu Active State
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+
+            // Hide all sections
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Show selected section
+            const targetSection = document.getElementById(tabId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+
+                // Update Topbar Title
+                const titleMap = {
+                    'dashboard': 'Dashboard Overview',
+                    'students': 'Student Management',
+                    'trainers': 'Trainer Directory',
+                    'courses': 'Course Catalog',
+                    'enrollments': 'Manage Enrollments',
+                    'reports': 'Analytics & Reports',
+                    'settings': 'System Settings'
+                };
+                document.getElementById('topbar-title').innerText = titleMap[tabId] || 'Admin Control Panel';
+            }
+        }
+
+        // Helper to show course videos specific view
+        function showCourseVideos() {
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById('course-videos').classList.add('active');
+            document.getElementById('topbar-title').innerText = 'Manage Course Content';
+        }
+    </script>
+</body>
+
+</html>

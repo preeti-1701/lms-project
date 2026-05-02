@@ -1,0 +1,297 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ course.title|default:"Course Details" }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg-dark: #1e1e2d;
+            --bg-light: #f4f7fe;
+            --text-dark: #2b3674;
+            --text-muted: #8f9bba;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-light); color: var(--text-dark); display: flex; height: 100vh; overflow: hidden; }
+
+        /* Sidebar - Simplified */
+        .sidebar { width: 280px; background-color: var(--bg-dark); color: #fff; display: flex; flex-direction: column; z-index: 100; box-shadow: 4px 0 10px rgba(0,0,0,0.05); }
+        .sidebar-header { padding: 30px 24px; font-size: 24px; font-weight: 700; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); color: #fff; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .sidebar-header i { color: var(--primary); font-size: 28px; }
+        .sidebar-menu { flex: 1; padding: 20px 0; overflow-y: auto; }
+        .menu-item { padding: 16px 30px; display: flex; align-items: center; color: #8f9bba; text-decoration: none; transition: all 0.3s ease; font-weight: 500; font-size: 15px; }
+        .menu-item i { margin-right: 18px; width: 20px; text-align: center; font-size: 18px; }
+        .menu-item:hover { background-color: rgba(255,255,255,0.03); color: #fff; }
+        .menu-item.active { background-color: rgba(59,130,246,0.1); color: #fff; border-left: 4px solid var(--primary); }
+
+        /* Main Content */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar { height: 80px; background-color: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 40px; z-index: 90; }
+        .topbar-title { font-size: 22px; font-weight: 700; }
+        .user-profile { display: flex; align-items: center; gap: 15px; background: #fff; padding: 8px 16px; border-radius: 30px; border: 1px solid var(--border); }
+        .user-info { text-align: right; }
+        .user-name { font-weight: 600; font-size: 14px; }
+        .user-role { font-size: 12px; color: var(--text-muted); }
+        .avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #8b5cf6); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; }
+
+        .content-area { flex: 1; padding: 40px; overflow-y: auto; }
+        
+        .alert { padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; font-weight: 500; display: flex; align-items: center; gap: 10px; }
+        .alert-success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: var(--success); }
+        .alert-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: var(--danger); }
+
+        /* Course Header Card */
+        .course-header-card { background: var(--card-bg); border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.03); margin-bottom: 30px; display: flex; }
+        .course-header-image { width: 350px; background-color: #e2e8f0; background-size: cover; background-position: center; flex-shrink: 0; }
+        .course-header-content { padding: 40px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        
+        .difficulty-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: rgba(59,130,246,0.1); color: var(--primary); margin-bottom: 15px; }
+        .course-title { font-size: 28px; font-weight: 700; color: var(--text-dark); margin-bottom: 15px; }
+        .course-desc { font-size: 15px; color: var(--text-muted); margin-bottom: 30px; line-height: 1.6; }
+        
+        .btn { padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), #60a5fa); color: white; box-shadow: 0 4px 10px rgba(59,130,246,0.2); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(59,130,246,0.3); }
+        .btn-success { background: var(--success); color: white; cursor: default; }
+        
+        /* Videos Section */
+        .videos-section { background: var(--card-bg); border-radius: 20px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+        .section-title { font-size: 20px; font-weight: 700; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .locked-banner { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: var(--warning); padding: 15px 20px; border-radius: 10px; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; font-weight: 600; }
+        
+        .video-list { display: grid; gap: 15px; }
+        
+        /* Video Item Styling */
+        .video-item { display: flex; align-items: center; gap: 20px; padding: 20px; background: #fafbfe; border: 1px solid var(--border); border-radius: 12px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; text-decoration: none; color: inherit; }
+        .video-item.unlocked:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-color: var(--primary); }
+        
+        .video-item.locked { opacity: 0.6; cursor: not-allowed; filter: grayscale(100%); }
+        
+        .video-icon-wrapper { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .unlocked .video-icon-wrapper { background: rgba(239,68,68,0.1); color: var(--danger); }
+        .locked .video-icon-wrapper { background: #e2e8f0; color: #94a3b8; }
+        
+        .video-info { flex: 1; }
+        .video-title { font-size: 16px; font-weight: 600; color: var(--text-dark); margin-bottom: 5px; }
+        .video-meta { font-size: 13px; color: var(--text-muted); }
+        
+        .lock-icon { font-size: 18px; color: #94a3b8; }
+        .play-icon { font-size: 18px; color: var(--primary); opacity: 0; transition: opacity 0.2s; }
+        .unlocked:hover .play-icon { opacity: 1; }
+        
+        /* Video Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: #000; width: 90%; max-width: 900px; border-radius: 10px; overflow: hidden; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+        .modal-close { position: absolute; top: 15px; right: 15px; color: white; background: rgba(255,255,255,0.2); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; font-size: 16px; transition: background 0.2s; z-index: 10; }
+        .modal-close:hover { background: rgba(255,255,255,0.4); }
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <a href="{% url 'student_dashboard' %}" class="sidebar-header">
+            <i class="fa-solid fa-graduation-cap"></i>
+            <span>LMS</span>
+        </a>
+        <div class="sidebar-menu">
+            <a href="{% url 'student_dashboard' %}" class="menu-item">
+                <i class="fa-solid fa-arrow-left"></i> Back to Courses
+            </a>
+            <div class="menu-item active">
+                <i class="fa-solid fa-book-open-reader"></i> Course Details
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-wrapper">
+        <header class="topbar">
+            <div class="topbar-title">Course Information</div>
+            <div class="user-profile">
+                <div class="user-info">
+                    <div class="user-name">{{ user.full_name }}</div>
+                    <div class="user-role">Student</div>
+                </div>
+                <div class="avatar"><i class="fa-solid fa-user"></i></div>
+            </div>
+        </header>
+
+        <div class="content-area">
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-success{% endif %}">
+                        <i class="fa-solid fa-circle-info"></i> {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if not course %}
+                <div class="alert alert-error">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Course not found or is no longer published.
+                </div>
+                <a href="{% url 'student_dashboard' %}" class="btn btn-outline" style="background: white;">Return to Dashboard</a>
+            {% else %}
+
+            <!-- Course Header -->
+            <div class="course-header-card">
+                {% if course.thumbnail %}
+                <div class="course-header-image" style="background-image: url('{{ course.thumbnail }}');">
+                {% else %}
+                <div class="course-header-image">
+                    <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; color: #cbd5e1; font-size: 50px;">
+                        <i class="fa-solid fa-image"></i>
+                    </div>
+                {% endif %}
+                </div>
+                <div class="course-header-content">
+                    <div>
+                        <span class="difficulty-badge">{{ course.get_difficulty_level_display }}</span>
+                    </div>
+                    <h1 class="course-title">{{ course.title }}</h1>
+                    <p class="course-desc">{{ course.description|default:"No description available." }}</p>
+                    
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: auto;">
+                        <div style="display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-size: 14px; font-weight: 500;">
+                            <div class="avatar" style="width: 32px; height: 32px; font-size: 12px; background: var(--warning);">{{ course.created_by.full_name|make_list|first }}</div>
+                            Instructor: {{ course.created_by.full_name }}
+                        </div>
+                        
+                        {% if not is_enrolled %}
+                        <form method="POST" action="{% url 'student_course_detail' course.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="enroll">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Enroll Now</button>
+                        </form>
+                        {% else %}
+                        <span class="btn btn-success"><i class="fa-solid fa-check-circle"></i> Enrolled</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Course Videos -->
+            <div class="videos-section">
+                <div class="section-title">
+                    <span>Course Curriculum ({{ videos.count }} Videos)</span>
+                </div>
+                
+                {% if not is_enrolled %}
+                <div class="locked-banner">
+                    <i class="fa-solid fa-lock"></i>
+                    You must enroll in this course to access the video content.
+                </div>
+                {% endif %}
+
+                <div class="video-list">
+                    {% for video in videos %}
+                    
+                        {% if is_enrolled %}
+                        <div class="video-item unlocked" onclick="openVideo('{{ video.youtube_url }}', '{{ video.title|escapejs }}')">
+                            <div class="video-icon-wrapper">
+                                <i class="fa-brands fa-youtube"></i>
+                            </div>
+                            <div class="video-info">
+                                <div class="video-title">Lesson {{ forloop.counter }}: {{ video.title }}</div>
+                                <div class="video-meta">Video Content</div>
+                            </div>
+                            <i class="fa-solid fa-play play-icon"></i>
+                        </div>
+                        {% else %}
+                        <div class="video-item locked">
+                            <div class="video-icon-wrapper">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                            <div class="video-info">
+                                <div class="video-title">Lesson {{ forloop.counter }}: {{ video.title }}</div>
+                                <div class="video-meta">Content Locked</div>
+                            </div>
+                            <i class="fa-solid fa-lock lock-icon"></i>
+                        </div>
+                        {% endif %}
+                        
+                    {% empty %}
+                    <div style="padding: 30px; text-align: center; color: var(--text-muted);">
+                        <i class="fa-solid fa-video-slash" style="font-size: 36px; margin-bottom: 15px; opacity: 0.5;"></i>
+                        <p>No videos have been uploaded to this course yet.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            {% endif %}
+
+        </div>
+    </div>
+
+    <!-- Video Player Modal -->
+    <div class="modal-overlay" id="videoModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeVideo()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="video-container" id="videoContainer">
+                <!-- iframe injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function extractYouTubeID(url) {
+            let videoId = '';
+            // Handle standard youtube.com/watch?v=...
+            if (url.includes('youtube.com/watch')) {
+                const urlParams = new URLSearchParams(new URL(url).search);
+                videoId = urlParams.get('v');
+            } 
+            // Handle youtu.be/...
+            else if (url.includes('youtu.be/')) {
+                videoId = url.split('youtu.be/')[1].split('?')[0];
+            }
+            // Handle embed URLs just in case
+            else if (url.includes('youtube.com/embed/')) {
+                videoId = url.split('youtube.com/embed/')[1].split('?')[0];
+            }
+            return videoId;
+        }
+
+        function openVideo(url, title) {
+            const modal = document.getElementById('videoModal');
+            const container = document.getElementById('videoContainer');
+            
+            const videoId = extractYouTubeID(url);
+            
+            if (videoId) {
+                container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+            } else {
+                // Fallback if not a standard youtube URL
+                container.innerHTML = `<div style="color:white; padding: 40px; text-align:center;">Cannot embed this video. <a href="${url}" target="_blank" style="color: #60a5fa;">Open in new tab</a></div>`;
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function closeVideo() {
+            const modal = document.getElementById('videoModal');
+            const container = document.getElementById('videoContainer');
+            modal.classList.remove('active');
+            container.innerHTML = ''; // Stop video playback
+        }
+    </script>
+</body>
+</html>
