@@ -36,7 +36,7 @@ def register(request):
             password=password
         )
 
-        # force normal user
+        # force normal use
         user.is_staff = False
         user.is_superuser = False
         user.save()
