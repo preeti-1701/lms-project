@@ -1,0 +1,59 @@
+/* ── Theme CSS Variables ──────────────────────────────────────────────
+   Applied via data-theme="dark" | "light" on <html>
+   ─────────────────────────────────────────────────────────────────── */
+
+[data-theme="dark"] {
+  --bg-root:        #0c0c0e;
+  --bg-card:        #111214;
+  --bg-sidebar:     #111214;
+  --bg-input:       #17171a;
+  --bg-hover:       #1a1a1e;
+  --bg-hover2:      #141417;
+  --bg-topbar:      #0c0c0e;
+  --border:         #1c1c20;
+  --border-strong:  #2a2a2e;
+  --border-faint:   #161618;
+  --text-primary:   #f1f0ee;
+  --text-secondary: #e0dfe0;
+  --text-body:      #bbb;
+  --text-muted:     #888;
+  --text-dim:       #555;
+  --text-faint:     #444;
+  --text-ghost:     #333;
+  --text-label:     #666;
+  --shadow:         0 4px 24px rgba(0,0,0,.4);
+  --shadow-sm:      0 2px 8px rgba(0,0,0,.3);
+}
+
+[data-theme="light"] {
+  --bg-root:        #f0f0f5;
+  --bg-card:        #ffffff;
+  --bg-sidebar:     #ffffff;
+  --bg-input:       #f5f5f8;
+  --bg-hover:       #f0f0f5;
+  --bg-hover2:      #f8f8fb;
+  --bg-topbar:      #ffffff;
+  --border:         #e0e0e8;
+  --border-strong:  #c8c8d4;
+  --border-faint:   #ebebf0;
+  --text-primary:   #111214;
+  --text-secondary: #2a2a30;
+  --text-body:      #444450;
+  --text-muted:     #666670;
+  --text-dim:       #888890;
+  --text-faint:     #999aa5;
+  --text-ghost:     #bbbbc5;
+  --text-label:     #77778a;
+  --shadow:         0 4px 24px rgba(0,0,0,.08);
+  --shadow-sm:      0 2px 8px rgba(0,0,0,.06);
+}
+
+/* ── Base resets ───────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #root { height: 100%; }
+body { background: var(--bg-root); color: var(--text-primary); transition: background .25s, color .25s; }
+
+/* ── Scrollbar ─────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
