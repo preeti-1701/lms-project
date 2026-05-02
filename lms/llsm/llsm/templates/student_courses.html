@@ -1,14 +1,92 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>My Courses</h2>
+<style>
+    .courses-page {
+        display: grid;
+        gap: 18px;
+    }
 
-{% for course in courses %}
-    <div>
-        <a href="/courses/{{ course.id }}/">
-            {{ course.title }}
-        </a>
+    .page-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .course-grid {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    .course-card {
+        background: #fffdf8;
+        border: 1px solid rgba(220, 211, 194, 0.75);
+        border-radius: 18px;
+        box-shadow: 0 18px 40px rgba(31, 42, 55, 0.10);
+        padding: 18px;
+        transition: transform 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .course-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 22px 46px rgba(31, 42, 55, 0.14);
+    }
+
+    .course-card h3 {
+        margin: 0 0 10px;
+    }
+
+    .course-card p {
+        margin: 0 0 14px;
+        color: #5b6879;
+        line-height: 1.6;
+    }
+
+    .course-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #fff;
+        background: linear-gradient(90deg, #0f4b84, #1d8f8a);
+        text-decoration: none;
+        font-weight: 700;
+        padding: 10px 14px;
+        border-radius: 12px;
+    }
+
+    .empty-state {
+        background: #fffdf8;
+        border: 1px solid rgba(220, 211, 194, 0.75);
+        border-radius: 18px;
+        box-shadow: 0 18px 40px rgba(31, 42, 55, 0.10);
+        padding: 24px;
+        color: #5b6879;
+    }
+</style>
+
+<div class="courses-page">
+    <div class="page-head">
+        <div>
+            <h2 class="section-title">My Courses</h2>
+            <p class="section-subtitle">A clean overview of the courses assigned to you.</p>
+        </div>
     </div>
-{% endfor %}
 
+    {% if courses %}
+        <div class="course-grid">
+            {% for course in courses %}
+                <article class="course-card">
+                    <h3>{{ course.title }}</h3>
+                    <p>{{ course.description }}</p>
+                    <a class="course-link" href="/courses/{{ course.id }}/">Open Course</a>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">No courses assigned yet.</div>
+    {% endif %}
+</div>
 {% endblock %}

@@ -46,6 +46,11 @@
 		color: #162033;
 	}
 
+	.subtle {
+		color: #5b6b7f;
+		margin: -4px 0 14px;
+	}
+
 	.form-grid {
 		display: grid;
 		gap: 12px;
@@ -156,6 +161,19 @@
 	{% endif %}
 
 	<div class="grid">
+		<section class="panel">
+			<h3>Create Student Account</h3>
+			<p class="subtle">Trainers can add student accounts only.</p>
+			<form method="post" class="form-grid">
+				{% csrf_token %}
+				<input type="hidden" name="action" value="create_student">
+				<input type="text" name="username" placeholder="Student username" required>
+				<input type="email" name="email" placeholder="Student email" required>
+				<input type="password" name="password" placeholder="Temporary password" required>
+				<button type="submit" class="btn">Create Student</button>
+			</form>
+		</section>
+
 		<section class="panel">
 			<h3>Create Course</h3>
 			<form method="post" class="form-grid">

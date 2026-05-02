@@ -1,8 +1,10 @@
 from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render, redirect
-from django.contrib.auth import authenticate, login
-from llsm.courses.models import Course, Video
+
+from .models import User
+from llsm.courses.models import Course, Video, Enrollment
 
 def user_login(request):
     if request.method == 'POST':
@@ -18,15 +20,101 @@ def user_login(request):
     return render(request, 'login.html')
 
 
+def user_logout(request):
+    logout(request)
+    return redirect('login')
+
+
 @login_required
 def dashboard(request):
     user = request.user
 
     if user.role == 'admin':
-        return render(request, 'admin_dashboard.html')
+        if request.method == 'POST':
+            action = request.POST.get('action')
+
+            if action == 'create_user':
+                username = request.POST.get('username', '').strip()
+                email = request.POST.get('email', '').strip()
+                password = request.POST.get('password', '')
+                role = request.POST.get('role', 'student')
+
+                if role not in {'student', 'trainer'}:
+                    role = 'student'
+
+                if not username or not email or not password:
+                    messages.error(request, 'Username, email, and password are required.')
+                elif User.objects.filter(username=username).exists():
+                    messages.error(request, 'That username is already taken.')
+                elif User.objects.filter(email=email).exists():
+                    messages.error(request, 'That email is already registered.')
+                else:
+                    User.objects.create_user(
+                        username=username,
+                        email=email,
+                        password=password,
+                        role=role,
+                    )
+                    messages.success(request, f'{role.title()} account created successfully.')
+
+            elif action == 'enroll_student':
+                student_id = request.POST.get('student_id')
+                course_id = request.POST.get('course_id')
+                
+                try:
+                    student = User.objects.get(id=student_id, role='student')
+                    course = Course.objects.get(id=course_id)
+                    
+                    if Enrollment.objects.filter(student=student, course=course).exists():
+                        messages.warning(request, f'{student.username} is already enrolled in {course.title}.')
+                    else:
+                        Enrollment.objects.create(student=student, course=course)
+                        messages.success(request, f'{student.username} enrolled in {course.title} successfully.')
+                except User.DoesNotExist:
+                    messages.error(request, 'Student not found.')
+                except Course.DoesNotExist:
+                    messages.error(request, 'Course not found.')
+
+            return redirect('dashboard')
+
+        users = User.objects.filter(role__in=['student', 'trainer']).order_by('role', 'username')
+        students = User.objects.filter(role='student').order_by('username')
+        courses = Course.objects.all().order_by('title')
+        enrollments = Enrollment.objects.select_related('student', 'course').order_by('-created_at')
+        
+        return render(
+            request,
+            'admin_dashboard.html',
+            {
+                'users': users,
+                'students': students,
+                'courses': courses,
+                'enrollments': enrollments,
+            },
+        )
     elif user.role == 'trainer':
         if request.method == 'POST':
             action = request.POST.get('action')
+
+            if action == 'create_student':
+                username = request.POST.get('username', '').strip()
+                email = request.POST.get('email', '').strip()
+                password = request.POST.get('password', '')
+
+                if not username or not email or not password:
+                    messages.error(request, 'Username, email, and password are required.')
+                elif User.objects.filter(username=username).exists():
+                    messages.error(request, 'That username is already taken.')
+                elif User.objects.filter(email=email).exists():
+                    messages.error(request, 'That email is already registered.')
+                else:
+                    User.objects.create_user(
+                        username=username,
+                        email=email,
+                        password=password,
+                        role='student',
+                    )
+                    messages.success(request, 'Student account created successfully.')
 
             if action == 'create_course':
                 title = request.POST.get('title', '').strip()

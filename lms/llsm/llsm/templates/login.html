@@ -6,87 +6,78 @@
     <title>Login | LLSM</title>
     <style>
         :root {
-            --bg: #f5f0e8;
+            --bg: #f4efe7;
             --card: #fffdf8;
-            --ink: #1e2a39;
+            --ink: #1f2a37;
+            --muted: #5b6879;
+            --line: #dcd3c2;
+            --brand: #0f4b84;
+            --brand-2: #1d8f8a;
             --accent: #d9603b;
-            --accent-2: #1d8f8a;
-            --line: #dfd2bd;
+            --accent-2: #e78f3c;
+            --shadow: 0 18px 40px rgba(31, 42, 55, 0.10);
             --error: #bf2f4a;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; }
 
         body {
+            margin: 0;
             min-height: 100vh;
             display: grid;
             place-items: center;
+            padding: 24px;
             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
             color: var(--ink);
             background:
-                radial-gradient(circle at 20% 20%, #ffd9b3 0%, transparent 40%),
-                radial-gradient(circle at 80% 0%, #a7e1de 0%, transparent 45%),
-                linear-gradient(140deg, #f6ecdc 0%, #efe6d6 100%);
-            padding: 24px;
+                radial-gradient(circle at top left, rgba(29, 143, 138, 0.08), transparent 30%),
+                radial-gradient(circle at top right, rgba(217, 96, 59, 0.09), transparent 28%),
+                linear-gradient(180deg, #f7f3ec 0%, #f2ede4 100%);
         }
 
         .auth-card {
-            width: 100%;
-            max-width: 430px;
+            width: min(100%, 460px);
             background: var(--card);
-            border: 1px solid var(--line);
-            border-radius: 20px;
-            box-shadow: 0 25px 55px rgba(30, 42, 57, 0.18);
+            border: 1px solid rgba(220, 211, 194, 0.75);
+            border-radius: 22px;
+            box-shadow: var(--shadow);
             overflow: hidden;
-            animation: rise 0.5s ease-out;
         }
 
-        @keyframes rise {
-            from {
-                opacity: 0;
-                transform: translateY(18px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .hero {
+            padding: 30px 30px 18px;
+            background: linear-gradient(135deg, rgba(15, 75, 132, 0.08), rgba(29, 143, 138, 0.08));
+            border-bottom: 1px solid rgba(220, 211, 194, 0.65);
         }
 
-        .brand {
-            padding: 28px 28px 16px;
+        .hero h1 {
+            margin: 0 0 8px;
+            font-size: 2rem;
         }
 
-        .brand h1 {
-            font-size: 1.9rem;
-            letter-spacing: 0.02em;
-            margin-bottom: 8px;
-        }
-
-        .brand p {
-            color: #4d5d70;
+        .hero p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.6;
         }
 
         .content {
-            padding: 0 28px 28px;
+            padding: 24px 30px 30px;
             display: grid;
-            gap: 16px;
+            gap: 18px;
         }
 
-        .flash {
+        .flash-list {
             list-style: none;
+            padding: 0;
+            margin: 0;
             display: grid;
-            gap: 8px;
+            gap: 10px;
         }
 
-        .flash li {
-            border-radius: 10px;
-            padding: 10px 12px;
-            font-size: 0.95rem;
+        .flash-list li {
+            border-radius: 12px;
+            padding: 12px 14px;
             border: 1px solid #efb8c4;
             background: #fff2f5;
             color: var(--error);
@@ -98,79 +89,89 @@
         }
 
         label {
-            font-weight: 600;
-            font-size: 0.92rem;
-            margin-bottom: 6px;
             display: block;
+            margin-bottom: 6px;
+            font-weight: 700;
+            font-size: 0.92rem;
         }
 
         input {
             width: 100%;
             border: 1px solid var(--line);
-            border-radius: 10px;
-            padding: 11px 12px;
-            font-size: 0.98rem;
-            background: #fffcf7;
+            border-radius: 12px;
+            padding: 12px 14px;
+            font: inherit;
+            background: #fffefb;
         }
 
         input:focus {
-            outline: 2px solid color-mix(in srgb, var(--accent-2) 60%, white);
-            border-color: var(--accent-2);
+            outline: 2px solid color-mix(in srgb, var(--brand-2) 55%, white);
+            border-color: var(--brand-2);
         }
 
         button {
+            width: 100%;
             border: none;
             border-radius: 12px;
-            padding: 12px 14px;
-            font-size: 1rem;
+            padding: 12px 16px;
+            font: inherit;
             font-weight: 700;
             cursor: pointer;
             color: #fff;
-            background: linear-gradient(90deg, var(--accent), #e78f3c);
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-            box-shadow: 0 12px 20px rgba(217, 96, 59, 0.26);
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            box-shadow: 0 12px 22px rgba(217, 96, 59, 0.20);
+            transition: transform 0.16s ease, opacity 0.16s ease;
         }
 
-        button:hover {
-            transform: translateY(-1px);
-        }
+        button:hover { transform: translateY(-1px); opacity: 0.96; }
 
         .switch {
-            font-size: 0.95rem;
-            color: #4d5d70;
+            margin: 0;
             text-align: center;
+            color: var(--muted);
+        }
+
+        .switch a {
+            color: var(--brand);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .switch a:hover { text-decoration: underline; }
+
+        @media (max-width: 520px) {
+            body { padding: 14px; }
+            .hero,
+            .content { padding-left: 18px; padding-right: 18px; }
         }
     </style>
 </head>
 <body>
     <main class="auth-card">
-        <section class="brand">
+        <section class="hero">
             <h1>Welcome Back</h1>
-            <p>Log in to continue learning and managing your courses.</p>
+            <p>Log in to continue learning, managing courses, and reviewing enrolled content.</p>
         </section>
 
         <section class="content">
             {% if messages %}
-                <ul class="flash">
+                <ul class="flash-list">
                     {% for message in messages %}
-                        <li>{{ message }}</li>
+                        <li class="{% if message.tags == 'success' %}success{% endif %} {% if message.tags == 'warning' %}warning{% endif %}">{{ message }}</li>
                     {% endfor %}
                 </ul>
             {% endif %}
 
             <form method="post">
                 {% csrf_token %}
-
                 <div>
                     <label for="username">Username</label>
                     <input id="username" type="text" name="username" placeholder="Enter your username" required>
                 </div>
-
                 <div>
                     <label for="password">Password</label>
                     <input id="password" type="password" name="password" placeholder="Enter your password" required>
                 </div>
-
                 <button type="submit">Login</button>
             </form>
 

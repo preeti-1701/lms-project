@@ -1,101 +1,215 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Signup</title>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup | LLSM</title>
     <style>
+        :root {
+            --bg: #f4efe7;
+            --card: #fffdf8;
+            --ink: #1f2a37;
+            --muted: #5b6879;
+            --line: #dcd3c2;
+            --brand: #0f4b84;
+            --brand-2: #1d8f8a;
+            --accent: #d9603b;
+            --accent-2: #e78f3c;
+            --shadow: 0 18px 40px rgba(31, 42, 55, 0.10);
+        }
+
+        * { box-sizing: border-box; }
+
         body {
             margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(29, 143, 138, 0.08), transparent 30%),
+                radial-gradient(circle at top right, rgba(217, 96, 59, 0.09), transparent 28%),
+                linear-gradient(180deg, #f7f3ec 0%, #f2ede4 100%);
+        }
+
+        .auth-card {
+            width: min(100%, 520px);
+            background: var(--card);
+            border: 1px solid rgba(220, 211, 194, 0.75);
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .hero {
+            padding: 30px 30px 18px;
+            background: linear-gradient(135deg, rgba(15, 75, 132, 0.08), rgba(29, 143, 138, 0.08));
+            border-bottom: 1px solid rgba(220, 211, 194, 0.65);
+        }
+
+        .hero h1 {
+            margin: 0 0 8px;
+            font-size: 2rem;
+        }
+
+        .hero p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .content {
+            padding: 24px 30px 30px;
+            display: grid;
+            gap: 18px;
+        }
+
+        .flash-list {
+            list-style: none;
             padding: 0;
-            font-family: Arial, sans-serif;
-            background: linear-gradient(to right, #667eea, #764ba2);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            margin: 0;
+            display: grid;
+            gap: 10px;
         }
 
-        .signup-container {
-            background: white;
-            padding: 40px;
+        .flash-list li {
             border-radius: 12px;
-            width: 320px;
-            text-align: center;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            padding: 12px 14px;
+            border: 1px solid #efb8c4;
+            background: #fff2f5;
+            color: #bf2f4a;
         }
 
-        h2 {
-            margin-bottom: 20px;
-            color: #333;
+        form {
+            display: grid;
+            gap: 14px;
         }
 
-        input, select {
+        .grid-2 {
+            display: grid;
+            gap: 14px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 700;
+            font-size: 0.92rem;
+        }
+
+        input,
+        select {
             width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            outline: none;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 12px 14px;
+            font: inherit;
+            background: #fffefb;
         }
 
-        input:focus, select:focus {
-            border-color: #667eea;
+        input:focus,
+        select:focus {
+            outline: 2px solid color-mix(in srgb, var(--brand-2) 55%, white);
+            border-color: var(--brand-2);
         }
 
         button {
             width: 100%;
-            padding: 12px;
-            background: #667eea;
             border: none;
-            color: white;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font: inherit;
+            font-weight: 700;
             cursor: pointer;
-            transition: 0.3s;
+            color: #fff;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            box-shadow: 0 12px 22px rgba(217, 96, 59, 0.20);
+            transition: transform 0.16s ease, opacity 0.16s ease;
         }
 
-        button:hover {
-            background: #5a67d8;
-            transform: scale(1.05);
+        button:hover { transform: translateY(-1px); opacity: 0.96; }
+
+        .switch {
+            margin: 0;
+            text-align: center;
+            color: var(--muted);
         }
 
-        .login-link {
-            margin-top: 15px;
-            display: block;
-            color: #667eea;
+        .switch a {
+            color: var(--brand);
+            font-weight: 700;
             text-decoration: none;
         }
 
-        .login-link:hover {
-            text-decoration: underline;
+        .switch a:hover { text-decoration: underline; }
+
+        @media (max-width: 560px) {
+            body { padding: 14px; }
+            .hero,
+            .content { padding-left: 18px; padding-right: 18px; }
+            .grid-2 { grid-template-columns: 1fr; }
         }
     </style>
 </head>
-
 <body>
+    <main class="auth-card">
+        <section class="hero">
+            <h1>Create Account</h1>
+            <p>Accounts are created by administrators. This page remains available for future workflows.</p>
+        </section>
 
-<div class="signup-container">
-    <h2> Signup</h2>
+        <section class="content">
+            {% if messages %}
+                <ul class="flash-list">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
 
-    <form method="POST">
-        {% csrf_token %}
+            <form method="post">
+                {% csrf_token %}
 
-        <input type="text" name="username" placeholder="Username" required>
-        <input type="email" name="email" placeholder="Email" required>
-        <input type="password" name="password" placeholder="Password" required>
+                <div class="grid-2">
+                    <div>
+                        <label for="username">Username</label>
+                        <input id="username" type="text" name="username" placeholder="Choose a username" required>
+                    </div>
+                    <div>
+                        <label for="email">Email</label>
+                        <input id="email" type="email" name="email" placeholder="Enter your email" required>
+                    </div>
+                </div>
 
-        <select name="role" required>
-            <option value="">Select Role</option>
-            <option value="student">Student</option>
-            <option value="trainer">Trainer</option>
-            <option value="admin">Admin</option>
-        </select>
+                <div class="grid-2">
+                    <div>
+                        <label for="password">Password</label>
+                        <input id="password" type="password" name="password" placeholder="Create a password" required>
+                    </div>
+                    <div>
+                        <label for="confirm_password">Confirm Password</label>
+                        <input id="confirm_password" type="password" name="confirm_password" placeholder="Repeat your password" required>
+                    </div>
+                </div>
 
-        <button type="submit"> Register</button>
-    </form>
+                <div>
+                    <label for="role">Account Type</label>
+                    <select id="role" name="role" required>
+                        <option value="">Select account type</option>
+                        <option value="student">Student</option>
+                        <option value="trainer">Trainer</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
 
-    <a href="/login/" class="login-link">Already have an account? Login</a>
-</div>
+                <button type="submit">Create Account</button>
+            </form>
 
+            <p class="switch">Already have an account? <a href="{% url 'login' %}">Log in</a></p>
+        </section>
+    </main>
 </body>
 </html>

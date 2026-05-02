@@ -1,14 +1,302 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>LMS</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LLSM{% endblock %}</title>
+    <style>
+        :root {
+            --bg: #f4efe7;
+            --panel: #fffdf8;
+            --ink: #1f2a37;
+            --muted: #5b6879;
+            --line: #dcd3c2;
+            --brand: #0f4b84;
+            --brand-2: #1d8f8a;
+            --accent: #d9603b;
+            --accent-2: #e78f3c;
+            --shadow: 0 18px 40px rgba(31, 42, 55, 0.10);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(29, 143, 138, 0.08), transparent 30%),
+                radial-gradient(circle at top right, rgba(217, 96, 59, 0.09), transparent 28%),
+                linear-gradient(180deg, #f7f3ec 0%, #f2ede4 100%);
+            color: var(--ink);
+        }
+
+        a {
+            color: var(--brand);
+        }
+
+        img {
+            max-width: 100%;
+            display: block;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 24px;
+            background: rgba(31, 42, 55, 0.96);
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 8px 24px rgba(31, 42, 55, 0.18);
+        }
+
+        .topbar h1 {
+            margin: 0;
+            font-size: 1.15rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .topbar .user-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .topbar .user-name {
+            color: #d7e0eb;
+            font-size: 0.95rem;
+        }
+
+        .logout-form {
+            margin: 0;
+        }
+
+        .logout-btn {
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            background: transparent;
+            color: #fff;
+            border-radius: 999px;
+            padding: 8px 14px;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .page-shell {
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 28px 0 48px;
+        }
+
+        .surface {
+            background: var(--panel);
+            border: 1px solid rgba(220, 211, 194, 0.75);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .section-title {
+            margin: 0 0 10px;
+            color: var(--ink);
+        }
+
+        .section-subtitle {
+            margin: 0 0 18px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid rgba(220, 211, 194, 0.75);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            padding: 22px;
+        }
+
+        .card-grid {
+            display: grid;
+            gap: 18px;
+        }
+
+        .two-col {
+            display: grid;
+            gap: 18px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .three-col {
+            display: grid;
+            gap: 18px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        h2 {
+            font-size: clamp(1.6rem, 2vw, 2.2rem);
+        }
+
+        h3 {
+            font-size: 1.2rem;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 12px 14px;
+            font: inherit;
+            background: #fffefb;
+            color: var(--ink);
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: 2px solid color-mix(in srgb, var(--brand-2) 55%, white);
+            border-color: var(--brand-2);
+        }
+
+        button,
+        .button,
+        .btn-link,
+        .enroll-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+        }
+
+        button,
+        .button,
+        .enroll-button {
+            color: #fff;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            box-shadow: 0 12px 22px rgba(217, 96, 59, 0.20);
+        }
+
+        .btn-link {
+            color: #fff;
+            background: linear-gradient(90deg, var(--brand), var(--brand-2));
+        }
+
+        button:hover,
+        .button:hover,
+        .btn-link:hover,
+        .enroll-button:hover {
+            transform: translateY(-1px);
+            opacity: 0.96;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 12px 10px;
+            border-bottom: 1px solid #eee4d7;
+        }
+
+        th {
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-size: 0.82rem;
+        }
+
+        .flash-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 18px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .flash-list li {
+            border-radius: 12px;
+            padding: 12px 14px;
+            border: 1px solid #efb8c4;
+            background: #fff2f5;
+            color: #bf2f4a;
+        }
+
+        .flash-list li.success {
+            background: #effaf6;
+            color: #13775f;
+            border-color: #afd7ca;
+        }
+
+        .flash-list li.warning {
+            background: #fff7e9;
+            color: #a35d00;
+            border-color: #f0d39a;
+        }
+
+        main {
+            display: block;
+        }
+
+        @media (max-width: 900px) {
+            .two-col,
+            .three-col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .topbar {
+                padding: 14px 16px;
+                flex-wrap: wrap;
+            }
+
+            .page-shell {
+                width: min(100%, calc(100% - 20px));
+                padding-top: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
+<header class="topbar">
+    <h1>LMS System</h1>
+    {% if request.user.is_authenticated %}
+        <div class="user-area">
+            <span class="user-name">{{ request.user.username }}</span>
+            <form class="logout-form" method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn">Log out</button>
+            </form>
+        </div>
+    {% endif %}
+</header>
 
-<h1>LMS System</h1>
-
-{% block content %}
-{% endblock %}
+<main class="page-shell">
+{% block content %}{% endblock %}
+</main>
 
 </body>
 </html>
