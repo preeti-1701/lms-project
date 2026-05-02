@@ -66,3 +66,23 @@ class ForceLogoutView(APIView):
         UserSession.objects.filter(user_id=user_id).update(is_active=False)
 
         return Response({"message": "User logged out from all devices"})
+    
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
+    
+class UserListView(APIView):
+    permission_classes = [IsAuthenticated, IsAdmin]
+ 
+    def get(self, request):
+        users = User.objects.all().order_by('id')
+        data = [
+            {
+                "id":       u.id,
+                "username": u.username,
+                "email":    u.email,
+                "role":     u.role,
+            }
+            for u in users
+        ]
+        return Response(data)

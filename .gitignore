@@ -2,3 +2,6 @@
 
 __pycache__/
 db.sqlite3
+
+lms-frontend/node_modules/
+lms-frontend/dist/

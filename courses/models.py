@@ -12,8 +12,8 @@ class Course(models.Model):
         return self.title
 
 class Video(models.Model):
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    title = models.CharField(max_length=255)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='videos')
+    title = models.CharField(max_length=200)
     youtube_url = models.URLField()
 
     def __str__(self):

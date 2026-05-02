@@ -39,5 +39,32 @@ class ListCoursesView(APIView):
         courses = Course.objects.all()
         serializer = CourseSerializer(courses, many=True)
         return Response(serializer.data)
+    
 
-
+class DeleteVideoView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminOrTrainer]
+ 
+    def delete(self, request, video_id):
+        try:
+            video = Video.objects.get(id=video_id)
+        except Video.DoesNotExist:
+            return Response({"detail": "Video not found."}, status=404)
+ 
+        # Trainers can only delete videos from courses they created
+        if request.user.role == 'trainer' and video.course.created_by != request.user:
+            return Response({"detail": "You do not have permission to delete this video."}, status=403)
+ 
+        video.delete()
+        return Response({"message": "Video deleted successfully."}, status=200)
+ 
+class MyCoursesView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminOrTrainer]
+ 
+    def get(self, request):
+        # Admins see all courses; trainers see only their own
+        if request.user.role == 'admin':
+            courses = Course.objects.all()
+        else:
+            courses = Course.objects.filter(created_by=request.user)
+        serializer = CourseSerializer(courses, many=True)
+        return Response(serializer.data)
