@@ -36,7 +36,7 @@ def register(request):
                 "error": "Username already exists"
             })
 
-        # create user
+        # create use
         user = User.objects.create_user(username=username, password=password)
 
         # create/get group
