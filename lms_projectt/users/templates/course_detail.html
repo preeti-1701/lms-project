@@ -33,8 +33,8 @@
         {% endif %}
     {% endif %}
 
-    <!-- TRAINER UPLOAD -->
-    {% if role == "trainer" %}
+    <!-- admin UPLOAD -->
+    {% if role == "admin" %}
         <a href="/upload-content/{{ course.id }}/" class="btn">Upload Content</a>
     {% endif %}
 
@@ -71,8 +71,8 @@
             </video>
         {% endif %}
 
-        <!-- EDIT / DELETE (ONLY TRAINER + OWNER) -->
-        {% if role == "trainer" and content.uploaded_by == user %}
+        <!-- EDIT / DELETE (ONLY admin + OWNER) -->
+        {% if role == "admin" and content.uploaded_by == user %}
         <div style="margin-top:10px;">
             <a href="/edit-content/{{ content.id }}/" class="btn btn-secondary">Edit</a>
 

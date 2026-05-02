@@ -31,10 +31,18 @@ def register(request):
         if User.objects.filter(username=username).exists():
             return render(request, "register.html", {"error": "Username exists"})
 
-        user = User.objects.create_user(username=username, password=password)
+        user = User.objects.create_user(
+            username=username,
+            password=password
+        )
+
+        # force normal user
+        user.is_staff = False
+        user.is_superuser = False
+        user.save()
 
         group, _ = Group.objects.get_or_create(name=role)
-        user.groups.add(group)
+        user.groups.set([group])
 
         return redirect('/login/')
 
@@ -131,7 +139,7 @@ def dashboard(request):
 
         # role-based flags
         is_student = role == "student"
-        is_trainer = role == "trainer"
+        is_admin = role == "admin"
         is_teacher = role == "teacher"
 
         courses = Course.objects.all()
@@ -146,7 +154,7 @@ def dashboard(request):
             "user": user,
             "role": role,
             "is_student": is_student,
-            "is_trainer": is_trainer,
+            "is_admin": is_admin,
             "is_teacher": is_teacher,
             "courses": courses,
             "enrolled_courses": enrolled_courses   # ADD THIS
@@ -154,19 +162,19 @@ def dashboard(request):
 
     return redirect('/login/')
 
-#------------------- Course List(trainer only) ------------------
+#------------------- Course List(admin only) ------------------
 def add_course(request):
-    if 'user' in request.session and request.session.get('role') == "trainer":
+    if 'user' in request.session and request.session.get('role') == "admin":
         
         if request.method == "POST":
             title = request.POST['title']
             description = request.POST['description']
-            trainer = request.session['user']
+            admin = request.session['user']
 
             Course.objects.create(
                 title=title,
                 description=description,
-                created_by=trainer
+                created_by=admin
             )
 
             return redirect('/dashboard/')
@@ -238,7 +246,7 @@ def upload_content(request, id):
     if 'user' not in request.session:
         return redirect('/login/')
 
-    if request.session.get('role') != "trainer":
+    if request.session.get('role') != "admin":
         return redirect('/dashboard/')
 
     course = Course.objects.get(id=id)
@@ -317,8 +325,8 @@ def delete_content(request, id):
     if 'user' in request.session:
         role = request.session.get('role')
 
-        # only trainer allowed
-        if role != "trainer":
+        # only admin allowed
+        if role != "admin":
             return redirect('/dashboard/')
 
         content = CourseContent.objects.get(id=id)
@@ -336,7 +344,7 @@ def edit_content(request, id):
     if 'user' in request.session:
         role = request.session.get('role')
 
-        if role != "trainer":
+        if role != "admin":
             return redirect('/dashboard/')
 
         content = CourseContent.objects.get(id=id)
@@ -363,7 +371,7 @@ def view_students(request, id):
     if 'user' in request.session:
         role = request.session.get('role')
 
-        if role != "trainer":
+        if role != "admin":
             return redirect('/dashboard/')
 
         course = Course.objects.get(id=id)
@@ -453,7 +461,7 @@ def dashboard(request):
         role = request.session.get('role')
 
         is_student = role == "student"
-        is_trainer = role == "trainer"
+        is_admin = role == "admin"
         is_teacher = role == "teacher"
 
         courses = []
@@ -481,15 +489,15 @@ def dashboard(request):
             total_assignments = assignments.count()
             pending_assignments = assignments.filter(status="pending").count()
 
-        # TRAINER LOGIC
-        if role == "trainer":
+        # admin LOGIC
+        if role == "admin":
             courses = Course.objects.filter(created_by=user)
 
         return render(request, "dashboard.html", {
             "user": user,
             "role": role,
             "is_student": is_student,
-            "is_trainer": is_trainer,
+            "is_admin": is_admin,
             "is_teacher": is_teacher,
 
             "courses": courses,
@@ -576,7 +584,7 @@ def delete_course(request, id):
     if 'user' not in request.session:
         return redirect('/login/')
 
-    if request.session.get('role') != "trainer":
+    if request.session.get('role') != "admin":
         return redirect('/dashboard/')
 
     course = Course.objects.get(id=id)
@@ -589,7 +597,7 @@ def delete_course(request, id):
     return redirect('/dashboard/')   
 #---------------------delete content---------------------
 def delete_content(request, id):
-    if 'user' not in request.session or request.session.get('role') != "trainer":
+    if 'user' not in request.session or request.session.get('role') != "admin":
         return redirect('/dashboard/')
 
     content = CourseContent.objects.get(id=id)
@@ -604,7 +612,7 @@ def delete_content(request, id):
 
 #---------------------edit content---------------------
 def edit_content(request, id):
-    if 'user' not in request.session or request.session.get('role') != "trainer":
+    if 'user' not in request.session or request.session.get('role') != "admin":
         return redirect('/dashboard/')
 
     content = CourseContent.objects.get(id=id)
