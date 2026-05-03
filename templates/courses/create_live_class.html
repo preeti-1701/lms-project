@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Schedule Live Class{% endblock %}
+{% block content %}
+
+<div class="card" style="max-width:640px; margin:0 auto;">
+    <div style="text-align:center; margin-bottom:28px;">
+        <div style="font-size:48px; margin-bottom:12px;
+            animation:float 3s ease-in-out infinite;">🔴</div>
+        <div style="font-family:'Syne',sans-serif; font-size:22px;
+            font-weight:800; color:var(--text);">Schedule Live Class</div>
+        <div style="color:var(--text2); font-size:13px; margin-top:6px;">
+            for <strong style="color:#e94560;">{{ course.title }}</strong>
+        </div>
+    </div>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Class Title</label>
+            <input type="text" name="title" required
+                placeholder="e.g. Introduction to Python - Live Q&A">
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" rows="3"
+                placeholder="What will be covered in this class..."
+                style="width:100%; padding:12px 16px; border:1.5px solid var(--border);
+                border-radius:10px; font-size:14px; background:var(--input-bg);
+                color:var(--text); font-family:'DM Sans',sans-serif; resize:vertical;"
+                onfocus="this.style.borderColor='#e94560'"
+                onblur="this.style.borderColor='var(--border)'">
+            </textarea>
+        </div>
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Date & Time</label>
+                <input type="datetime-local" name="scheduled_at" required>
+            </div>
+            <div class="form-group">
+                <label>Duration (minutes)</label>
+                <input type="number" name="duration_minutes" value="60" min="15" max="480">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Google Meet / Zoom Link</label>
+            <input type="url" name="meet_link"
+                placeholder="https://meet.google.com/xxx-xxxx-xxx">
+        </div>
+        <div style="background:rgba(233,69,96,0.05); border:1px solid rgba(233,69,96,0.15);
+            border-radius:12px; padding:14px; margin-bottom:20px; font-size:13px;
+            color:var(--text2); line-height:1.6;">
+            💡 All enrolled students will be notified automatically when you schedule this class.
+        </div>
+        <div style="display:flex; gap:12px;">
+            <button type="submit" class="btn btn-primary" style="flex:1; justify-content:center;">
+                🔴 Schedule Live Class
+            </button>
+            <a href="{% url 'live_class_list' course.id %}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

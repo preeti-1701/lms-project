@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block title %}My Progress{% endblock %}
+{% block content %}
+
+<style>
+    .xp-hero {
+        background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+        border-radius: 20px; padding: 40px; margin-bottom: 24px;
+        position: relative; overflow: hidden;
+        border: 1px solid rgba(233,69,96,0.2);
+    }
+    .xp-hero::before {
+        content: ''; position: absolute; top: -40%; right: -5%;
+        width: 350px; height: 350px;
+        background: radial-gradient(circle, rgba(247,183,49,0.15), transparent 70%);
+    }
+    .level-ring {
+        width: 100px; height: 100px;
+        border-radius: 50%;
+        background: conic-gradient(#f7b731 var(--pct), rgba(255,255,255,0.1) 0);
+        display: flex; align-items: center; justify-content: center;
+        position: relative; flex-shrink: 0;
+    }
+    .level-ring-inner {
+        width: 78px; height: 78px; border-radius: 50%;
+        background: #1a1a2e;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+    }
+    .badge-card {
+        background: var(--card); border-radius: 14px;
+        padding: 18px; border: 1px solid var(--border);
+        text-align: center; transition: all 0.3s;
+        animation: fadeUp 0.4s ease both;
+    }
+    .badge-card:hover {
+        transform: translateY(-4px);
+        border-color: #f7b731;
+        box-shadow: 0 10px 30px rgba(247,183,49,0.2);
+    }
+    .badge-icon { font-size: 36px; margin-bottom: 8px; display: block; }
+    .badge-name { font-size: 12px; font-weight: 700; color: var(--text2); }
+    .streak-fire {
+        font-size: 48px;
+        animation: float 2s ease-in-out infinite;
+        display: block; margin-bottom: 8px;
+    }
+</style>
+
+<!-- XP Hero -->
+<div class="xp-hero">
+    <div style="display:flex; align-items:center; gap:28px; position:relative; z-index:1; flex-wrap:wrap;">
+        <div class="level-ring" style="--pct:{{ level_progress }}%;">
+            <div class="level-ring-inner">
+                <div style="font-family:'Syne',sans-serif; font-size:22px;
+                    font-weight:800; color:#f7b731;">{{ xp.level }}</div>
+                <div style="font-size:10px; color:rgba(255,255,255,0.5);">LEVEL</div>
+            </div>
+        </div>
+        <div style="flex:1;">
+            <div style="font-family:'Syne',sans-serif; font-size:28px;
+                font-weight:800; color:white; margin-bottom:6px;">
+                {{ user.full_name }}
+            </div>
+            <div style="color:rgba(255,255,255,0.5); font-size:14px; margin-bottom:14px;">
+                Level {{ xp.level }} Learner · {{ xp.points }} XP total
+            </div>
+            <div style="background:rgba(255,255,255,0.08); border-radius:10px;
+                height:10px; width:300px; max-width:100%; overflow:hidden;">
+                <div style="height:100%; width:{{ level_progress }}%;
+                    background:linear-gradient(90deg,#f7b731,#e94560);
+                    border-radius:10px; transition:width 1s ease;"></div>
+            </div>
+            <div style="font-size:12px; color:rgba(255,255,255,0.4); margin-top:6px;">
+                {{ level_progress }}% to Level {{ xp.level|add:1 }}
+            </div>
+        </div>
+        <div style="text-align:center;">
+            <span class="streak-fire">🔥</span>
+            <div style="font-family:'Syne',sans-serif; font-size:28px;
+                font-weight:800; color:#f7b731;">{{ xp.streak_days }}</div>
+            <div style="font-size:12px; color:rgba(255,255,255,0.5);">Day Streak</div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px;">
+    <div class="stat-card">
+        <div class="icon">⭐</div>
+        <div class="number">{{ xp.points }}</div>
+        <div class="label">Total XP</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">🏅</div>
+        <div class="number">{{ badges.count }}</div>
+        <div class="label">Badges Earned</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">📝</div>
+        <div class="number">{{ attempts.count }}</div>
+        <div class="label">Quizzes Taken</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">🎓</div>
+        <div class="number">{{ certs.count }}</div>
+        <div class="label">Certificates</div>
+    </div>
+</div>
+
+<!-- Badges -->
+<div class="card" style="margin-bottom:20px;">
+    <h2>🏅 My Badges</h2>
+    {% if badges %}
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:14px;">
+        {% for badge in badges %}
+        <div class="badge-card" style="animation-delay:{{ forloop.counter0 }}00ms;">
+            <span class="badge-icon">
+                {% if badge.badge_type == 'first_video' %}🎬
+                {% elif badge.badge_type == 'first_quiz' %}📝
+                {% elif badge.badge_type == 'perfect_score' %}💯
+                {% elif badge.badge_type == 'first_cert' %}🎓
+                {% elif badge.badge_type == 'streak_3' %}🔥
+                {% elif badge.badge_type == 'streak_7' %}⚡
+                {% elif badge.badge_type == 'top_student' %}👑
+                {% elif badge.badge_type == 'fast_learner' %}🚀
+                {% else %}🏅{% endif %}
+            </span>
+            <div class="badge-name">
+                {{ badge.get_badge_type_display }}
+            </div>
+            <div style="font-size:11px; color:var(--text2); margin-top:4px;">
+                {{ badge.earned_at|date:"d M Y" }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align:center; padding:40px; color:var(--text2);">
+        <div style="font-size:48px; margin-bottom:12px;">🏅</div>
+        <div>No badges yet. Watch videos and take quizzes to earn them!</div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Video Progress -->
+<div class="card">
+    <h2>📹 Video Progress</h2>
+    {% if progress_list %}
+    <table>
+        <tr><th>Video</th><th>Course</th><th>Progress</th><th>Status</th></tr>
+        {% for p in progress_list %}
+        <tr>
+            <td><strong>{{ p.video.title }}</strong></td>
+            <td style="color:var(--text2);">{{ p.video.course.title }}</td>
+            <td style="width:200px;">
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" style="width:{{ p.percentage }}%;"></div>
+                </div>
+                <div style="font-size:11px; color:var(--text2); margin-top:3px;">
+                    {{ p.percentage }}%
+                </div>
+            </td>
+            <td>
+                {% if p.completed %}
+                <span style="color:#28a745; font-weight:600; font-size:13px;">✅ Done</span>
+                {% else %}
+                <span style="color:#f7b731; font-weight:600; font-size:13px;">⏳ In Progress</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <div style="text-align:center; padding:30px; color:var(--text2);">
+        No videos watched yet. Start learning!
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

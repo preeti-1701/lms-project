@@ -466,6 +466,7 @@
         <a href="{% url 'dashboard' %}">Dashboard</a>
         <a href="{% url 'course_list' %}">Courses</a>
         <a href="{% url 'leaderboard' %}">🏆 Leaderboard</a>
+        <a href="{% url 'my_progress' %}">⭐ My XP</a>
         {% if user.role in 'admin,trainer' %}
         <a href="{% url 'analytics' %}">📊 Analytics</a>
         {% endif %}

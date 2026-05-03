@@ -2,67 +2,279 @@
 {% block title %}Trainer Dashboard{% endblock %}
 {% block content %}
 
-<div class="page-title">🏫 <span>Trainer</span> Dashboard</div>
+<style>
+    .hero-banner {
+        background: linear-gradient(135deg, #0d1b4b 0%, #16213e 50%, #1a1a2e 100%);
+        border-radius: 20px; padding: 40px; margin-bottom: 28px;
+        position: relative; overflow: hidden;
+        border: 1px solid rgba(26,115,232,0.3);
+    }
+    .hero-banner::before {
+        content: ''; position: absolute; top: -50%; right: -10%;
+        width: 400px; height: 400px;
+        background: radial-gradient(circle, rgba(26,115,232,0.2), transparent 70%);
+        animation: heroGlow 4s ease-in-out infinite alternate;
+    }
+    @keyframes heroGlow {
+        from { transform: scale(1); opacity: 0.5; }
+        to { transform: scale(1.2); opacity: 1; }
+    }
+    .hero-banner h1 {
+        font-family: 'Syne', sans-serif; font-size: 30px; font-weight: 800;
+        color: white; margin-bottom: 8px; position: relative; z-index: 1;
+    }
+    .hero-banner p {
+        color: rgba(255,255,255,0.5); font-size: 14px;
+        position: relative; z-index: 1;
+    }
+    .hero-banner .big-emoji {
+        position: absolute; right: 40px; top: 50%;
+        transform: translateY(-50%);
+        font-size: 80px; animation: float 3s ease-in-out infinite;
+        filter: drop-shadow(0 10px 20px rgba(26,115,232,0.5));
+    }
 
-<div class="grid-3" style="margin-bottom:28px;">
-    <div class="stat-card">
-        <div class="icon" style="animation:float 3s ease-in-out infinite;">📚</div>
-        <div class="number">{{ courses.count }}</div>
-        <div class="label">My Courses</div>
+    .stat-card-new {
+        background: var(--card); border-radius: 16px; padding: 24px;
+        border: 1px solid var(--border); position: relative; overflow: hidden;
+        transition: all 0.3s; animation: fadeUp 0.5s ease both;
+    }
+    .stat-card-new:hover {
+        transform: translateY(-6px); border-color: #e94560;
+        box-shadow: 0 20px 40px rgba(233,69,96,0.15);
+    }
+    .stat-icon {
+        width: 48px; height: 48px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 22px; margin-bottom: 16px;
+    }
+    .stat-value {
+        font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800;
+        color: var(--text); line-height: 1; margin-bottom: 4px;
+    }
+    .stat-label { font-size: 13px; color: var(--text2); font-weight: 500; }
+    .stat-glow {
+        position: absolute; bottom: -20px; right: -20px;
+        width: 80px; height: 80px; border-radius: 50%;
+        filter: blur(30px); opacity: 0.4;
+    }
+
+    .course-card {
+        padding: 22px; border-radius: 14px;
+        border: 1px solid var(--border); background: var(--bg);
+        transition: all 0.3s; animation: fadeUp 0.4s ease both;
+        position: relative; overflow: hidden;
+    }
+    .course-card::before {
+        content: ''; position: absolute;
+        top: 0; left: 0; right: 0; height: 3px;
+        background: linear-gradient(90deg, #e94560, #f7b731);
+        transform: scaleX(0); transform-origin: left;
+        transition: transform 0.3s;
+    }
+    .course-card:hover {
+        transform: translateY(-4px);
+        border-color: #e94560;
+        box-shadow: 0 12px 30px rgba(233,69,96,0.12);
+    }
+    .course-card:hover::before { transform: scaleX(1); }
+    .course-card-title {
+        font-family: 'Syne', sans-serif; font-weight: 700;
+        font-size: 15px; margin-bottom: 10px; color: var(--text);
+    }
+    .course-card-meta {
+        display: flex; gap: 14px; font-size: 12px;
+        color: var(--text2); margin-bottom: 16px;
+    }
+    .course-card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .action-btn {
+        display: flex; align-items: center; gap: 14px;
+        padding: 14px 18px; border-radius: 12px;
+        text-decoration: none; border: 1px solid var(--border);
+        background: var(--bg); transition: all 0.25s;
+        margin-bottom: 10px; color: var(--text);
+    }
+    .action-btn:hover {
+        transform: translateX(6px);
+        border-color: #e94560;
+        background: rgba(233,69,96,0.04);
+    }
+    .action-icon {
+        width: 40px; height: 40px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 18px; flex-shrink: 0;
+    }
+    .action-text { flex: 1; }
+    .action-title { font-weight: 700; font-size: 14px; font-family: 'Syne', sans-serif; }
+    .action-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+</style>
+
+<!-- Hero Banner -->
+<div class="hero-banner">
+    <h1>Welcome, {{ user.full_name|truncatewords:1 }}! 🏫</h1>
+    <p>Manage your courses, add videos and track your students.</p>
+    <div class="big-emoji">🏫</div>
+</div>
+
+<!-- Stat Cards -->
+<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:28px;">
+    <div class="stat-card-new" style="animation-delay:0.05s;">
+        <div class="stat-icon" style="background:rgba(233,69,96,0.12);">📚</div>
+        <div class="stat-value">{{ courses.count }}</div>
+        <div class="stat-label">My Courses</div>
+        <div class="stat-glow" style="background:#e94560;"></div>
     </div>
-    <div class="stat-card">
-        <div class="icon" style="animation:float 3s ease-in-out infinite 0.5s;">👥</div>
-        <div class="number">
+    <div class="stat-card-new" style="animation-delay:0.1s;">
+        <div class="stat-icon" style="background:rgba(26,115,232,0.12);">👥</div>
+        <div class="stat-value">
             {% with total=0 %}
-            {% for c in courses %}{{ c.assigned_students.count }}{% endfor %}
+            {% for c in courses %}
+                {% if forloop.first %}{{ c.assigned_students.count }}{% endif %}
+            {% endfor %}
             {% endwith %}
+            {% if courses.count > 1 %}+{% endif %}
         </div>
-        <div class="label">Total Students</div>
+        <div class="stat-label">Total Students</div>
+        <div class="stat-glow" style="background:#1a73e8;"></div>
     </div>
-    <div class="stat-card">
-        <div class="icon" style="animation:float 3s ease-in-out infinite 1s;">📹</div>
-        <div class="number">
-            {% for c in courses %}{{ c.videos.count }}{% endfor %}
+    <div class="stat-card-new" style="animation-delay:0.15s;">
+        <div class="stat-icon" style="background:rgba(40,167,69,0.12);">📹</div>
+        <div class="stat-value">
+            {% for c in courses %}
+                {% if forloop.first %}{{ c.videos.count }}{% endif %}
+            {% endfor %}
+            {% if courses.count > 1 %}+{% endif %}
         </div>
-        <div class="label">Total Videos</div>
+        <div class="stat-label">Total Videos</div>
+        <div class="stat-glow" style="background:#28a745;"></div>
     </div>
 </div>
 
-<div class="card">
-    <h2>📚 My Courses
-        <a href="{% url 'create_course' %}" class="btn btn-primary btn-sm" style="margin-left:auto;">
-            + New Course
-        </a>
-    </h2>
-    {% if courses %}
-    <div class="grid-2">
-        {% for course in courses %}
-        <div style="padding:22px; border-radius:14px; border:1px solid var(--border);
-            background:var(--bg); transition:all 0.3s;
-            animation: fadeUp 0.4s ease {{ forloop.counter0|add:'1' }}00ms both;"
-            onmouseover="this.style.transform='translateY(-3px)'; this.style.borderColor='#e94560'"
-            onmouseout="this.style.transform=''; this.style.borderColor='var(--border)'">
-            <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:15px;
-                margin-bottom:10px; color:var(--text);">{{ course.title }}</div>
-            <div style="display:flex; gap:16px; font-size:12px; color:var(--text2); margin-bottom:16px;">
-                <span>👥 {{ course.assigned_students.count }} students</span>
-                <span>📹 {{ course.videos.count }} videos</span>
+<div class="grid-2">
+    <!-- My Courses -->
+    <div class="card">
+        <h2>📚 My Courses
+            <a href="{% url 'create_course' %}" class="btn btn-primary btn-sm"
+                style="margin-left:auto;">+ New Course</a>
+        </h2>
+        {% if courses %}
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            {% for course in courses %}
+            <div class="course-card" style="animation-delay:{{ forloop.counter0 }}00ms;">
+                <div class="course-card-title">{{ course.title }}</div>
+                <div class="course-card-meta">
+                    <span>👥 {{ course.assigned_students.count }} students</span>
+                    <span>📹 {{ course.videos.count }} videos</span>
+                    {% if course.end_date %}
+                    <span>🏁 {{ course.end_date|date:"d M Y" }}</span>
+                    {% endif %}
+                </div>
+                <div class="course-card-actions">
+                    <a href="{% url 'course_detail' course.id %}"
+                        class="btn btn-secondary btn-sm">View</a>
+                    <a href="{% url 'add_video' course.id %}"
+                        class="btn btn-primary btn-sm">+ Video</a>
+                    <a href="{% url 'assign_students' course.id %}"
+                        class="btn btn-sm"
+                        style="background:var(--border); color:var(--text);">Assign</a>
+                    <a href="{% url 'live_class_list' course.id %}"
+                        class="btn btn-sm"
+                        style="background:rgba(233,69,96,0.1); color:#e94560;
+                        border:1px solid rgba(233,69,96,0.2);">🔴 Live</a>
+                    <a href="{% url 'discussion_list' course.id %}"
+                        class="btn btn-sm"
+                        style="background:rgba(26,115,232,0.1); color:#1a73e8;
+                        border:1px solid rgba(26,115,232,0.2);">💬 Forum</a>
+                </div>
             </div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <a href="{% url 'course_detail' course.id %}" class="btn btn-secondary btn-sm">View</a>
-                <a href="{% url 'add_video' course.id %}" class="btn btn-primary btn-sm">+ Video</a>
-                <a href="{% url 'assign_students' course.id %}" class="btn btn-sm"
-                    style="background:var(--border); color:var(--text);">Assign</a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align:center; padding:40px; color:var(--text2);">
+            <div style="font-size:48px; margin-bottom:16px;">📭</div>
+            No courses yet.
+            <a href="{% url 'create_course' %}" style="color:#e94560;">
+                Create your first →
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Actions -->
+    <div>
+        <div class="card">
+            <h2>⚡ Quick Actions</h2>
+            <a href="{% url 'create_course' %}" class="action-btn">
+                <div class="action-icon" style="background:rgba(233,69,96,0.12);">📚</div>
+                <div class="action-text">
+                    <div class="action-title">Create Course</div>
+                    <div class="action-sub">Add a new course with schedule</div>
+                </div>
+                <span style="color:var(--text2);">›</span>
+            </a>
+            <a href="{% url 'analytics' %}" class="action-btn">
+                <div class="action-icon" style="background:rgba(40,167,69,0.12);">📊</div>
+                <div class="action-text">
+                    <div class="action-title">Analytics</div>
+                    <div class="action-sub">View student performance</div>
+                </div>
+                <span style="color:var(--text2);">›</span>
+            </a>
+            <a href="{% url 'leaderboard' %}" class="action-btn">
+                <div class="action-icon" style="background:rgba(247,183,49,0.12);">🏆</div>
+                <div class="action-text">
+                    <div class="action-title">Leaderboard</div>
+                    <div class="action-sub">Top performing students</div>
+                </div>
+                <span style="color:var(--text2);">›</span>
+            </a>
+            <a href="{% url 'search_courses' %}" class="action-btn">
+                <div class="action-icon" style="background:rgba(26,115,232,0.12);">🔍</div>
+                <div class="action-text">
+                    <div class="action-title">Search Courses</div>
+                    <div class="action-sub">Find courses quickly</div>
+                </div>
+                <span style="color:var(--text2);">›</span>
+            </a>
+        </div>
+
+        <!-- Upcoming Live Classes -->
+        <div class="card">
+            <h2>🔴 Upcoming Live Classes</h2>
+            {% with has_live=False %}
+            {% for course in courses %}
+                {% for lc in course.live_classes.all %}
+                    {% if lc.is_upcoming %}
+                    <div style="padding:14px; background:rgba(233,69,96,0.05);
+                        border:1px solid rgba(233,69,96,0.15); border-radius:12px;
+                        margin-bottom:10px;">
+                        <div style="font-weight:700; font-size:14px;
+                            color:var(--text); margin-bottom:4px;">
+                            🔴 {{ lc.title }}
+                        </div>
+                        <div style="font-size:12px; color:var(--text2); margin-bottom:8px;">
+                            {{ lc.course.title }} ·
+                            {{ lc.scheduled_at|date:"d M Y, g:i A" }}
+                        </div>
+                        {% if lc.meet_link %}
+                        <a href="{{ lc.meet_link }}" target="_blank"
+                            class="btn btn-sm"
+                            style="background:linear-gradient(135deg,#28a745,#1e7e34);
+                            color:white;">
+                            🎥 Join
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+            {% endwith %}
+            <div style="text-align:center; padding:20px; color:var(--text2); font-size:13px;">
+                Schedule live classes from each course page.
             </div>
         </div>
-        {% endfor %}
     </div>
-    {% else %}
-    <div style="text-align:center; padding:40px; color:var(--text2);">
-        <div style="font-size:48px; margin-bottom:16px;">📭</div>
-        No courses yet.
-        <a href="{% url 'create_course' %}" style="color:#e94560;">Create your first →</a>
-    </div>
-    {% endif %}
 </div>
+
 {% endblock %}

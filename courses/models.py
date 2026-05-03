@@ -163,3 +163,64 @@ class DiscussionReply(models.Model):
 
     class Meta:
         ordering = ['created_at']
+
+
+# 🎮 Gamification
+class StudentXP(models.Model):
+    student = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='xp')
+    points = models.PositiveIntegerField(default=0)
+    level = models.PositiveIntegerField(default=1)
+    streak_days = models.PositiveIntegerField(default=0)
+    last_active = models.DateField(null=True, blank=True)
+
+    def add_xp(self, amount):
+        self.points += amount
+        self.level = (self.points // 100) + 1
+        self.save()
+
+    def __str__(self):
+        return f"{self.student.full_name} - {self.points} XP"
+
+
+class Badge(models.Model):
+    BADGE_CHOICES = [
+        ('first_video', '🎬 First Watch'),
+        ('first_quiz', '📝 Quiz Taker'),
+        ('perfect_score', '💯 Perfect Score'),
+        ('first_cert', '🎓 Certified'),
+        ('streak_3', '🔥 3-Day Streak'),
+        ('streak_7', '⚡ Week Warrior'),
+        ('top_student', '👑 Top Student'),
+        ('fast_learner', '🚀 Fast Learner'),
+    ]
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='badges')
+    badge_type = models.CharField(max_length=50, choices=BADGE_CHOICES)
+    earned_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('student', 'badge_type')
+
+    def __str__(self):
+        return f"{self.student.full_name} - {self.badge_type}"
+
+
+# 🔴 Live Classes
+class LiveClass(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='live_classes')
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    scheduled_at = models.DateTimeField()
+    duration_minutes = models.PositiveIntegerField(default=60)
+    meet_link = models.URLField(blank=True)
+    created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['scheduled_at']
+
+    def is_upcoming(self):
+        from django.utils import timezone
+        return self.scheduled_at > timezone.now()
+
+    def __str__(self):
+        return f"{self.course.title} - {self.title}"

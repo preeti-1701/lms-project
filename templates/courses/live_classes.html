@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Live Classes{% endblock %}
+{% block content %}
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:28px;">
+    <div>
+        <div class="page-title" style="margin-bottom:4px;">
+            🔴 <span>Live</span> Classes
+        </div>
+        <div style="color:var(--text2); font-size:14px;">{{ course.title }}</div>
+    </div>
+    <div style="display:flex; gap:10px;">
+        <a href="{% url 'course_detail' course.id %}" class="btn btn-secondary">← Back</a>
+        {% if user.role in 'admin,trainer' %}
+        <a href="{% url 'create_live_class' course.id %}" class="btn btn-primary">
+            + Schedule Class
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+{% if live_classes %}
+<div style="display:flex; flex-direction:column; gap:14px;">
+    {% for lc in live_classes %}
+    <div style="background:var(--card); border-radius:16px; padding:24px 28px;
+        border:1px solid var(--border); transition:all 0.3s;
+        animation: fadeUp 0.3s ease {{ forloop.counter0 }}00ms both;
+        border-left: 4px solid {% if lc.is_upcoming %}#e94560{% else %}#6c757d{% endif %};"
+        onmouseover="this.style.transform='translateY(-3px)';
+            this.style.boxShadow='0 12px 30px rgba(0,0,0,0.1)'"
+        onmouseout="this.style.transform=''; this.style.boxShadow=''">
+        <div style="display:flex; justify-content:space-between;
+            align-items:flex-start; flex-wrap:wrap; gap:16px;">
+            <div style="flex:1;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                    {% if lc.is_upcoming %}
+                    <span style="display:inline-flex; align-items:center; gap:5px;
+                        background:rgba(233,69,96,0.1); color:#e94560;
+                        padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700;">
+                        <span style="width:6px; height:6px; background:#e94560;
+                            border-radius:50%; animation:pulse 1.5s infinite;"></span>
+                        UPCOMING
+                    </span>
+                    {% else %}
+                    <span style="background:rgba(108,117,125,0.1); color:#6c757d;
+                        padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700;">
+                        ENDED
+                    </span>
+                    {% endif %}
+                </div>
+                <div style="font-family:'Syne',sans-serif; font-weight:700;
+                    font-size:18px; color:var(--text); margin-bottom:6px;">
+                    {{ lc.title }}
+                </div>
+                <div style="font-size:13px; color:var(--text2); margin-bottom:14px;
+                    line-height:1.6;">
+                    {{ lc.description }}
+                </div>
+                <div style="display:flex; gap:16px; flex-wrap:wrap; font-size:13px; color:var(--text2);">
+                    <span style="display:flex; align-items:center; gap:6px;">
+                        📅 {{ lc.scheduled_at|date:"d M Y, g:i A" }}
+                    </span>
+                    <span style="display:flex; align-items:center; gap:6px;">
+                        ⏱️ {{ lc.duration_minutes }} minutes
+                    </span>
+                    <span style="display:flex; align-items:center; gap:6px;">
+                        👨‍🏫 {{ lc.created_by.full_name }}
+                    </span>
+                </div>
+            </div>
+            {% if lc.meet_link and lc.is_upcoming %}
+            <a href="{{ lc.meet_link }}" target="_blank"
+                class="btn btn-primary"
+                style="background:linear-gradient(135deg,#28a745,#1e7e34);
+                box-shadow:0 4px 14px rgba(40,167,69,0.3); flex-shrink:0;">
+                🎥 Join Class
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card" style="text-align:center; padding:80px 40px;">
+    <div style="font-size:72px; margin-bottom:20px;
+        animation:float 3s ease-in-out infinite;">🔴</div>
+    <div style="font-family:'Syne',sans-serif; font-size:22px;
+        font-weight:700; margin-bottom:10px; color:var(--text);">
+        No live classes yet
+    </div>
+    <p style="color:var(--text2); margin-bottom:24px;">
+        {% if user.role in 'admin,trainer' %}
+        Schedule your first live class!
+        {% else %}
+        Live classes will appear here once scheduled.
+        {% endif %}
+    </p>
+    {% if user.role in 'admin,trainer' %}
+    <a href="{% url 'create_live_class' course.id %}" class="btn btn-primary">
+        + Schedule First Class
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

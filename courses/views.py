@@ -4,14 +4,48 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
 import uuid
-from .models import Course, Video, VideoProgress, Quiz, Question, QuizAttempt, Certificate, Notification, Discussion, DiscussionReply
+from .models import (Course, Video, VideoProgress, Quiz, Question,
+                     QuizAttempt, Certificate, Notification,
+                     Discussion, DiscussionReply, StudentXP, Badge, LiveClass)
 from accounts.models import CustomUser
 
 
+# ── Helpers ───────────────────────────────────────────────
 def notify(user, message, link=''):
     Notification.objects.create(user=user, message=message, link=link)
 
 
+def award_xp(student, amount, reason=''):
+    xp, _ = StudentXP.objects.get_or_create(student=student)
+    today = timezone.now().date()
+    if xp.last_active:
+        diff = (today - xp.last_active).days
+        if diff == 1:
+            xp.streak_days += 1
+        elif diff > 1:
+            xp.streak_days = 1
+    else:
+        xp.streak_days = 1
+    xp.last_active = today
+    xp.add_xp(amount)
+    # Streak badges
+    if xp.streak_days >= 7:
+        award_badge(student, 'streak_7')
+    elif xp.streak_days >= 3:
+        award_badge(student, 'streak_3')
+    notify(student, f'🎯 +{amount} XP earned! {reason}', '/courses/my-progress/')
+
+
+def award_badge(student, badge_type):
+    badge, created = Badge.objects.get_or_create(
+        student=student, badge_type=badge_type
+    )
+    if created:
+        label = dict(Badge.BADGE_CHOICES).get(badge_type, badge_type)
+        notify(student, f'🏅 New badge earned: {label}!', '/courses/my-progress/')
+
+
+# ── Course Views ──────────────────────────────────────────
 @login_required
 def course_list(request):
     if request.user.role == 'admin':
@@ -45,7 +79,9 @@ def create_course(request):
         for sid in student_ids:
             try:
                 student = CustomUser.objects.get(id=sid)
-                notify(student, f'You have been enrolled in "{title}"!', f'/courses/{course.id}/')
+                notify(student,
+                       f'You have been enrolled in "{title}"!',
+                       f'/courses/{course.id}/')
             except:
                 pass
         messages.success(request, f'Course "{title}" created!')
@@ -93,7 +129,8 @@ def add_video(request, course_id):
             youtube_url=youtube_url, order=order
         )
         for student in course.assigned_students.all():
-            notify(student, f'New video "{title}" added in "{course.title}"!',
+            notify(student,
+                   f'New video "{title}" added in "{course.title}"!',
                    f'/courses/video/{video.id}/watch/')
         messages.success(request, f'Video "{title}" added!')
         return redirect('course_detail', course_id=course.id)
@@ -150,8 +187,18 @@ def update_progress(request, video_id):
         if progress.percentage >= 80:
             progress.completed = True
             check_certificate(request.user, video.course)
+            # 🎮 Award XP and badges
+            award_xp(request.user, 20, 'for completing a video!')
+            award_badge(request.user, 'first_video')
+            if VideoProgress.objects.filter(
+                student=request.user, completed=True
+            ).count() >= 5:
+                award_badge(request.user, 'fast_learner')
         progress.save()
-        return JsonResponse({'percentage': progress.percentage, 'completed': progress.completed})
+        return JsonResponse({
+            'percentage': progress.percentage,
+            'completed': progress.completed
+        })
     return JsonResponse({'error': 'invalid'}, status=400)
 
 
@@ -168,8 +215,11 @@ def check_certificate(student, course):
             Certificate.objects.create(
                 student=student, course=course, certificate_id=cert_id
             )
+            # 🎮 Award XP and badge for certificate
+            award_xp(student, 50, 'for completing a course!')
+            award_badge(student, 'first_cert')
             notify(student,
-                   f'🎉 Congratulations! You earned a certificate for "{course.title}"!',
+                   f'🎉 You earned a certificate for "{course.title}"!',
                    f'/courses/certificate/{course.id}/')
 
 
@@ -192,7 +242,13 @@ def take_quiz(request, video_id):
             student=request.user, quiz=quiz,
             score=score, total=questions.count(), passed=passed
         )
+        # 🎮 Award XP and badges for quiz
+        award_xp(request.user, 10, 'for attempting a quiz!')
+        award_badge(request.user, 'first_quiz')
+        if attempt.percentage == 100:
+            award_badge(request.user, 'perfect_score')
         if passed:
+            award_xp(request.user, 15, 'for passing a quiz!')
             notify(request.user,
                    f'✅ You passed the quiz for "{video.title}" with {attempt.percentage}%!',
                    f'/courses/video/{video.id}/watch/')
@@ -405,7 +461,7 @@ def discussion_detail(request, discussion_id):
                 discussion=discussion, author=request.user, body=body
             )
             notify(discussion.author,
-                   f'{request.user.full_name} replied to your discussion: "{discussion.title}"',
+                   f'{request.user.full_name} replied to: "{discussion.title}"',
                    f'/courses/discuss/{discussion.id}/')
             messages.success(request, 'Reply posted!')
         return redirect('discussion_detail', discussion_id=discussion.id)
@@ -413,3 +469,131 @@ def discussion_detail(request, discussion_id):
     return render(request, 'courses/discussion_detail.html', {
         'discussion': discussion, 'replies': replies, 'course': course
     })
+
+
+# ── Gamification ──────────────────────────────────────────
+@login_required
+def my_progress(request):
+    xp, _ = StudentXP.objects.get_or_create(student=request.user)
+    badges = Badge.objects.filter(student=request.user)
+    attempts = QuizAttempt.objects.filter(student=request.user)
+    certs = Certificate.objects.filter(student=request.user)
+    progress_list = VideoProgress.objects.filter(student=request.user)
+    next_level_xp = xp.level * 100
+    current_level_xp = (xp.level - 1) * 100
+    level_progress = int(
+        ((xp.points - current_level_xp) / (next_level_xp - current_level_xp)) * 100
+    ) if next_level_xp > current_level_xp else 100
+    return render(request, 'courses/my_progress.html', {
+        'xp': xp, 'badges': badges,
+        'attempts': attempts, 'certs': certs,
+        'progress_list': progress_list,
+        'level_progress': min(level_progress, 100),
+    })
+
+
+# ── AI Quiz Generation ────────────────────────────────────
+@login_required
+def ai_generate_quiz(request, video_id):
+    if request.user.role not in ['admin', 'trainer']:
+        return redirect('dashboard')
+    video = get_object_or_404(Video, id=video_id)
+    if hasattr(video, 'quiz'):
+        messages.info(request, 'Quiz already exists.')
+        return redirect('course_detail', course_id=video.course.id)
+    if request.method == 'POST':
+        topic = request.POST.get('topic', video.title)
+        try:
+            import anthropic, json
+            client = anthropic.Anthropic()
+            message = client.messages.create(
+                model="claude-opus-4-5",
+                max_tokens=1500,
+                messages=[{
+                    "role": "user",
+                    "content": f"""Generate 4 multiple choice questions about: "{topic}"
+Return ONLY valid JSON, no explanation, no markdown, exactly this format:
+{{
+  "questions": [
+    {{
+      "text": "Question here?",
+      "option_a": "First option",
+      "option_b": "Second option",
+      "option_c": "Third option",
+      "option_d": "Fourth option",
+      "correct_option": "a"
+    }}
+  ]
+}}"""
+                }]
+            )
+            raw = message.content[0].text.strip()
+            data = json.loads(raw)
+            quiz = Quiz.objects.create(video=video, title=f'AI Quiz - {video.title}')
+            for q in data['questions']:
+                Question.objects.create(
+                    quiz=quiz,
+                    text=q['text'],
+                    option_a=q['option_a'],
+                    option_b=q['option_b'],
+                    option_c=q['option_c'],
+                    option_d=q['option_d'],
+                    correct_option=q['correct_option'],
+                )
+            messages.success(request, f'🤖 AI generated {len(data["questions"])} questions!')
+            return redirect('course_detail', course_id=video.course.id)
+        except Exception as e:
+            messages.error(request, f'AI Error: {str(e)}')
+            return redirect('course_detail', course_id=video.course.id)
+    return render(request, 'courses/ai_quiz.html', {'video': video})
+
+
+# ── Live Classes ──────────────────────────────────────────
+@login_required
+def live_class_list(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    live_classes = LiveClass.objects.filter(course=course)
+    return render(request, 'courses/live_classes.html', {
+        'course': course, 'live_classes': live_classes
+    })
+
+
+@login_required
+def create_live_class(request, course_id):
+    if request.user.role not in ['admin', 'trainer']:
+        return redirect('dashboard')
+    course = get_object_or_404(Course, id=course_id)
+    if request.method == 'POST':
+        lc = LiveClass.objects.create(
+            course=course,
+            title=request.POST.get('title'),
+            description=request.POST.get('description', ''),
+            scheduled_at=request.POST.get('scheduled_at'),
+            duration_minutes=request.POST.get('duration_minutes', 60),
+            meet_link=request.POST.get('meet_link', ''),
+            created_by=request.user,
+        )
+        for student in course.assigned_students.all():
+            notify(student,
+                   f'🔴 Live class: "{lc.title}" on {lc.scheduled_at.strftime("%d %b %Y %I:%M %p")}',
+                   f'/courses/{course.id}/live/')
+        messages.success(request, 'Live class scheduled!')
+        return redirect('live_class_list', course_id=course.id)
+    return render(request, 'courses/create_live_class.html', {'course': course})
+
+
+# ── Live Dashboard Stats ──────────────────────────────────
+@login_required
+def live_stats(request):
+    data = {
+        'total_users': CustomUser.objects.count(),
+        'total_courses': Course.objects.count(),
+        'total_videos': Video.objects.count(),
+        'video_views': VideoProgress.objects.count(),
+        'completed_videos': VideoProgress.objects.filter(completed=True).count(),
+        'quiz_attempts': QuizAttempt.objects.count(),
+        'passed_quizzes': QuizAttempt.objects.filter(passed=True).count(),
+        'certificates': Certificate.objects.count(),
+        'total_students': CustomUser.objects.filter(role='student').count(),
+    }
+    return JsonResponse(data)

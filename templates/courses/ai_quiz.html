@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}AI Quiz Generator{% endblock %}
+{% block content %}
+
+<div class="card" style="max-width:600px; margin:0 auto; text-align:center;">
+    <div style="font-size:64px; margin-bottom:16px; animation:float 3s ease-in-out infinite;">🤖</div>
+    <div style="font-family:'Syne',sans-serif; font-size:24px; font-weight:800;
+        margin-bottom:8px; color:var(--text);">
+        AI Quiz Generator
+    </div>
+    <p style="color:var(--text2); margin-bottom:28px; font-size:14px; line-height:1.6;">
+        Let AI automatically generate quiz questions for
+        <strong style="color:#e94560;">{{ video.title }}</strong>.
+        Just describe the topic and Claude will create 4 questions instantly!
+    </p>
+
+    <form method="POST" id="ai-form">
+        {% csrf_token %}
+        <div class="form-group" style="text-align:left;">
+            <label>Topic / Description</label>
+            <input type="text" name="topic" required
+                value="{{ video.title }}"
+                placeholder="e.g. Python loops and functions">
+        </div>
+
+        <div style="background:linear-gradient(135deg,rgba(233,69,96,0.05),rgba(247,183,49,0.05));
+            border:1px solid rgba(233,69,96,0.15); border-radius:12px;
+            padding:16px; margin-bottom:24px; text-align:left;">
+            <div style="font-size:13px; font-weight:600; color:var(--text); margin-bottom:8px;">
+                ✨ What AI will generate:
+            </div>
+            <div style="font-size:13px; color:var(--text2); line-height:1.8;">
+                • 4 multiple choice questions<br>
+                • 4 options each (A, B, C, D)<br>
+                • Correct answers pre-set<br>
+                • Ready to use immediately
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%; padding:14px;"
+            id="generate-btn" onclick="showLoading()">
+            🤖 Generate Quiz with AI
+        </button>
+        <a href="{% url 'course_detail' video.course.id %}"
+            class="btn btn-secondary" style="width:100%; margin-top:10px; justify-content:center;">
+            Cancel
+        </a>
+    </form>
+
+    <div id="loading" style="display:none; margin-top:20px;">
+        <div style="font-size:36px; animation:float 1s ease-in-out infinite;">🤖</div>
+        <div style="font-family:'Syne',sans-serif; font-weight:700; margin-top:12px; color:var(--text);">
+            AI is generating your quiz...
+        </div>
+        <div style="color:var(--text2); font-size:13px; margin-top:6px;">
+            This usually takes 5-10 seconds
+        </div>
+    </div>
+</div>
+
+<script>
+    function showLoading() {
+        setTimeout(() => {
+            document.getElementById('ai-form').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+        }, 100);
+    }
+</script>
+{% endblock %}
