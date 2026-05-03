@@ -8,94 +8,172 @@
     top: 50%;
     left: 20%;
     transform: rotate(-30deg);
-    opacity: 0.2;
+    opacity: 0.1;
     font-size: 30px;
     color: gray;
     z-index: 0;">
     {{ request.session.user_email }}
 </div>
 
-<h1>{{ course.title }} Videos</h1>
+<div class="video-container">
 
-{% for video in videos %}
-    <div>
-        <h3>{{ video.title }}</h3>
+    <h1 class="title">{{ course.title }} Videos</h1>
 
-       <a href="{{ video.youtube_link }}" target="_blank"
-   onclick="enableAfterWatch('{{ video.id }}')">
-   ▶ Watch
-</a>
-        {% if video.id in completed_videos %}
-    <p style="color:green;">✔ Completed</p>
-{% else %}
-    <button onclick="markComplete('{{ video.id }}', '{{ course.id }}')">
-        ✔ Mark as Completed
-    </button>
-{% endif %}
+    <!-- 🎥 VIDEO GRID -->
+    <div class="video-grid">
 
-        <hr>
+        {% for video in videos %}
+        <div class="video-card">
+
+            <h3>{{ video.title }}</h3>
+
+            <!-- ▶ WATCH -->
+            <a href="{{ video.youtube_link }}" target="_blank"
+               class="watch-btn"
+               onclick="enableAfterWatch('{{ video.id }}')">
+               ▶ Watch
+            </a>
+
+            <!-- STATUS -->
+            <div style="margin-top:10px;">
+                {% if video.id in completed_videos %}
+                    <span style="color:#2ecc71;">✔ Completed</span>
+                {% else %}
+                    <span style="color:orange;">⏳ Pending</span>
+                {% endif %}
+            </div>
+
+            <!-- COMPLETE BUTTON -->
+            {% if video.id not in completed_videos %}
+                <button id="btn-{{ video.id }}"
+                        class="complete-btn"
+                        disabled
+                        onclick="markComplete('{{ video.id }}', '{{ course.id }}')">
+                    ✔ Mark Complete
+                </button>
+            {% endif %}
+
+        </div>
+        {% endfor %}
+
     </div>
-{% endfor %}
 
-<!-- ✅ PROGRESS -->
-<h3>Progress: {{ progress|default:0 }}%</h3>
+    <!-- 📊 PROGRESS -->
+    <div class="progress-box">
+        <h3>Progress: {{ progress|default:0 }}%</h3>
 
-<div style="width:300px; height:25px; background:#ddd; border-radius:5px; overflow:hidden;">
-    <div style="height:100%; background:green; color:white;"
-         data-width="{{ progress|default:0 }}">
-        {{ progress|default:0 }}%
+        <div class="progress-bar">
+           <div class="progress-fill"
+     data-progress="{{ progress|default:0 }}">
+        </div>
     </div>
+
+    <!-- 🎓 CERTIFICATE -->
+    {% if progress >= 90 %}
+        <div style="text-align:center; margin-top:20px;">
+            <a href="/certificate/{{ course.id }}">
+                <button class="certificate-btn">
+                    🎓 Download Certificate
+                </button>
+            </a>
+        </div>
+    {% endif %}
+
 </div>
 
-<!-- ✅ CERTIFICATE -->
-{% if progress >= 90 %}
-    <br>
-    <a href="/certificate/{{ course.id }}">
-        <button>Download Certificate</button>
-    </a>
-{% endif %}
-
-<!-- ✅ SCRIPT -->
-<script>
-function markComplete(videoId, courseId){
-    fetch('/update-progress/' + courseId + '/' + videoId + '/')
-    .then(() => location.reload())
+<!-- 🔥 CSS -->
+<style>
+.video-container {
+    padding: 20px;
 }
 
-const bar = document.querySelector('[data-width]');
-if (bar) {
-    bar.style.width = bar.getAttribute('data-width') + '%';
+.title {
+    text-align: center;
+    margin-bottom: 20px;
 }
-</script>
 
-<button style="background:green; color:white; padding:5px 10px; border:none;"></button>
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
 
+.video-card {
+    background: #1e1e2f;
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    transition: 0.3s;
+}
+
+.video-card:hover {
+    transform: translateY(-5px);
+}
+
+.watch-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: #e50914;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.complete-btn {
+    margin-top: 10px;
+    width: 100%;
+    padding: 8px;
+    background: #2ecc71;
+    border: none;
+    border-radius: 5px;
+    color: white;
+}
+
+.complete-btn:disabled {
+    background: gray;
+}
+
+.progress-box {
+    margin-top: 30px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 25px;
+    background: #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: green;
+    color: white;
+    text-align: center;
+}
+</style>
+
+<!-- 🔥 SCRIPT (ONLY ONE VERSION CLEAN) -->
 <script>
 function enableAfterWatch(videoId){
-    let watchTime = 0;
-    let totalTime = 10; // demo time
-
-    let interval = setInterval(() => {
-        watchTime++;
-
-        let percent = (watchTime / totalTime) * 100;
-
-        if (percent >= 90) {
-            document.getElementById("completeBtn" + videoId).disabled = false;
-            clearInterval(interval);
-        }
-    }, 1000);
-}
-</script>
-
-<script>
-function enableButton(videoId){
-    document.getElementById('btn-' + videoId).disabled = false;
+    setTimeout(() => {
+        document.getElementById('btn-' + videoId).disabled = false;
+    }, 5000); // simulate watch
 }
 
 function markComplete(videoId, courseId){
     fetch('/update-progress/' + courseId + '/' + videoId + '/')
     .then(() => location.reload())
+}
+</script>
+
+<script>
+const bar = document.querySelector('.progress-fill');
+
+if (bar) {
+    const value = bar.getAttribute('data-progress');
+    bar.style.width = value + "%";
 }
 </script>
 

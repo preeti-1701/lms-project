@@ -168,8 +168,12 @@ def trainer_dashboard(request):
 
     courses = Course.objects.filter(trainer=user)
 
+    # 🔥 ADD THIS
+    enrollments = Enrollment.objects.filter(course__in=courses)
+
     return render(request, 'trainer_dashboard.html', {
-        'courses': courses
+        'courses': courses,
+        'enrollments': enrollments   # 👈 important
     })
 
 
@@ -293,29 +297,39 @@ def update_progress(request, course_id, video_id):
         return HttpResponse("Login required")
 
     user = CustomUser.objects.get(id=user_id)
-
+    video = Video.objects.get(id=video_id)
     enrollment = Enrollment.objects.get(student=user, course_id=course_id)
 
     total_videos = Video.objects.filter(course_id=course_id).count()
 
-    # 🔥 ensure list exists
+    # 🔥 SAVE TO DATABASE (IMPORTANT FIX)
+    CompletedVideo.objects.get_or_create(
+        student=user,
+        video=video
+    )
+
+    # 🔥 OPTIONAL: keep session (not required but ok)
     completed = request.session.get('completed_videos', [])
+    video_id = int(video_id)
 
-    video_id = int(video_id)  # ❗ FIX type issue
-
-    # 🔥 prevent duplicate counting
     if video_id not in completed:
         completed.append(video_id)
 
     request.session['completed_videos'] = completed
 
-    # 🔥 avoid division error
+    # 🔥 CALCULATE FROM DATABASE (NOT SESSION)
+    completed_count = CompletedVideo.objects.filter(
+        student=user,
+        video__course_id=course_id
+    ).count()
+
+    # 🔥 SAFE CALCULATION
     if total_videos == 0:
         progress = 0
     else:
-        progress = int((len(completed) / total_videos) * 100)
+        progress = int((completed_count / total_videos) * 100)
 
-    # 🔥 LIMIT TO 100
+    # 🔥 LIMIT
     if progress > 100:
         progress = 100
 

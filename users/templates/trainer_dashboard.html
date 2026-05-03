@@ -31,10 +31,6 @@
     transform: translateY(-5px);
 }
 
-.course-card h4 {
-    margin-bottom: 10px;
-}
-
 .manage-btn {
     display: inline-block;
     margin-top: 10px;
@@ -57,6 +53,20 @@
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
+.progress-bar {
+    background: #ddd;
+    border-radius: 5px;
+    width: 100%;
+}
+
+.progress-fill {
+    background: green;
+    color: white;
+    text-align: center;
+    border-radius: 5px;
+    padding: 2px 0;
+}
+
 .logout-btn {
     margin-top: 20px;
     padding: 10px 15px;
@@ -73,10 +83,10 @@
         <h2>👨‍🏫 Trainer Dashboard</h2>
     </div>
 
+    <!-- COURSES -->
     <h3>📚 My Courses</h3>
 
     <div class="grid">
-
     {% for course in courses %}
         <div class="course-card">
             <h4>{{ course.title }}</h4>
@@ -89,17 +99,42 @@
     {% empty %}
         <p>No courses available</p>
     {% endfor %}
-
     </div>
 
-    <div class="students-box">
-        <h3>👨‍🎓 Students Enrolled</h3>
+    <!-- STUDENT PROGRESS -->
+    <h3>📊 Student Progress</h3>
 
-        {% for s in students %}
-            <p>✔ {{ s.student.name }}</p>
-        {% empty %}
-            <p>No students enrolled.</p>
-        {% endfor %}
+    <div class="students-box">
+
+        <table style="width:100%; border-collapse: collapse;">
+
+            <tr style="background:#f4f6f9;">
+                <th style="padding:10px;">Student</th>
+                <th style="padding:10px;">Course</th>
+                <th style="padding:10px;">Progress</th>
+            </tr>
+
+            {% for e in enrollments %}
+            <tr>
+                <td style="padding:10px;">{{ e.student.name }}</td>
+                <td style="padding:10px;">{{ e.course.title }}</td>
+                <td style="padding:10px;">
+
+                    <div class="progress-bar">
+                        <div class="progress-fill" data-width="{{ e.progress|default:'0' }}">
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" style="padding:10px;">No students enrolled</td>
+            </tr>
+            {% endfor %}
+
+        </table>
+
     </div>
 
     <a href="/logout/">
@@ -107,5 +142,11 @@
     </a>
 
 </div>
+
+<script>
+document.querySelectorAll('.progress-fill').forEach(bar => {
+    bar.style.width = bar.getAttribute('data-width') + '%';
+});
+</script>
 
 {% endblock %}
