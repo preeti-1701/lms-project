@@ -39,4 +39,18 @@
 </div>
 <p style="color:red;">ID = {{ course.id }}</p>
 
+<input type="text" id="search" placeholder="Search courses..." onkeyup="searchCourses()">
+
+<script>
+function searchCourses() {
+    let input = document.getElementById("search").value.toLowerCase();
+    let cards = document.querySelectorAll(".card");
+
+    cards.forEach(card => {
+        let text = card.innerText.toLowerCase();
+        card.style.display = text.includes(input) ? "block" : "none";
+    });
+}
+</script>
+
 {% endblock %}

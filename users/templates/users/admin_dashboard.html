@@ -1,41 +1,141 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="card">
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Admin Dashboard</title>
-</head>
 
-<body>
+<style>
+.dashboard {
+    width: 90%;
+    margin: auto;
+}
 
-<h1>Admin Dashboard</h1>
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+}
 
-<hr>
+.stats {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+}
 
-<h2>All Users</h2>
-{% for user in users %}
-    <p>{{ user.name }} - {{ user.email }} - {{ user.role }}</p>
-{% endfor %}
+.stat-card {
+    flex: 1;
+    background: linear-gradient(135deg, #3498db, #6dd5fa);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 18px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
 
-<hr>
+.section {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
 
-<h2>All Courses</h2>
-{% for course in courses %}
-    <p>{{ course.title }} - {{ course.description }}</p>
-{% endfor %}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
 
-</body>
-</html>
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
 
-<h3>Total Users: {{ users|length }}</h3>
-<h3>Total Courses: {{ courses|length }}</h3>
+th {
+    background: #f4f6f9;
+}
 
-<a href="/logout/">
-    <button>Logout</button>
-</a>
+.delete-btn {
+    background: #e74c3c;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+}
 
-<a href="/delete-course/{{ course.id }}">Delete</a>
+.logout-btn {
+    padding: 10px 15px;
+    background: #2c3e50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+}
+</style>
+
+<div class="dashboard">
+
+    <div class="header">
+        <h1>🛠 Admin Dashboard</h1>
+    </div>
+
+    <!-- 🔥 STATS -->
+    <div class="stats">
+        <div class="stat-card">
+            👥 Users <br><b>{{ users|length }}</b>
+        </div>
+        <div class="stat-card">
+            📚 Courses <br><b>{{ courses|length }}</b>
+        </div>
+    </div>
+
+    <!-- 👥 USERS TABLE -->
+    <div class="section">
+        <h2>All Users</h2>
+
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+            </tr>
+
+            {% for user in users %}
+            <tr>
+                <td>{{ user.name }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.role }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <!-- 📚 COURSES TABLE -->
+    <div class="section">
+        <h2>All Courses</h2>
+
+        <table>
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Action</th>
+            </tr>
+
+            {% for course in courses %}
+            <tr>
+                <td>{{ course.title }}</td>
+                <td>{{ course.description }}</td>
+                <td>
+                    <a href="/delete-course/{{ course.id }}">
+                        <button class="delete-btn">Delete</button>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <!-- 🔴 LOGOUT -->
+    <a href="/logout/">
+        <button class="logout-btn">Logout</button>
+    </a>
+
 </div>
+
 {% endblock %}

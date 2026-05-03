@@ -3,71 +3,108 @@
 {% block content %}
 
 <style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    height: 100vh;
+}
+
 .login-container {
+    display: flex;
+    height: 100vh;
+}
+
+/* LEFT SIDE */
+.left-panel {
+    flex: 1;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px;
+}
+
+.left-panel h1 {
+    font-size: 40px;
+    margin-bottom: 15px;
+}
+
+.left-panel p {
+    font-size: 18px;
+    opacity: 0.9;
+}
+
+/* RIGHT SIDE */
+.right-panel {
+    flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 90vh;
 }
 
-.login-card {
+.login-box {
     background: white;
-    padding: 30px;
-    width: 350px;
+    padding: 40px;
     border-radius: 15px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    text-align: center;
+    width: 350px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
-.login-card h2 {
+.login-box h2 {
+    text-align: center;
     margin-bottom: 20px;
 }
 
-.input-box {
+input {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     margin: 10px 0;
     border-radius: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid #ddd;
 }
 
-.login-btn {
+button {
     width: 100%;
-    padding: 10px;
-    background: linear-gradient(45deg, #3498db, #2ecc71);
-    color: white;
+    padding: 12px;
     border: none;
     border-radius: 8px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
     font-size: 16px;
     cursor: pointer;
 }
 
-.login-btn:hover {
+button:hover {
     opacity: 0.9;
-}
-
-body {
-    background: linear-gradient(to right, #74ebd5, #acb6e5);
 }
 </style>
 
 <div class="login-container">
 
-    <div class="login-card">
+    <!-- LEFT SIDE -->
+    <div class="left-panel">
+        <h1>🎓 Welcome to LMS</h1>
+        <p>
+            Learn. Grow. Succeed.  
+            Access your courses, track progress, and earn certificates.
+        </p>
+    </div>
 
-        <h2>🔐 Login</h2>
+    <!-- RIGHT SIDE -->
+    <div class="right-panel">
+        <div class="login-box">
+            <h2>🔐 Login</h2>
 
-        <form method="POST">
-            {% csrf_token %}
+            <form method="POST">
+                {% csrf_token %}
 
-            <input type="text" name="email" placeholder="Enter Email" class="input-box" required>
+                <input type="email" name="email" placeholder="Enter Email" required>
+                <input type="password" name="password" placeholder="Enter Password" required>
 
-            <input type="password" name="password" placeholder="Enter Password" class="input-box" required>
-
-            <button type="submit" class="login-btn">Login</button>
-
-        </form>
-
+                <button type="submit">Login</button>
+            </form>
+        </div>
     </div>
 
 </div>

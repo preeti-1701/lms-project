@@ -134,7 +134,23 @@ label {
 }
     </style>
 </head>
+<div id="loader" style="
+position:fixed;
+width:100%;
+height:100%;
+background:white;
+z-index:9999;
+display:flex;
+justify-content:center;
+align-items:center;">
+    <h2>Loading...</h2>
+</div>
 
+<script>
+window.onload = () => {
+    document.getElementById("loader").style.display = "none";
+}
+</script>
 <body>
 
 <!-- 🔥 NAVBAR -->
@@ -188,3 +204,7 @@ label {
 <script>
 document.addEventListener("contextmenu", e => e.preventDefault());
 </script>
+
+<p style="float:right;">
+👤 {{ request.session.user_email }} ({{ request.session.role }})
+</p>

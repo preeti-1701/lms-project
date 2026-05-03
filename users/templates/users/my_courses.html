@@ -13,4 +13,8 @@
     </div>
 {% endfor %}
 
+{% if e.progress == 100 %}
+    <span style="color:green; font-weight:bold;">🏆 Completed</span>
+{% endif %}
+
 {% endblock %}
