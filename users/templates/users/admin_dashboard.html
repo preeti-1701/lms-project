@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+</head>
+
+<body>
+
+<h1>Admin Dashboard</h1>
+
+<hr>
+
+<h2>All Users</h2>
+{% for user in users %}
+    <p>{{ user.name }} - {{ user.email }} - {{ user.role }}</p>
+{% endfor %}
+
+<hr>
+
+<h2>All Courses</h2>
+{% for course in courses %}
+    <p>{{ course.title }} - {{ course.description }}</p>
+{% endfor %}
+
+</body>
+</html>
+
+<h3>Total Users: {{ users|length }}</h3>
+<h3>Total Courses: {{ courses|length }}</h3>
+
+{% endblock %}

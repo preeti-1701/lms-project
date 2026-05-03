@@ -13,37 +13,35 @@ def login_view(request):
         password = request.POST.get("password")
 
         try:
-            user = CustomUser.objects.get(email=email, password=password)
+            user = CustomUser.objects.get(email=email)
+
+            if user.password != password:
+                return HttpResponse("Invalid password ❌")
+
+            # 🔥 single session
+            request.session.flush()
 
             request.session['user_id'] = user.id
             request.session['user_email'] = user.email
             request.session['role'] = user.role
 
-            # handle next redirect
+            # 🔥 handle next
             next_url = request.GET.get('next')
             if next_url:
                 return redirect(next_url)
 
-            if user.role == "trainer":
+            # 🔥 ROLE BASED REDIRECT
+            if user.role == "admin":
+                return redirect('/admin-dashboard/')   # ✅ FIXED
+            elif user.role == "trainer":
                 return redirect('/trainer/')
-            elif user.role == "student":
+            else:
                 return redirect('/dashboard/')
-            elif user.role == "admin":
-                return redirect('/admin/')
 
-        except:
-            return HttpResponse("Invalid login ❌")
+        except CustomUser.DoesNotExist:
+            return HttpResponse("User not found ❌")
 
     return render(request, 'users/login.html')
-
-
-# ================= DASHBOARD =================
-def dashboard(request):
-    if request.session.get('role') != "student":
-        return render(request, 'users/access_denied.html')
-
-    return render(request, 'users/dashboard.html')
-
 
 # ================= ADD COURSE =================
 def add_course(request):
@@ -54,19 +52,19 @@ def add_course(request):
 
     user = CustomUser.objects.get(id=user_id)
 
-    if user.role != "trainer":
+    if user.role != "admin":
         return HttpResponse("Access Denied ❌")
 
     if request.method == "POST":
         Course.objects.create(
             title=request.POST.get('title'),
             description=request.POST.get('description'),
-            trainer=user,
+            trainer=None,
             topics=request.POST.get('topics'),
             duration=request.POST.get('duration'),
             status=request.POST.get('status')
         )
-        return HttpResponse("Course Added ✅")
+        return redirect('/admin-dashboard/')
 
     return render(request, 'users/add_course.html')
 
@@ -183,15 +181,14 @@ def trainer_course(request, id):
     students = [en.student for en in enrollments]
 
     if request.method == "POST":
-        Video.objects.create(
-            title=request.POST.get('title'),
-            youtube_link=request.POST.get('youtube_link'),
-            course=course
-        )
+     Video.objects.create(
+        title=request.POST.get('title'),
+        youtube_link=request.POST.get('youtube_link'),
+        course=course
+    )
 
-        if request.method == "POST":
-           if "toggle_status" in request.POST:
-               course.is_active = not course.is_active
+    if "toggle_status" in request.POST:
+        course.is_active = not course.is_active
         course.save()
 
     return render(request, 'trainer_course.html', {
@@ -223,3 +220,21 @@ def generate_certificate(request, course_id):
 
     p.save()
     return response
+
+def admin_dashboard(request):
+    if request.session.get('role') != "admin":
+        return HttpResponse("Access Denied")
+
+    users = CustomUser.objects.all()
+    courses = Course.objects.all()
+
+    return render(request, 'users/admin_dashboard.html', {
+        'users': users,
+        'courses': courses
+    })
+
+def dashboard(request):
+    if request.session.get('role') != "student":
+        return render(request, 'users/access_denied.html')
+
+    return render(request, 'users/dashboard.html')

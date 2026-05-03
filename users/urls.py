@@ -22,4 +22,5 @@ urlpatterns = [
     path('accounts/login/', login_view),
     path('certificate/<int:course_id>/', views.generate_certificate),
     path('course/<int:course_id>/', views.course_videos),
+    path('admin-dashboard/', views.admin_dashboard),
 ]
