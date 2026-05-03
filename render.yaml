@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: lms-backend
+    runtime: docker
+    plan: free
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: DB_ENGINE
+        value: postgresql
+      - key: DB_NAME
+        fromDatabase:
+          name: lms-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: lms-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: lms-db
+          property: password
+      - key: DB_HOST
+        fromDatabase:
+          name: lms-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: lms-db
+          property: port
+      - key: ALLOWED_HOSTS
+        value: "lms-backend.onrender.com"
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://lms-frontend.vercel.app"
+    disk:
+      name: lms-static
+      mountPath: /app/staticfiles
+
+databases:
+  - name: lms-db
+    plan: free
+    databaseName: lms_db
+    user: lms_user
+
