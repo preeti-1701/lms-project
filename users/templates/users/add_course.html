@@ -2,33 +2,41 @@
 
 {% block content %}
 
+<div class="container">
 
-<html>
-<body>
+    <div class="card" style="max-width:500px; margin:auto;">
 
-<h2>Add Course</h2>
+        <h2 style="text-align:center;">Add Course</h2>
 
-<form method="POST">
-    {% csrf_token %}
+        <form method="POST">
+            {% csrf_token %}
 
-    <label>Title:</label><br>
-    <input type="text" name="title"><br><br>
+            <label>Title:</label><br>
+            <input type="text" name="title" required><br><br>
 
-    <label>Description:</label><br>
-    <textarea name="description"></textarea><br><br>
+            <label>Description:</label><br>
+            <textarea name="description" required></textarea><br><br>
 
-    <button type="submit">Add Course</button>
-</form>
+            <label>Topics:</label><br>
+            <input type="text" name="topics"><br><br>
 
-</body>
-</html>
+            <label>Duration:</label><br>
+            <input type="text" name="duration"><br><br>
 
-Topics: <input type="text" name="topics"><br><br>
-Duration: <input type="text" name="duration"><br><br>
-Status:
-<select name="status">
-    <option value="active">Active</option>
-    <option value="upcoming">Upcoming</option>
-</select><br><br>
+            <label>Status:</label><br>
+            <select name="status">
+                <option value="active">Active</option>
+                <option value="upcoming">Upcoming</option>
+            </select><br><br>
+
+            <div style="text-align:center;">
+                <button type="submit">Add Course</button>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
 
 {% endblock %}

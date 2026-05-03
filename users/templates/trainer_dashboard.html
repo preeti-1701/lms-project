@@ -2,26 +2,110 @@
 
 {% block content %}
 
+<style>
+.dashboard-container {
+    width: 90%;
+    margin: auto;
+}
 
-<h2>Trainer Dashboard</h2>
+.title {
+    text-align: center;
+    margin-bottom: 30px;
+}
 
-<h3>My Courses</h3>
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
 
-{% for course in courses %}
-    <div style="border:1px solid black; padding:10px; margin:10px;">
-        <h4>{{ course.title }}</h4>
-        <p>{{ course.description }}</p>
+.course-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: 0.3s;
+}
 
-        <a href="/trainer/course/{{ course.id }}/">Manage Course</a>
+.course-card:hover {
+    transform: translateY(-5px);
+}
+
+.course-card h4 {
+    margin-bottom: 10px;
+}
+
+.manage-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: #3498db;
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.manage-btn:hover {
+    background: #2980b9;
+}
+
+.students-box {
+    margin-top: 40px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.logout-btn {
+    margin-top: 20px;
+    padding: 10px 15px;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+}
+</style>
+
+<div class="dashboard-container">
+
+    <div class="title">
+        <h2>👨‍🏫 Trainer Dashboard</h2>
     </div>
-{% endfor %}
 
-<h3>Students Enrolled</h3>
+    <h3>📚 My Courses</h3>
 
-{% for s in students %}
-    <p>{{ s.student.name }}</p>
-{% empty %}
-    <p>No students enrolled.</p>
-{% endfor %}
+    <div class="grid">
+
+    {% for course in courses %}
+        <div class="course-card">
+            <h4>{{ course.title }}</h4>
+            <p>{{ course.description }}</p>
+
+            <a href="/trainer/course/{{ course.id }}/" class="manage-btn">
+                Manage Course
+            </a>
+        </div>
+    {% empty %}
+        <p>No courses available</p>
+    {% endfor %}
+
+    </div>
+
+    <div class="students-box">
+        <h3>👨‍🎓 Students Enrolled</h3>
+
+        {% for s in students %}
+            <p>✔ {{ s.student.name }}</p>
+        {% empty %}
+            <p>No students enrolled.</p>
+        {% endfor %}
+    </div>
+
+    <a href="/logout/">
+        <button class="logout-btn">Logout</button>
+    </a>
+
+</div>
 
 {% endblock %}

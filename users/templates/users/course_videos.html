@@ -2,27 +2,17 @@
 
 {% block content %}
 
-
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ course.title }}</title>
-</head>
-
-<body>
-
 <!-- 🔥 WATERMARK -->
 <div style="
     position: fixed;
-    top: 0;
-    right: 0;
-    background: red;
-    color: white;
-    padding: 10px;
-    font-size: 18px;
-    z-index: 999999;
-">
-    USER ID: {{ user_id }}
+    top: 50%;
+    left: 20%;
+    transform: rotate(-30deg);
+    opacity: 0.2;
+    font-size: 30px;
+    color: gray;
+    z-index: 0;">
+    {{ request.session.user_email }}
 </div>
 
 <h1>{{ course.title }} Videos</h1>
@@ -30,34 +20,83 @@
 {% for video in videos %}
     <div>
         <h3>{{ video.title }}</h3>
-        <a href="{{ video.youtube_link }}" target="_blank">▶ Watch</a>
+
+       <a href="{{ video.youtube_link }}" target="_blank"
+   onclick="enableAfterWatch('{{ video.id }}')">
+   ▶ Watch
+</a>
+        {% if video.id in completed_videos %}
+    <p style="color:green;">✔ Completed</p>
+{% else %}
+    <button onclick="markComplete('{{ video.id }}', '{{ course.id }}')">
+        ✔ Mark as Completed
+    </button>
+{% endif %}
+
+        <hr>
     </div>
 {% endfor %}
 
-<hr>
-
+<!-- ✅ PROGRESS -->
 <h3>Progress: {{ progress|default:0 }}%</h3>
 
 <div style="width:300px; height:25px; background:#ddd; border-radius:5px; overflow:hidden;">
-    
-    <div style="background:green; height:100%; border-radius:5px;"
+    <div style="height:100%; background:green; color:white;"
          data-width="{{ progress|default:0 }}">
-         
-        <span style="color:white; padding-left:10px;">
-            {{ progress|default:0 }}%
-        </span>
-
+        {{ progress|default:0 }}%
     </div>
-
 </div>
 
+<!-- ✅ CERTIFICATE -->
+{% if progress >= 90 %}
+    <br>
+    <a href="/certificate/{{ course.id }}">
+        <button>Download Certificate</button>
+    </a>
+{% endif %}
+
+<!-- ✅ SCRIPT -->
 <script>
-    const bar = document.querySelector('[data-width]');
-    if (bar) {
-        bar.style.width = bar.getAttribute('data-width') + '%';
-    }
+function markComplete(videoId, courseId){
+    fetch('/update-progress/' + courseId + '/' + videoId + '/')
+    .then(() => location.reload())
+}
+
+const bar = document.querySelector('[data-width]');
+if (bar) {
+    bar.style.width = bar.getAttribute('data-width') + '%';
+}
 </script>
-</body>
-</html>
+
+<button style="background:green; color:white; padding:5px 10px; border:none;"></button>
+
+<script>
+function enableAfterWatch(videoId){
+    let watchTime = 0;
+    let totalTime = 10; // demo time
+
+    let interval = setInterval(() => {
+        watchTime++;
+
+        let percent = (watchTime / totalTime) * 100;
+
+        if (percent >= 90) {
+            document.getElementById("completeBtn" + videoId).disabled = false;
+            clearInterval(interval);
+        }
+    }, 1000);
+}
+</script>
+
+<script>
+function enableButton(videoId){
+    document.getElementById('btn-' + videoId).disabled = false;
+}
+
+function markComplete(videoId, courseId){
+    fetch('/update-progress/' + courseId + '/' + videoId + '/')
+    .then(() => location.reload())
+}
+</script>
 
 {% endblock %}

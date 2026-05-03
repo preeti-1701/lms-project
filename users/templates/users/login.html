@@ -2,33 +2,74 @@
 
 {% block content %}
 
+<style>
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 90vh;
+}
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>LMS Login</title>
-</head>
-<body>
+.login-card {
+    background: white;
+    padding: 30px;
+    width: 350px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    text-align: center;
+}
 
-    {% if error %}
-<p style="color:red;">{{ error }}</p>
-{% endif %}
+.login-card h2 {
+    margin-bottom: 20px;
+}
 
-    <h2>Login Page</h2>
+.input-box {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
 
-    <form method="POST">
-        {% csrf_token %}
+.login-btn {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(45deg, #3498db, #2ecc71);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
 
-        <label>Email:</label><br>
-        <input type="email" name="email"><br><br>
+.login-btn:hover {
+    opacity: 0.9;
+}
 
-        <label>Password:</label><br>
-        <input type="password" name="password"><br><br>
+body {
+    background: linear-gradient(to right, #74ebd5, #acb6e5);
+}
+</style>
 
-        <button type="submit">Login</button>
-    </form>
+<div class="login-container">
 
-</body>
-</html>
+    <div class="login-card">
+
+        <h2>🔐 Login</h2>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <input type="text" name="email" placeholder="Enter Email" class="input-box" required>
+
+            <input type="password" name="password" placeholder="Enter Password" class="input-box" required>
+
+            <button type="submit" class="login-btn">Login</button>
+
+        </form>
+
+    </div>
+
+</div>
 
 {% endblock %}

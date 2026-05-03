@@ -1,47 +1,182 @@
-
-
-
-
 <!DOCTYPE html>
 <html>
 <head>
     <title>{% block title %}LMS{% endblock %}</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+        }
+
+        /* 🔥 NAVBAR */
+        .navbar {
+            background: linear-gradient(90deg, #2c3e50, #4ca1af);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h2 {
+            margin: 0;
+        }
+
+        .nav-links a {
+            color: white;
+            margin-left: 20px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* 🔥 FULL WIDTH CONTENT */
+        .container {
+            width: 95%;
+            margin: 20px auto;
+        }
+
+        /* 🔥 CARD STYLE */
+        .card {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+        }
+
+        /* 🔥 BUTTON */
+        button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            background: #2ecc71;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #27ae60;
+        }
+
+        a {
+            text-decoration: none;
+            color: #3498db;
+        }
+
+        .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: 0.3s;
+    text-align: center;
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
+input, textarea, select {
+    width: 100%;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+label {
+    font-weight: bold;
+}
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+@media (max-width: 768px) {
+    .grid-3 {
+        grid-template-columns: 1fr;
+    }
+}
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+    </style>
 </head>
 
 <body>
 
-<!-- 🔴 GLOBAL WATERMARK -->
+<!-- 🔥 NAVBAR -->
+{% if request.session.user_id and request.path != '/login/' %}
+<div class="navbar">
+    <h2>LMS System</h2>
+
+    <div class="nav-links">
+        <a href="/dashboard/">Dashboard</a>
+        <a href="/courses/">Courses</a>
+        <a href="/my-courses/">My Courses</a>
+        <a href="/logout/">Logout</a>
+    </div>
+</div>
+{% endif %}
+
+<!-- 🔥 WATERMARK -->
 {% if request.session.user_email and request.path != '/login/' %}
 <div style="
     position: fixed;
-    top: 0;
-    left: 0;
     width: 100%;
     height: 100%;
     pointer-events: none;
-    z-index: 9999;
-    opacity: 0.12;
+    opacity: 0.08;
+    z-index: 1;
 ">
-
     <div style="
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         gap: 80px;
-        width: 100%;
-        height: 100%;
         transform: rotate(-30deg);
         font-size: 22px;
-        color: black;
     ">
         {% for i in "123456789012345678901234567890" %}
             <div>{{ request.session.user_email }}</div>
         {% endfor %}
     </div>
-
 </div>
 {% endif %}
 
-<div style="position: relative; z-index: 2;">
+<!-- 🔥 MAIN CONTENT -->
+<div class="container">
     {% block content %}
     {% endblock %}
 </div>
@@ -49,26 +184,7 @@
 </body>
 </html>
 
+<!-- 🔒 OPTIONAL SECURITY -->
 <script>
-document.addEventListener("contextmenu", function(e){
-    e.preventDefault();
-});
-</script>
-
-<script>
-document.addEventListener("keydown", function(e){
-    if (e.key === "PrintScreen") {
-        alert("Screenshot disabled!");
-    }
-});
-</script>
-
-<script>
-document.addEventListener("visibilitychange", function() {
-    if (document.hidden) {
-        document.body.style.filter = "blur(10px)";
-    } else {
-        document.body.style.filter = "none";
-    }
-});
+document.addEventListener("contextmenu", e => e.preventDefault());
 </script>

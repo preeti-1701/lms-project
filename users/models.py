@@ -51,4 +51,16 @@ class Video(models.Model):
     def __str__(self):
         return self.title
     
+class CompletedVideo(models.Model):
+    student = models.ForeignKey(
+        'users.User',
+        on_delete=models.CASCADE,
+        related_name='completed_videos'
+    )
+
+    video = models.ForeignKey(
+        'users.Video',
+        on_delete=models.CASCADE,
+        related_name='completed_by'
+    )
     

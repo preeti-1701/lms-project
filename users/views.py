@@ -4,11 +4,13 @@ from django.http import HttpResponse
 # ✅ use ONLY CustomUser
 from .models import User as CustomUser
 from .models import Course, Video, Enrollment
+from .models import CompletedVideo
 
 
 # ================= LOGIN =================
 def login_view(request):
     if request.method == "POST":
+        request.session.flush()
         email = request.POST.get("email")
         password = request.POST.get("password")
 
@@ -71,7 +73,8 @@ def add_course(request):
 
 # ================= VIEW COURSES =================
 def view_courses(request):
-    courses = Course.objects.filter(is_active=True)
+    courses = Course.objects.all()
+    print("COURSES DATA:", courses)   # 👈 ADD THIS
     return render(request, 'users/view_courses.html', {'courses': courses})
 
 
@@ -87,7 +90,11 @@ def enroll(request):
     course_id = request.GET.get('course_id')
     course = Course.objects.get(id=course_id)
 
-    Enrollment.objects.get_or_create(
+     # ✅ ADD THIS CHECK HERE
+    if Enrollment.objects.filter(student=user, course=course).exists():
+        return HttpResponse("Already Enrolled")
+
+    Enrollment.objects.create(
         student=user,
         course=course
     )
@@ -127,12 +134,20 @@ def course_videos(request, course_id):
 
     videos = Video.objects.filter(course=course)
 
+    # 🔥 ADD THIS (new)
+    completed_videos = CompletedVideo.objects.filter(
+        student=user,
+        video__course=course
+    ).values_list('video_id', flat=True)
+
     return render(request, 'users/course_videos.html', {
         'course': course,
         'videos': videos,
         'progress': enrollment.progress,
-        'user_id': user_id
+        'user_id': user_id,
+        'completed_videos': list(completed_videos)  # 🔥 ADD THIS
     })
+
 # ================= LOGOUT =================
 def logout_view(request):
     request.session.flush()
@@ -197,8 +212,11 @@ def trainer_course(request, id):
         'students': students
     })
 
-from reportlab.pdfgen import canvas
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.pagesizes import A4
 from django.http import HttpResponse
+from datetime import date
 
 def generate_certificate(request, course_id):
     user_id = request.session.get('user_id')
@@ -207,20 +225,49 @@ def generate_certificate(request, course_id):
 
     enrollment = Enrollment.objects.get(student=user, course=course)
 
-    if enrollment.progress < 100:
-        return HttpResponse("Complete course first")
+    if enrollment.progress < 90:
+        return HttpResponse("Complete at least 90%")
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
 
-    p = canvas.Canvas(response)
-    p.drawString(200, 750, "Certificate of Completion")
-    p.drawString(200, 700, f"{user}")
-    p.drawString(200, 650, f"Completed {course.title}")
+    doc = SimpleDocTemplate(response, pagesize=A4)
+    styles = getSampleStyleSheet()
 
-    p.save()
+    content = []
+
+    # 🔥 TITLE
+    content.append(Spacer(1, 100))
+    content.append(Paragraph("<b>CERTIFICATE OF COMPLETION</b>", styles['Title']))
+    content.append(Spacer(1, 40))
+
+    # 🔥 BODY
+    content.append(Paragraph("This is to certify that", styles['Normal']))
+    content.append(Spacer(1, 15))
+
+    content.append(Paragraph(f"<b>{user.email}</b>", styles['Heading2']))
+    content.append(Spacer(1, 20))
+
+    content.append(Paragraph("has successfully completed the course", styles['Normal']))
+    content.append(Spacer(1, 15))
+
+    content.append(Paragraph(f"<b>{course.title}</b>", styles['Heading3']))
+    content.append(Spacer(1, 40))
+
+    content.append(Paragraph("With dedication and excellence 🎓", styles['Normal']))
+    content.append(Spacer(1, 60))
+
+    # 🔥 DATE
+    content.append(Paragraph(f"Date: {date.today()}", styles['Normal']))
+    content.append(Spacer(1, 40))
+
+    # 🔥 SIGNATURE TEXT
+    content.append(Paragraph("__________________________", styles['Normal']))
+    content.append(Paragraph("Authorized Signature", styles['Normal']))
+
+    doc.build(content)
+
     return response
-
 def admin_dashboard(request):
     if request.session.get('role') != "admin":
         return HttpResponse("Access Denied")
@@ -238,3 +285,56 @@ def dashboard(request):
         return render(request, 'users/access_denied.html')
 
     return render(request, 'users/dashboard.html')
+
+def update_progress(request, course_id, video_id):
+    user_id = request.session.get('user_id')
+
+    if not user_id:
+        return HttpResponse("Login required")
+
+    user = CustomUser.objects.get(id=user_id)
+
+    enrollment = Enrollment.objects.get(student=user, course_id=course_id)
+
+    total_videos = Video.objects.filter(course_id=course_id).count()
+
+    # 🔥 ensure list exists
+    completed = request.session.get('completed_videos', [])
+
+    video_id = int(video_id)  # ❗ FIX type issue
+
+    # 🔥 prevent duplicate counting
+    if video_id not in completed:
+        completed.append(video_id)
+
+    request.session['completed_videos'] = completed
+
+    # 🔥 avoid division error
+    if total_videos == 0:
+        progress = 0
+    else:
+        progress = int((len(completed) / total_videos) * 100)
+
+    # 🔥 LIMIT TO 100
+    if progress > 100:
+        progress = 100
+
+    enrollment.progress = progress
+    enrollment.save()
+
+    return HttpResponse("Updated")
+
+
+def delete_course(request, id):
+    if request.session.get('role') != "admin":
+        return HttpResponse("Access Denied ❌")
+
+    Course.objects.get(id=id).delete()
+    return redirect('/admin-dashboard/')
+
+def delete_user(request, id):
+    if request.session.get('role') != "admin":
+        return HttpResponse("Access Denied ❌")
+
+    CustomUser.objects.get(id=id).delete()
+    return redirect('/admin-dashboard/')

@@ -2,23 +2,41 @@
 
 {% block content %}
 
+<div class="container">
 
-<h2>Available Courses</h2>
+<h2 style="text-align:center;">Available Courses</h2>
+
+<div class="grid-3">
 
 {% for course in courses %}
-    <h3>{{ course.title }}</h3>
 
-    <p>{{ course.description }}</p>
-    <p><b>Trainer:</b> {{ course.trainer.name }}</p>
+<div class="card">
+
     <p><b>Topics:</b> {{ course.topics }}</p>
     <p><b>Duration:</b> {{ course.duration }}</p>
     <p><b>Status:</b> {{ course.status }}</p>
 
-    <a href="/enroll/?course_id={{ course.id }}">Enroll</a>
+    <div style="margin-top:10px;">
 
-    <a href="/course/{{ course.id }}/">View Videos</a>
+        <a href="/enroll/?course_id={{ course.id }}">
+            <button>Enroll</button>
+        </a>
 
-    <hr>
+       <p style="color:red;">ID = {{ course.id }}</p>
+
+<a href="/course/{{ course.id }}/">
+    <button style="background:#3498db;">View Videos</button>
+</a>
+
+    </div>
+
+</div>
+
 {% endfor %}
+
+</div>
+
+</div>
+<p style="color:red;">ID = {{ course.id }}</p>
 
 {% endblock %}
