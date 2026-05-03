@@ -143,6 +143,13 @@
                         <div class="meta-item">
                             <i class="fa-regular fa-calendar"></i> Added: {{ course.created_at|date:"M d, Y" }}
                         </div>
+                        <div class="meta-item">
+                            {% if course.status == 'PUBLISHED' %}
+                            <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background: rgba(16,185,129,0.1); color: var(--success);"><i class="fa-solid fa-check-circle"></i> Published</span>
+                            {% else %}
+                            <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background: rgba(245,158,11,0.1); color: var(--warning);"><i class="fa-solid fa-file-lines"></i> Draft</span>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
                 <div class="stats-badge">
@@ -193,16 +200,9 @@
 
     <script>
         function extractYouTubeID(url) {
-            let videoId = '';
-            if (url.includes('youtube.com/watch')) {
-                const urlParams = new URLSearchParams(new URL(url).search);
-                videoId = urlParams.get('v');
-            } else if (url.includes('youtu.be/')) {
-                videoId = url.split('youtu.be/')[1].split('?')[0];
-            } else if (url.includes('youtube.com/embed/')) {
-                videoId = url.split('youtube.com/embed/')[1].split('?')[0];
-            }
-            return videoId;
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
         }
 
         function openVideo(url, title) {
@@ -211,7 +211,7 @@
             const videoId = extractYouTubeID(url);
             
             if (videoId) {
-                container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
             } else {
                 container.innerHTML = `<div style="color:white; padding: 40px; text-align:center;">Cannot embed this video. <a href="${url}" target="_blank" style="color: #60a5fa;">Open in new tab</a></div>`;
             }
@@ -225,6 +225,23 @@
             modal.classList.remove('active');
             container.innerHTML = ''; 
         }
+
+        function pauseVideo() {
+            const iframe = document.querySelector('#videoContainer iframe');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+            }
+        }
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) {
+                pauseVideo();
+            }
+        });
+
+        window.addEventListener("blur", () => {
+            pauseVideo();
+        });
     </script>
 </body>
 </html>

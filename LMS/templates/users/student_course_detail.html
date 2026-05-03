@@ -253,21 +253,9 @@
 
     <script>
         function extractYouTubeID(url) {
-            let videoId = '';
-            // Handle standard youtube.com/watch?v=...
-            if (url.includes('youtube.com/watch')) {
-                const urlParams = new URLSearchParams(new URL(url).search);
-                videoId = urlParams.get('v');
-            } 
-            // Handle youtu.be/...
-            else if (url.includes('youtu.be/')) {
-                videoId = url.split('youtu.be/')[1].split('?')[0];
-            }
-            // Handle embed URLs just in case
-            else if (url.includes('youtube.com/embed/')) {
-                videoId = url.split('youtube.com/embed/')[1].split('?')[0];
-            }
-            return videoId;
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
         }
 
         function openVideo(url, title) {
@@ -277,7 +265,7 @@
             const videoId = extractYouTubeID(url);
             
             if (videoId) {
-                container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
             } else {
                 // Fallback if not a standard youtube URL
                 container.innerHTML = `<div style="color:white; padding: 40px; text-align:center;">Cannot embed this video. <a href="${url}" target="_blank" style="color: #60a5fa;">Open in new tab</a></div>`;
@@ -292,6 +280,24 @@
             modal.classList.remove('active');
             container.innerHTML = ''; // Stop video playback
         }
+
+        // Pause video when user switches tabs or window loses focus
+        function pauseVideo() {
+            const iframe = document.querySelector('#videoContainer iframe');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+            }
+        }
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) {
+                pauseVideo();
+            }
+        });
+
+        window.addEventListener("blur", () => {
+            pauseVideo();
+        });
     </script>
 </body>
 </html>

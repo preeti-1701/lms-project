@@ -406,6 +406,11 @@
             color: var(--danger);
         }
 
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
         .badge-primary {
             background: rgba(67, 97, 238, 0.1);
             color: var(--primary);
@@ -1002,6 +1007,7 @@
                                     <th>Created By</th>
                                     <th>Videos</th>
                                     <th>Enrolled</th>
+                                    <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -1012,6 +1018,13 @@
                                     <td>{{ course.created_by.full_name }}</td>
                                     <td>{{ course.videos.count }} Videos</td>
                                     <td>{{ course.enrollments.count }} Students</td>
+                                    <td>
+                                        {% if course.status == 'PUBLISHED' %}
+                                        <span class="badge badge-active">Published</span>
+                                        {% else %}
+                                        <span class="badge badge-warning">Draft</span>
+                                        {% endif %}
+                                    </td>
                                     <td>
                                         <div class="actions-group">
                                             <a href="{% url 'admin_course_videos' course.id %}" class="btn btn-outline btn-icon" title="View Videos"><i class="fa-solid fa-eye"></i></a>

@@ -219,6 +219,26 @@ class TrainerDashboardView(LoginRequiredMixin, TrainerRequiredMixin, TemplateVie
                     created_by=request.user
                 )
                 messages.success(request, "Course created successfully!")
+        elif action == 'edit_course':
+            course_id = request.POST.get('course_id')
+            title = request.POST.get('title')
+            description = request.POST.get('description')
+            thumbnail = request.POST.get('thumbnail')
+            difficulty_level = request.POST.get('difficulty_level')
+            status = request.POST.get('status')
+            
+            try:
+                course = Course.objects.get(id=course_id, created_by=request.user)
+                if title:
+                    course.title = title
+                    course.description = description
+                    course.thumbnail = thumbnail
+                    course.difficulty_level = difficulty_level
+                    course.status = status
+                    course.save()
+                    messages.success(request, "Course updated successfully!")
+            except Course.DoesNotExist:
+                messages.error(request, "Course not found or unauthorized.")
         elif action == 'delete_video':
             pass # Removed from here, moved to ManageCourseVideosView
                 
