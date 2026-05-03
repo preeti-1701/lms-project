@@ -77,7 +77,7 @@ class CourseStudentsView(generics.ListAPIView):
 
 # ── Lesson Progress ───────────────────────────────────────
 class LessonProgressView(APIView):
-    """Student updates their progress on a lesson"""
+    """Student marks lesson as complete"""
     permission_classes = (IsStudent,)
 
     def post(self, request, lesson_id):
@@ -97,16 +97,17 @@ class LessonProgressView(APIView):
             lesson=lesson
         )
 
-        # update watch time and completion
-        progress.watch_time_seconds = request.data.get('watch_time_seconds', progress.watch_time_seconds)
-        progress.is_completed = request.data.get('is_completed', progress.is_completed)
+        # Toggle is_completed on/off
+        progress.is_completed = request.data.get('is_completed', False)
 
         if progress.is_completed and not progress.completed_at:
             progress.completed_at = timezone.now()
+        elif not progress.is_completed:
+            progress.completed_at = None
 
         progress.save()
 
-        # check if all lessons completed → mark enrollment as completed
+        # Check if all lessons completed → mark enrollment as completed
         total_lessons = lesson.course.lessons.count()
         completed_lessons = LessonProgress.objects.filter(
             enrollment=enrollment,
@@ -117,10 +118,14 @@ class LessonProgressView(APIView):
             enrollment.status = 'completed'
             enrollment.completed_at = timezone.now()
             enrollment.save()
+        else:
+            if enrollment.status == 'completed':
+                enrollment.status = 'active'
+                enrollment.completed_at = None
+                enrollment.save()
 
         serializer = LessonProgressSerializer(progress)
         return Response(serializer.data)
-
 
 class MyProgressView(generics.ListAPIView):
     """Student sees their progress in a specific course"""

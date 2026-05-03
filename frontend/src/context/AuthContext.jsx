@@ -8,7 +8,6 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // on app load check if token exists and fetch profile
     const token = localStorage.getItem('access_token')
     if (token) {
       fetchProfile()
@@ -21,10 +20,10 @@ export function AuthProvider({ children }) {
     try {
       const res = await api.get('/users/profile/')
       setUser(res.data)
-    } catch {
-      // token expired or invalid — clear it
+    } catch (err) {
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
+      setUser(null)
     } finally {
       setLoading(false)
     }
@@ -41,8 +40,8 @@ export function AuthProvider({ children }) {
     try {
       const refresh = localStorage.getItem('refresh_token')
       await api.post('/users/logout/', { refresh })
-    } catch {
-      // proceed with logout even if API call fails
+    } catch (err) {
+      // proceed even if logout fails
     } finally {
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
@@ -51,16 +50,33 @@ export function AuthProvider({ children }) {
   }
 
   const register = async (username, email, password) => {
-    await api.post('/users/register/', { username, email, password, role: 'student' })
+    await api.post('/users/register/', { 
+      username, 
+      email, 
+      password, 
+      role: 'student' 
+    })
+  }
+
+  const value = {
+    user,
+    loading,
+    login,
+    logout,
+    register,
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, register }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   )
 }
 
 export function useAuth() {
-  return useContext(AuthContext)
+  const context = useContext(AuthContext)
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider')
+  }
+  return context
 }

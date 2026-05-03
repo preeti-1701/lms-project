@@ -1,18 +1,27 @@
-export default function Button({ children, loading, loadingText, type = 'submit', onClick, variant = 'primary' }) {
-  const variants = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700',
-    danger: 'bg-red-600 text-white hover:bg-red-700',
-    outline: 'border border-gray-300 text-gray-700 hover:bg-gray-50',
-  }
+import clsx from "clsx"
 
+export default function Button({
+  children,
+  type = "button",
+  loading = false,
+  disabled = false,
+  className = "",
+}) {
   return (
     <button
       type={type}
-      onClick={onClick}
-      disabled={loading}
-      className={`w-full py-2 rounded-lg font-medium disabled:opacity-50 transition-colors ${variants[variant]}`}
+      disabled={loading || disabled}
+      className={clsx(
+        "w-full py-3 px-6 rounded-lg",
+        "bg-[#deb986] text-[#1e3231] font-bold text-base",
+        "transition-all duration-200",
+        "shadow-md hover:bg-[#d4a876] hover:shadow-lg",
+        "active:bg-[#c99866]",
+        "disabled:opacity-50 disabled:cursor-not-allowed",
+        className
+      )}
     >
-      {loading ? loadingText : children}
+      {loading ? "Signing in..." : children}
     </button>
   )
 }
