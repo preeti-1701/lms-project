@@ -28,6 +28,20 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/videos', videoRoutes);
 app.use('/api/sessions', sessionRoutes);
 
+app.get('/', (req, res) => {
+  res.send(`
+    <div style="font-family: sans-serif; padding: 2rem; text-align: center;">
+      <h1 style="color: #2563eb;">LMS Backend API</h1>
+      <p>The server is running successfully.</p>
+      <div style="margin-top: 2rem; padding: 1rem; background: #f8fafc; border-radius: 8px; display: inline-block;">
+        <strong>Status:</strong> <span style="color: #10b981;">Online</span><br>
+        <strong>API Base:</strong> /api<br>
+        <strong>Health Check:</strong> <a href="/api/health">/api/health</a>
+      </div>
+    </div>
+  `);
+});
+
 app.get('/api/health', (req, res) => res.json({ status: 'OK', time: new Date() }));
 
 const PORT = process.env.PORT || 5000;

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/api';
 import { useAuth } from '../context/AuthContext';
+import Watermark from '../components/Watermark';
 import Navbar from '../components/Navbar';
 
 const CourseViewer = () => {
@@ -86,51 +87,20 @@ const CourseViewer = () => {
       
       <div className="main-content" style={{ padding: 0 }}>
         {currentVideo ? (
-          <div style={{ maxWidth: '700px', margin: '3rem auto', padding: '0 1rem' }}>
-            <div className="card" style={{ textAlign: 'center', padding: '2.5rem 2rem' }}>
-              {/* YouTube Thumbnail Preview */}
-              <div style={{ marginBottom: '1.5rem' }}>
-                <img
-                  src={`https://img.youtube.com/vi/${currentVideo.youtube_id}/hqdefault.jpg`}
-                  alt={currentVideo.title}
-                  style={{
-                    width: '100%',
-                    maxWidth: '480px',
-                    borderRadius: '12px',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-                    display: 'block',
-                    margin: '0 auto'
-                  }}
-                />
-              </div>
-
-              <h2 style={{ color: 'var(--primary)', marginBottom: '0.75rem' }}>{currentVideo.title}</h2>
-              {currentVideo.description && (
-                <p style={{ marginBottom: '1.5rem', lineHeight: '1.6', color: '#94a3b8' }}>{currentVideo.description}</p>
-              )}
-
-              <a
-                href={currentVideo.youtube_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.6rem',
-                  background: '#FF0000',
-                  color: '#fff',
-                  padding: '0.75rem 2rem',
-                  borderRadius: '8px',
-                  textDecoration: 'none',
-                  fontWeight: '600',
-                  fontSize: '1rem',
-                  transition: 'opacity 0.2s'
-                }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-              >
-                ▶ Watch on YouTube
-              </a>
+          <div style={{ maxWidth: '1000px', margin: '2rem auto', padding: '0 1rem' }}>
+            <div className="video-container" style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 12px 36px rgba(0,0,0,0.4)' }}>
+              <iframe
+                src={`https://www.youtube.com/embed/${currentVideo.youtube_id}?rel=0&modestbranding=1&showinfo=0`}
+                title={currentVideo.title}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+              <Watermark />
+            </div>
+            <div className="card" style={{ marginTop: '2rem', background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(10px)' }}>
+              <h2 style={{ color: 'var(--primary)' }}>{currentVideo.title}</h2>
+              <p style={{ marginTop: '1rem', lineHeight: '1.6', color: '#cbd5e1' }}>{currentVideo.description}</p>
             </div>
           </div>
         ) : (
