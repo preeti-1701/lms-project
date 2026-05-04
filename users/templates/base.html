@@ -197,6 +197,51 @@ window.onload = () => {
     {% endblock %}
 </div>
 
+<script>
+
+// ❌ Disable Right Click
+document.addEventListener("contextmenu", function(e){
+    e.preventDefault();
+});
+
+// ❌ Disable Screenshot Keys
+document.addEventListener("keydown", function(e){
+
+    // Print Screen
+    if (e.key === "PrintScreen") {
+        alert("Screenshot not allowed!");
+    }
+
+    // Windows Snipping Tool
+    if (e.metaKey && e.shiftKey && e.key === 'S') {
+        alert("Screen capture blocked!");
+        e.preventDefault();
+    }
+
+    // Ctrl + Shift + S
+    if (e.ctrlKey && e.shiftKey && e.key === 'S') {
+        alert("Screen capture blocked!");
+        e.preventDefault();
+    }
+
+    // Block inspect
+    if (e.ctrlKey && e.key === 'u') e.preventDefault();
+    if (e.ctrlKey && e.shiftKey && e.key === 'I') e.preventDefault();
+});
+
+
+// 🔥 TAB SWITCH DETECTION
+document.addEventListener("visibilitychange", function() {
+    if (document.hidden) {
+        document.body.innerHTML = "<h2 style='text-align:center;margin-top:200px;'>⚠ Screen recording not allowed</h2>";
+    } else {
+        location.reload();
+    }
+});
+
+
+</script>
+
 </body>
 </html>
 
