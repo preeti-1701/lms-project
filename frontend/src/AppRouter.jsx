@@ -24,12 +24,11 @@ export default function AppRouter() {
   const ctx = useContext(AppContext);
 
   useEffect(() => {
-    // If user has tokens stored but missing user info, refresh /me
-    if (!ctx.auth.user && ctx.auth.access) {
-      ctx.actions.refreshMe().catch(() => undefined);
-    }
+    // Always refresh /me when we have a token so role/approved stays current
+    // (localStorage may contain stale user data from the last login).
+    if (ctx.auth.access) ctx.actions.refreshMe().catch(() => undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [ctx.auth.access]);
 
   return (
     <BrowserRouter>

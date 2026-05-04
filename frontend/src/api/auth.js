@@ -27,9 +27,20 @@ export async function refreshAccessToken() {
 
 export async function me() {
   const { access } = getStoredAuth();
-  const data = await apiFetch("/api/auth/me/", { method: "GET", accessToken: access });
-  setStoredAuth({ user: data });
-  return data;
+  try {
+    const data = await apiFetch("/api/auth/me/", { method: "GET", accessToken: access });
+    setStoredAuth({ user: data });
+    return data;
+  } catch (err) {
+    if (err?.status === 401) {
+      const newAccess = await refreshAccessToken().catch(() => "");
+      if (!newAccess) throw err;
+      const data = await apiFetch("/api/auth/me/", { method: "GET", accessToken: newAccess });
+      setStoredAuth({ user: data });
+      return data;
+    }
+    throw err;
+  }
 }
 
 export async function logout() {

@@ -33,7 +33,7 @@ export default function Header() {
           </Link>
 
           {/* Navigation Links - Desktop */}
-          <nav className="hidden md:flex items-center gap-8">
+          {/* <nav className="hidden md:flex items-center gap-8">
             <Link to="/" className="font-medium transition" style={{ color: "#374151" }}
               onMouseEnter={e => e.currentTarget.style.color = "var(--primary)"}
               onMouseLeave={e => e.currentTarget.style.color = "#374151"}>
@@ -46,7 +46,7 @@ export default function Header() {
                 Dashboard
               </Link>
             )}
-          </nav>
+          </nav> */}
 
           {/* Auth Section */}
           <div className="hidden md:flex items-center gap-4">

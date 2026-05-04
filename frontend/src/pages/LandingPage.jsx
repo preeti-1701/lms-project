@@ -1,8 +1,23 @@
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Link } from "react-router-dom";
+import { AppContext } from "../context/AppContext";
+import { useContext, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function LandingPage() {
+  const navigate = useNavigate();
+  const ctx = useContext(AppContext);
+  const user = ctx.auth.user;
+  
+  useEffect(()=>{
+    if (user){
+     if (user?.role === "admin")  navigate("/adminDashboard");
+    if (user?.role === "trainer") navigate("/trainerDashboard");
+if (user?.role === "student") navigate("/sudentDashboard");
+  }
+  });
+  
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       <Header />
@@ -26,3 +41,4 @@ export default function LandingPage() {
     </div>
   );
 }
+

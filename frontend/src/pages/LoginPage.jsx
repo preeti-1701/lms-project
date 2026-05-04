@@ -33,7 +33,7 @@ export default function LoginPage() {
       <main className="flex flex-1 items-center justify-center px-4 py-16">
         <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
           <h1 className="text-2xl font-bold text-gray-900">Login</h1>
-          <p className="mt-1 text-gray-600">Use email + password.</p>
+          {/* <p className="mt-1 text-gray-600">Use email + password.</p> */}
 
           {(ctx.error || message) && (
             <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
