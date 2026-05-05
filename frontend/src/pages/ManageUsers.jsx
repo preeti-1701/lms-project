@@ -1,253 +1,207 @@
-import { useState, useEffect } from 'react'
-import api from '../api/axios'
+import { useState, useEffect } from 'react';
+import api from '../api/axios';
 
 export default function ManageUsers() {
-  const [users, setUsers] = useState([])
-  const [showModal, setShowModal] = useState(false)
-  const [editingUser, setEditingUser] = useState(null)
-  const [formData, setFormData] = useState({
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showUserForm, setShowUserForm] = useState(false);
+  const [userForm, setUserForm] = useState({
     email: '',
+    password: '',
     first_name: '',
     last_name: '',
-    mobile: '',
-    role: 'student',
-    password: ''
-  })
-  const [filter, setFilter] = useState('')
+    role: 'student'
+  });
+  const [filter, setFilter] = useState('all');
+
+  const fetchUsers = async () => {
+    try {
+      const res = await api.get('/users/');
+      setUsers(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    loadUsers()
-  }, [filter])
+    fetchUsers();
+  }, [filter]);
 
-  const loadUsers = async () => {
+  const handleUserSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const url = filter ? `/users/?role=${filter}` : '/users/'
-      const res = await api.get(url)
-      setUsers(res.data)
+      await api.post('/users/', userForm);
+      setUserForm({
+        email: '',
+        password: '',
+        first_name: '',
+        last_name: '',
+        role: 'student'
+      });
+      setShowUserForm(false);
+      fetchUsers();
     } catch (err) {
-      console.error('Failed to load users:', err)
+      console.error(err);
+      alert('Error creating user. Make sure email is unique and password is provided.');
     }
-  }
+  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const handleRoleChange = async (userId, newRole) => {
     try {
-      if (editingUser) {
-        const data = { ...formData }
-        if (!data.password) delete data.password
-        await api.patch(`/users/${editingUser.id}/`, data)
-      } else {
-        await api.post('/users/', formData)
-      }
-      setShowModal(false)
-      resetForm()
-      loadUsers()
+      await api.patch(`/users/${userId}/`, { role: newRole });
+      setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
     } catch (err) {
-      alert(err.response?.data?.detail || 'Failed to save user')
+      console.error(err);
     }
-  }
+  };
 
-  const resetForm = () => {
-    setFormData({
-      email: '',
-      first_name: '',
-      last_name: '',
-      mobile: '',
-      role: 'student',
-      password: ''
-    })
-    setEditingUser(null)
-  }
-
-  const handleEdit = (user) => {
-    setEditingUser(user)
-    setFormData({
-      email: user.email,
-      first_name: user.first_name || '',
-      last_name: user.last_name || '',
-      mobile: user.mobile || '',
-      role: user.role,
-      password: ''
-    })
-    setShowModal(true)
-  }
-
-  const handleToggleActive = async (user) => {
+  const handleDelete = async (userId) => {
+    if (!confirm('Are you sure you want to delete this user?')) return;
     try {
-      await api.post(`/users/${user.id}/toggle_active/`)
-      loadUsers()
+      await api.delete(`/users/${userId}/`);
+      setUsers(users.filter(u => u.id !== userId));
     } catch (err) {
-      alert('Failed to toggle user status')
+      console.error(err);
     }
-  }
+  };
 
-  const handleForceLogout = async (user) => {
-    try {
-      await api.post(`/users/${user.id}/force_logout/`)
-      alert(`${user.email} has been logged out`)
-    } catch (err) {
-      alert('Failed to force logout')
-    }
-  }
+  // Filter users by role
+  const filteredUsers = filter === 'all' 
+    ? users 
+    : users.filter(u => u.role === filter);
 
-  const handleDelete = async (user) => {
-    if (!confirm(`Are you sure you want to delete ${user.email}?`)) return
-    try {
-      await api.delete(`/users/${user.id}/`)
-      loadUsers()
-    } catch (err) {
-      alert('Failed to delete user')
-    }
-  }
+  if (loading) return <div className="loading">Loading...</div>;
 
   return (
-    <div className="dashboard">
-      <h1>Manage Users</h1>
-      <p className="dashboard-subtitle">Create and manage user accounts</p>
-
-      <div className="card">
-        <div className="card-header">
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <h2>Users</h2>
-            <select 
-              value={filter} 
-              onChange={e => setFilter(e.target.value)}
-              style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #ddd' }}
-            >
-              <option value="">All Roles</option>
-              <option value="admin">Admin</option>
-              <option value="trainer">Trainer</option>
-              <option value="student">Student</option>
-            </select>
-          </div>
-          <button 
-            className="btn btn-primary btn-sm" 
-            onClick={() => { resetForm(); setShowModal(true); }}
-          >
-            + Add User
-          </button>
-        </div>
-        <div className="card-body">
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Email</th>
-                  <th>Name</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Last IP</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map(user => (
-                  <tr key={user.id}>
-                    <td>{user.email}</td>
-                    <td>{user.first_name} {user.last_name}</td>
-                    <td>
-                      <span className={`badge badge-${user.role}`}>{user.role}</span>
-                    </td>
-                    <td>
-                      <span className={`badge badge-${user.is_active ? 'active' : 'inactive'}`}>
-                        {user.is_active ? 'Active' : 'Disabled'}
-                      </span>
-                    </td>
-                    <td style={{ fontSize: '0.85rem', color: '#666' }}>{user.last_ip || '-'}</td>
-                    <td className="actions">
-                      <button className="btn btn-secondary btn-sm" onClick={() => handleEdit(user)}>
-                        Edit
-                      </button>
-                      <button className="btn btn-secondary btn-sm" onClick={() => handleToggleActive(user)}>
-                        {user.is_active ? 'Disable' : 'Enable'}
-                      </button>
-                      <button className="btn btn-secondary btn-sm" onClick={() => handleForceLogout(user)}>
-                        Logout
-                      </button>
-                      <button className="btn btn-danger btn-sm" onClick={() => handleDelete(user)}>
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+    <div className="manage-users">
+      <div className="page-header">
+        <h1>Manage Users</h1>
+        <button className="btn-primary" onClick={() => setShowUserForm(!showUserForm)}>
+          {showUserForm ? 'Cancel' : '+ Add User'}
+        </button>
       </div>
 
-      {/* User Modal */}
-      {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{editingUser ? 'Edit User' : 'Create User'}</h2>
-              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
-            </div>
-            <form onSubmit={handleSubmit}>
-              <div className="modal-body">
-                <div className="form-group">
-                  <label>Email</label>
-                  <input 
-                    type="email" 
-                    required
-                    value={formData.email}
-                    onChange={e => setFormData({...formData, email: e.target.value})}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>First Name</label>
-                  <input 
-                    type="text"
-                    value={formData.first_name}
-                    onChange={e => setFormData({...formData, first_name: e.target.value})}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Last Name</label>
-                  <input 
-                    type="text"
-                    value={formData.last_name}
-                    onChange={e => setFormData({...formData, last_name: e.target.value})}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Mobile</label>
-                  <input 
-                    type="text"
-                    value={formData.mobile}
-                    onChange={e => setFormData({...formData, mobile: e.target.value})}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Role</label>
+      {showUserForm && (
+        <form className="user-form" onSubmit={handleUserSubmit}>
+          <h3>Add New User</h3>
+          <div className="form-row">
+            <input
+              type="email"
+              placeholder="Email *"
+              value={userForm.email}
+              onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
+              required
+            />
+            <input
+              type="password"
+              placeholder="Password *"
+              value={userForm.password}
+              onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
+              required
+            />
+          </div>
+          <div className="form-row">
+            <input
+              type="text"
+              placeholder="First Name"
+              value={userForm.first_name}
+              onChange={(e) => setUserForm({ ...userForm, first_name: e.target.value })}
+            />
+            <input
+              type="text"
+              placeholder="Last Name"
+              value={userForm.last_name}
+              onChange={(e) => setUserForm({ ...userForm, last_name: e.target.value })}
+            />
+          </div>
+          <select
+            value={userForm.role}
+            onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}
+          >
+            <option value="student">Student</option>
+            <option value="trainer">Trainer</option>
+            <option value="admin">Admin</option>
+          </select>
+          <button type="submit" className="btn-primary">Create User</button>
+        </form>
+      )}
+
+      <div className="filter-tabs">
+        <button 
+          className={filter === 'all' ? 'active' : ''} 
+          onClick={() => setFilter('all')}
+        >
+          All ({users.length})
+        </button>
+        <button 
+          className={filter === 'admin' ? 'active' : ''} 
+          onClick={() => setFilter('admin')}
+        >
+          Admins ({users.filter(u => u.role === 'admin').length})
+        </button>
+        <button 
+          className={filter === 'trainer' ? 'active' : ''} 
+          onClick={() => setFilter('trainer')}
+        >
+          Trainers ({users.filter(u => u.role === 'trainer').length})
+        </button>
+        <button 
+          className={filter === 'student' ? 'active' : ''} 
+          onClick={() => setFilter('student')}
+        >
+          Students ({users.filter(u => u.role === 'student').length})
+        </button>
+      </div>
+
+      <div className="users-table-container">
+        <table className="users-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredUsers.map((user) => (
+              <tr key={user.id}>
+                <td>{user.id}</td>
+                <td>{user.first_name} {user.last_name}</td>
+                <td>{user.email}</td>
+                <td>
                   <select 
-                    value={formData.role}
-                    onChange={e => setFormData({...formData, role: e.target.value})}
+                    value={user.role} 
+                    onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                    className={`role-select role-${user.role}`}
                   >
                     <option value="student">Student</option>
                     <option value="trainer">Trainer</option>
                     <option value="admin">Admin</option>
                   </select>
-                </div>
-                <div className="form-group">
-                  <label>{editingUser ? 'New Password (leave blank to keep current)' : 'Password'}</label>
-                  <input 
-                    type="password"
-                    required={!editingUser}
-                    value={formData.password}
-                    onChange={e => setFormData({...formData, password: e.target.value})}
-                  />
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary">{editingUser ? 'Save' : 'Create'}</button>
-              </div>
-            </form>
+                </td>
+                <td>
+                  <button 
+                    onClick={() => handleDelete(user.id)}
+                    className="btn-danger"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        
+        {filteredUsers.length === 0 && (
+          <div className="empty-state">
+            <p>No users found.</p>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
-  )
+  );
 }

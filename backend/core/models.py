@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 
 
+# ================= USER MANAGER =================
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -26,6 +27,7 @@ class UserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 
+# ================= USER MODEL =================
 class User(AbstractUser):
     ROLE_CHOICES = (
         ('admin', 'Admin'),
@@ -33,28 +35,40 @@ class User(AbstractUser):
         ('student', 'Student'),
     )
 
-    username = None
+    username = None  # ❌ disable username
     email = models.EmailField(unique=True)
+
     mobile = models.CharField(max_length=15, blank=True, null=True)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
+
     is_active = models.BooleanField(default=True)
 
+    # Security tracking
     session_token = models.CharField(max_length=255, blank=True, null=True)
+    video_token = models.CharField(max_length=255, blank=True, null=True)
+    video_token_expiry = models.DateTimeField(blank=True, null=True)
     last_ip = models.GenericIPAddressField(blank=True, null=True)
     last_device = models.CharField(max_length=255, blank=True, null=True)
 
     objects = UserManager()
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'email'   # 🔥 IMPORTANT for login
     REQUIRED_FIELDS = []
 
     def __str__(self):
         return self.email
 
 
+# ================= COURSE =================
 class Course(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+
+    # Assign trainer to course
+    trainer = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='courses',
+        limit_choices_to={'role': 'trainer'}, null=True, blank=True
+    )
 
     created_by = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='created_courses'
@@ -68,6 +82,7 @@ class Course(models.Model):
         return self.title
 
 
+# ================= VIDEO =================
 class Video(models.Model):
     course = models.ForeignKey(
         Course, on_delete=models.CASCADE, related_name='videos'
@@ -75,7 +90,7 @@ class Video(models.Model):
 
     title = models.CharField(max_length=255)
     youtube_url = models.URLField()
-    order = models.PositiveIntegerField(default=0)
+    order = models.PositiveIntegerField(default=1)
     duration = models.CharField(max_length=20, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -102,6 +117,7 @@ class Video(models.Model):
         return f"https://www.youtube.com/embed/{video_id}"
 
 
+# ================= ENROLLMENT =================
 class Enrollment(models.Model):
     student = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='enrollments'
@@ -120,6 +136,7 @@ class Enrollment(models.Model):
         return f"{self.student.email} - {self.course.title}"
 
 
+# ================= VIDEO PROGRESS =================
 class VideoProgress(models.Model):
     student = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='video_progress'
@@ -135,3 +152,52 @@ class VideoProgress(models.Model):
 
     class Meta:
         unique_together = ('student', 'video')
+
+    def __str__(self):
+        return f"{self.student.email} - {self.video.title}"
+
+
+# ================= SECURITY NOTIFICATION =================
+class SecurityNotification(models.Model):
+    """
+    Model to track security events: screenshot attempts, watermarks, etc.
+    """
+    NOTIFICATION_TYPES = (
+        ('screenshot', 'Screenshot Attempt'),
+        ('screen_record', 'Screen Recording Attempt'),
+        ('print', 'Print Attempt'),
+        ('watermark', 'Watermark Detection'),
+        ('right_click', 'Right Click Attempt'),
+        ('download', 'Download Attempt'),
+    )
+
+    student = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='security_notifications'
+    )
+    
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
+    
+    course = models.ForeignKey(
+        Course, on_delete=models.CASCADE, null=True, blank=True,
+        related_name='security_notifications'
+    )
+    
+    video = models.ForeignKey(
+        Video, on_delete=models.CASCADE, null=True, blank=True,
+        related_name='security_notifications'
+    )
+    
+    description = models.TextField()
+    
+    # Browser/device info
+    user_agent = models.CharField(max_length=500, blank=True, null=True)
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.student.email} - {self.notification_type} - {self.created_at}"
