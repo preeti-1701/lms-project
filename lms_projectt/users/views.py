@@ -20,7 +20,7 @@ def all_users(request):
     users = User.objects.all()
     return render(request, "users_list.html", {"users": users})
 
-#------------------- Register ------------------
+#------------------- Register------------------
 from django.contrib.auth.models import User, Group
 def register(request):
     if request.method == "POST":
