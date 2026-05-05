@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Profile — LMS{% endblock %}
+{% block panel_label %}
+  {% if role == 'admin' %}Admin Panel{% elif role == 'student' %}Student Portal{% else %}Trainer Panel{% endif %}
+{% endblock %}
+
+{% block sidebar_nav %}
+{% if role == 'admin' %}
+  <div class="nav-label">Main</div>
+  <a class="nav-item" href="{% url 'admin_dashboard' %}"><span class="nav-icon">🏠</span> Dashboard</a>
+  <a class="nav-item" href="{% url 'admin_courses' %}"><span class="nav-icon">📚</span> All Courses</a>
+  <a class="nav-item" href="{% url 'admin_users' %}"><span class="nav-icon">👥</span> Users</a>
+{% elif role == 'student' %}
+  <div class="nav-label">Learning</div>
+  <a class="nav-item" href="{% url 'student_dashboard' %}"><span class="nav-icon">🏠</span> Dashboard</a>
+  <a class="nav-item" href="{% url 'student_courses' %}"><span class="nav-icon">📚</span> Browse Courses</a>
+{% elif role == 'trainer' %}
+  <div class="nav-label">My Teaching</div>
+  <a class="nav-item" href="{% url 'trainer_dashboard' %}"><span class="nav-icon">🏠</span> Dashboard</a>
+  <a class="nav-item" href="{% url 'trainer_courses' %}"><span class="nav-icon">📚</span> My Courses</a>
+{% endif %}
+<div class="nav-label">Account</div>
+<a class="nav-item active" href="{% url 'profile' %}"><span class="nav-icon">👤</span> Profile</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>My Profile</h1></div>
+
+<div class="profile-card">
+  <div class="profile-avatar">{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}</div>
+  <div>
+    <div class="profile-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+    <div class="profile-role">{{ role|capfirst }}</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><h3>Account Details</h3></div>
+  <div class="card-body">
+    <table style="font-size:0.9rem">
+      <tr><td style="padding:10px 0;color:var(--muted);width:150px">Full Name</td><td style="font-weight:600">{{ request.user.get_full_name|default:"—" }}</td></tr>
+      <tr><td style="padding:10px 0;color:var(--muted)">Username</td><td>{{ request.user.username }}</td></tr>
+      <tr><td style="padding:10px 0;color:var(--muted)">Email</td><td>{{ request.user.email|default:"—" }}</td></tr>
+      <tr><td style="padding:10px 0;color:var(--muted)">Role</td>
+        <td>{% if role == 'admin' %}<span class="badge badge-admin">admin</span>
+            {% elif role == 'student' %}<span class="badge badge-student">student</span>
+            {% else %}<span class="badge badge-trainer">trainer</span>{% endif %}</td></tr>
+      <tr><td style="padding:10px 0;color:var(--muted)">User ID</td><td>#{{ request.user.id }}</td></tr>
+    </table>
+  </div>
+</div>
+
+{% if role == 'trainer' and assigned %}
+<div class="card">
+  <div class="card-header"><h3>🎓 Assigned Courses</h3></div>
+  <div class="card-body">
+    {% for c in assigned %}
+    <div class="upcoming-item" style="margin-bottom:8px">
+      <span style="font-size:1.2rem">📘</span>
+      <div>
+        <div style="font-weight:600">{{ c.title }}</div>
+        <div class="text-muted" style="font-size:0.8rem">{{ c.duration|default:"—" }} · {{ c.enrollments.count }} students{% if c.youtube_url %} · ▶ Video added{% endif %}</div>
+      </div>
+      {% if c.status == 'active' %}<span class="badge badge-active">active</span>
+      {% else %}<span class="badge badge-upcoming">{{ c.status }}</span>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if role == 'student' and enrolled %}
+<div class="card">
+  <div class="card-header"><h3>📚 My Enrolled Courses</h3></div>
+  <div class="card-body">
+    {% for e in enrolled %}
+    <div class="upcoming-item" style="margin-bottom:8px">
+      <span style="font-size:1.2rem">📘</span>
+      <div>
+        <div style="font-weight:600">{{ e.course.title }}</div>
+        <div class="text-muted" style="font-size:0.8rem">Enrolled on {{ e.enrolled_at|date:"d M Y" }}{% if e.course.youtube_url %} · ▶ Video available{% endif %}</div>
+      </div>
+      <span class="badge badge-active">enrolled</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

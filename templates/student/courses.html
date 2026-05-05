@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Browse Courses — Student{% endblock %}
+{% block panel_label %}Student Portal{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-label">Learning</div>
+<a class="nav-item" href="{% url 'student_dashboard' %}"><span class="nav-icon">🏠</span> Dashboard</a>
+<a class="nav-item active" href="{% url 'student_courses' %}"><span class="nav-icon">📚</span> Browse Courses</a>
+<div class="nav-label">Account</div>
+<a class="nav-item" href="{% url 'profile' %}"><span class="nav-icon">👤</span> Profile</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Browse Courses</h1>
+  <p>Enroll in a course to unlock video lessons.</p>
+</div>
+
+<form method="GET" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">
+  <input class="search-bar" name="q" value="{{ q }}" placeholder="Search courses..."/>
+  <select class="search-bar" name="status" style="min-width:140px">
+    <option value="">All Status</option>
+    <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+    <option value="upcoming" {% if status == 'upcoming' %}selected{% endif %}>Upcoming</option>
+  </select>
+  <button type="submit" class="btn btn-outline">Search</button>
+</form>
+
+<div class="courses-grid">
+  {% for course in courses %}
+  <div class="course-card" style="cursor:pointer" onclick="document.getElementById('modal-{{ course.id }}').classList.remove('hidden')">
+    <div class="course-card-top default">📘</div>
+    <div class="course-card-body">
+      <h4>{{ course.title }}</h4>
+      <p>{{ course.description|truncatechars:100 }}</p>
+      <div class="course-meta">
+        <span>⏱️ {{ course.duration|default:"—" }}</span>
+        <span>👥 {{ course.enrollments.count }} students</span>
+        {% if course.youtube_url %}<span style="color:var(--blue)">▶ Video</span>{% endif %}
+      </div>
+    </div>
+    <div class="course-card-footer">
+      {% if course.status == 'active' %}<span class="badge badge-active">active</span>
+      {% else %}<span class="badge badge-upcoming">upcoming</span>{% endif %}
+      {% if course.id in enrolled_ids %}
+        <span class="badge badge-active">✅ Enrolled</span>
+      {% else %}
+        <span class="btn btn-outline btn-sm">View Details</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="modal-{{ course.id }}">
+    <div class="modal" style="max-width:560px">
+      <div class="modal-header">
+        <h3>{{ course.title }}</h3>
+        <button class="modal-close" onclick="document.getElementById('modal-{{ course.id }}').classList.add('hidden')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="background:linear-gradient(135deg,#3572A5,#1a4f8c);border-radius:10px;height:90px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;margin-bottom:20px">📘</div>
+        <table style="font-size:0.875rem;margin-bottom:16px;width:100%">
+          <tr><td style="padding:6px 0;color:var(--muted);width:120px">Course ID</td><td style="font-weight:600">#{{ course.id }}</td></tr>
+          <tr><td style="padding:6px 0;color:var(--muted)">Title</td><td style="font-weight:600">{{ course.title }}</td></tr>
+          <tr><td style="padding:6px 0;color:var(--muted)">Edition</td><td>{{ course.edition|default:"—" }}</td></tr>
+          <tr><td style="padding:6px 0;color:var(--muted)">Trainer</td><td>{{ course.trainer.get_full_name|default:"—" }}</td></tr>
+          <tr><td style="padding:6px 0;color:var(--muted)">Duration</td><td>{{ course.duration|default:"—" }}</td></tr>
+          <tr><td style="padding:6px 0;color:var(--muted)">Status</td>
+            <td>{% if course.status == 'active' %}<span class="badge badge-active">active</span>{% else %}<span class="badge badge-upcoming">upcoming</span>{% endif %}</td></tr>
+          <tr><td style="padding:6px 0;color:var(--muted)">Students</td><td>{{ course.enrollments.count }} enrolled</td></tr>
+          <tr><td style="padding:6px 0;color:var(--muted)">Video</td>
+            <td>{% if course.youtube_url %}<span class="badge badge-active">▶ Available</span>{% else %}<span class="badge badge-inactive">Not yet</span>{% endif %}</td></tr>
+        </table>
+        <p style="font-size:0.9rem;color:var(--text2);line-height:1.7">{{ course.description }}</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="document.getElementById('modal-{{ course.id }}').classList.add('hidden')">Close</button>
+        {% if course.id in enrolled_ids %}
+          {% if course.youtube_url %}
+            <a href="{% url 'student_watch' course.pk %}" class="btn btn-primary">▶ Watch Now</a>
+          {% else %}
+            <span class="btn btn-primary" style="opacity:0.6">✅ Enrolled</span>
+          {% endif %}
+        {% else %}
+          <a href="{% url 'student_enroll' course.pk %}" class="btn btn-primary">✅ Enroll Now</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <p class="text-muted">No courses found.</p>
+  {% endfor %}
+</div>
+{% endblock %}

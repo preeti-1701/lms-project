@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% block title %}Watch — {{ course.title }}{% endblock %}
+{% block panel_label %}Student Portal{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-label">Learning</div>
+<a class="nav-item" href="{% url 'student_dashboard' %}"><span class="nav-icon">🏠</span> Dashboard</a>
+<a class="nav-item active" href="{% url 'student_courses' %}"><span class="nav-icon">📚</span> Browse Courses</a>
+<div class="nav-label">Account</div>
+<a class="nav-item" href="{% url 'profile' %}"><span class="nav-icon">👤</span> Profile</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Screenshot warning banner -->
+<div id="screenshotWarning" style="display:none;background:#fef2f2;border:2px solid #fca5a5;color:#991b1b;padding:16px 20px;border-radius:10px;margin-bottom:16px;font-weight:700;font-size:1rem;text-align:center">
+  🚨 Screenshot detected! Logging you out for security... Please wait.
+</div>
+
+<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+  <div>
+    <h1>▶ {{ course.title }}</h1>
+    <p>{% if course.edition %}{{ course.edition }} · {% endif %}{{ course.duration|default:"" }} · Trainer: {{ course.trainer.get_full_name|default:"—" }}</p>
+  </div>
+  <a href="{% url 'student_courses' %}" class="btn btn-outline">← Back to Courses</a>
+</div>
+
+<!-- VIDEO PLAYER SECTION -->
+<div style="max-width:960px">
+
+  <!-- Watermark + Video wrapper -->
+  <div style="position:relative;width:100%;border-radius:14px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.2);background:#000" oncontextmenu="return false;">
+
+    <!-- YouTube iframe -->
+    <div style="position:relative;padding-top:56.25%">
+      <iframe
+        id="ytPlayer"
+        style="position:absolute;top:0;left:0;width:100%;height:100%;border:none"
+        src="{{ embed_url }}&autoplay=1&rel=0&modestbranding=1"
+        title="{{ course.title }}"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen>
+      </iframe>
+    </div>
+
+    <!-- Watermark overlay -->
+    <div style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10;display:flex;align-items:center;justify-content:center;opacity:0.15">
+      <span style="font-family:'Syne',sans-serif;font-size:clamp(0.9rem,2.5vw,1.8rem);font-weight:800;color:#fff;transform:rotate(-30deg);white-space:nowrap;letter-spacing:2px;text-shadow:0 2px 8px rgba(0,0,0,0.8)">
+        {{ request.user.get_full_name|default:request.user.username }} · {{ request.user.username }}
+      </span>
+    </div>
+
+  </div>
+
+  <!-- Course Info Bar -->
+  <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px 24px;margin-top:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 4px 24px rgba(0,0,0,0.06)">
+    <div style="flex:1;min-width:200px">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;color:#0f172a">{{ course.title }}</div>
+      {% if course.edition %}<div style="color:#64748b;font-size:0.82rem;margin-top:3px">{{ course.edition }}</div>{% endif %}
+    </div>
+    <div style="display:flex;gap:20px;font-size:0.82rem;color:#64748b;flex-wrap:wrap">
+      <span>⏱️ {{ course.duration|default:"—" }}</span>
+      <span>👤 {{ course.trainer.get_full_name|default:"—" }}</span>
+      <span>👥 {{ course.enrollments.count }} students</span>
+    </div>
+    {% if course.status == 'active' %}
+      <span class="badge badge-active">active</span>
+    {% else %}
+      <span class="badge badge-upcoming">{{ course.status }}</span>
+    {% endif %}
+  </div>
+
+  <!-- Description + Topics -->
+  <div class="card" style="margin-top:16px">
+    <div class="card-header"><h3>📋 About This Course</h3></div>
+    <div class="card-body">
+      <p style="color:#475569;line-height:1.8;font-size:0.9rem">{{ course.description }}</p>
+      {% if course.get_topics_list %}
+      <div style="margin-top:20px">
+        <div style="font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">📌 Topics Covered</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          {% for topic in course.get_topics_list %}
+          <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:5px 12px;font-size:0.78rem;color:#475569">{{ topic }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Security notice -->
+  <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:12px 16px;margin-top:16px;font-size:0.8rem;color:#92400e">
+    🔒 This video is protected. Screenshots are not permitted.
+    Watching as: <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+  </div>
+
+</div>
+
+<script>
+  const LOGOUT_URL = "{% url 'logout' %}";
+  let logoutTriggered = false;
+
+  function doLogout() {
+    if (logoutTriggered) return;
+    logoutTriggered = true;
+
+    // Show warning
+    const w = document.getElementById('screenshotWarning');
+    w.style.display = 'block';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+
+    // Logout after 2 seconds
+    setTimeout(function() {
+      window.location.href = LOGOUT_URL;
+    }, 2000);
+  }
+
+  // ── METHOD 1: keyup event (works for most keys) ──
+  document.addEventListener('keyup', function(e) {
+    // PrtSc / Print Screen
+    if (e.key === 'PrintScreen') { doLogout(); return; }
+    // Win + Shift + S (Snipping Tool)
+    if (e.shiftKey && e.metaKey && (e.key === 'S' || e.key === 's')) { doLogout(); return; }
+    // Mac: Cmd + Shift + 3/4/5
+    if (e.metaKey && e.shiftKey && ['3','4','5'].includes(e.key)) { doLogout(); return; }
+    // Ctrl + P (print)
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) { doLogout(); return; }
+  });
+
+  // ── METHOD 2: keydown event (catches PrtSc in some browsers) ──
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'PrintScreen') { doLogout(); return; }
+    // Block Ctrl+P
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
+      e.preventDefault();
+      doLogout();
+    }
+  });
+
+  // ── METHOD 3: clipboard change (PrtSc copies to clipboard) ──
+  // When PrtSc is pressed, Windows copies screenshot to clipboard
+  // We detect clipboard change as a fallback
+  document.addEventListener('copy', function(e) {
+    // Only trigger if user didn't select text (real screenshot)
+    const selectedText = window.getSelection().toString();
+    if (!selectedText || selectedText.length === 0) {
+      doLogout();
+    }
+  });
+
+  // ── METHOD 4: visibilitychange (Snipping Tool hides browser) ──
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      // Page became hidden — could be snipping tool or alt+tab
+      // We start a timer — if they come back within 3 sec it's ok
+      // If they stay away longer, might be screen capture tool
+      // We only logout on actual key detection, not this alone
+    }
+  });
+
+  // Block right click on whole page
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+  });
+</script>
+
+{% endblock %}

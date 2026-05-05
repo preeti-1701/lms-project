@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}Student Dashboard — LMS{% endblock %}
+{% block panel_label %}Student Portal{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-label">Learning</div>
+<a class="nav-item active" href="{% url 'student_dashboard' %}"><span class="nav-icon">🏠</span> Dashboard</a>
+<a class="nav-item" href="{% url 'student_courses' %}"><span class="nav-icon">📚</span> Browse Courses</a>
+<div class="nav-label">Account</div>
+<a class="nav-item" href="{% url 'profile' %}"><span class="nav-icon">👤</span> Profile</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Welcome, {{ request.user.first_name|default:request.user.username }}! 👋</h1>
+  <p>Browse and enroll in courses to start learning.</p>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat-icon blue">📚</div><div><div class="stat-val">{{ total_courses }}</div><div class="stat-lbl">Total Courses</div></div></div>
+  <div class="stat-card"><div class="stat-icon green">✅</div><div><div class="stat-val">{{ active_courses.count }}</div><div class="stat-lbl">Active Courses</div></div></div>
+  <div class="stat-card"><div class="stat-icon amber">🗓️</div><div><div class="stat-val">{{ upcoming_courses.count }}</div><div class="stat-lbl">Upcoming</div></div></div>
+  <div class="stat-card"><div class="stat-icon green">🎓</div><div><div class="stat-val">{{ enrolled_ids|length }}</div><div class="stat-lbl">My Enrollments</div></div></div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3>✅ Active Courses</h3>
+    <a href="{% url 'student_courses' %}" class="btn btn-primary btn-sm">Browse All →</a>
+  </div>
+  <div class="card-body">
+    <div class="courses-grid">
+      {% for course in active_courses %}
+      <div class="course-card">
+        <div class="course-card-top default">📘</div>
+        <div class="course-card-body">
+          <h4>{{ course.title }}</h4>
+          <p>{{ course.description|truncatechars:100 }}</p>
+          <div class="course-meta">
+            <span>⏱️ {{ course.duration|default:"—" }}</span>
+            <span>👥 {{ course.enrollments.count }} students</span>
+            {% if course.youtube_url %}<span>▶ Video available</span>{% endif %}
+          </div>
+        </div>
+        <div class="course-card-footer">
+          <span class="badge badge-active">active</span>
+          {% if course.id in enrolled_ids %}
+            {% if course.youtube_url %}
+              <a href="{% url 'student_watch' course.pk %}" class="btn btn-primary btn-sm">▶ Watch</a>
+            {% else %}
+              <span class="badge badge-active">✅ Enrolled</span>
+            {% endif %}
+          {% else %}
+            <a href="{% url 'student_enroll' course.pk %}" class="btn btn-primary btn-sm">Enroll Now</a>
+          {% endif %}
+        </div>
+      </div>
+      {% empty %}
+      <p class="text-muted">No active courses available.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% if upcoming_courses %}
+<div class="card">
+  <div class="card-header"><h3>🗓️ Upcoming Courses</h3></div>
+  <div class="card-body">
+    <div class="upcoming-list">
+      {% for c in upcoming_courses %}
+      <div class="upcoming-item">
+        <div class="upcoming-icon">📘</div>
+        <div class="upcoming-info">
+          <div class="u-title">{{ c.title }}{% if c.edition %} — {{ c.edition }}{% endif %}</div>
+          <div class="u-sub">{{ c.duration|default:"—" }}</div>
+        </div>
+        <span class="badge badge-upcoming">upcoming</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

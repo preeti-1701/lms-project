@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}My Courses — Trainer{% endblock %}
+{% block panel_label %}Trainer Panel{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-label">My Teaching</div>
+<a class="nav-item" href="{% url 'trainer_dashboard' %}"><span class="nav-icon">🏠</span> Dashboard</a>
+<a class="nav-item active" href="{% url 'trainer_courses' %}"><span class="nav-icon">📚</span> My Courses</a>
+<div class="nav-label">Account</div>
+<a class="nav-item" href="{% url 'profile' %}"><span class="nav-icon">👤</span> Profile</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+  <div><h1>My Courses</h1><p>Only your assigned courses shown here.</p></div>
+  <button class="btn btn-primary" onclick="document.getElementById('addModal').classList.remove('hidden')">+ Add New Course</button>
+</div>
+
+<div class="courses-grid">
+  {% for course in my_courses %}
+  <div class="course-card">
+    <div class="course-card-top default">📘</div>
+    <div class="course-card-body">
+      <h4>{{ course.title }}</h4>
+      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:4px">{{ course.edition }}</p>
+      <p>{{ course.description }}</p>
+      <div class="course-meta">
+        <span>⏱️ {{ course.duration|default:"—" }}</span>
+        <span>👥 {{ course.enrollments.count }} enrolled</span>
+        {% if course.youtube_url %}<span style="color:var(--blue)">▶ Video added</span>{% endif %}
+      </div>
+      {% if course.get_topics_list %}
+      <div style="margin-top:10px">
+        <div style="font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px">Topics</div>
+        <div class="topics-list">{% for t in course.get_topics_list %}<span class="topic-tag">{{ t }}</span>{% endfor %}</div>
+      </div>
+      {% endif %}
+    </div>
+    <div class="course-card-footer">
+      {% if course.status == 'active' %}<span class="badge badge-active">active</span>
+      {% else %}<span class="badge badge-upcoming">{{ course.status }}</span>{% endif %}
+      <span style="font-size:0.78rem;color:var(--muted)">{{ course.trainer.get_full_name|default:"—" }}</span>
+    </div>
+  </div>
+  {% empty %}
+  <div class="card" style="padding:32px;text-align:center;color:var(--muted);grid-column:1/-1">
+    <div style="font-size:3rem;margin-bottom:12px">📭</div>
+    <p>No courses yet. Click <strong>+ Add New Course</strong>!</p>
+  </div>
+  {% endfor %}
+</div>
+
+{% if my_courses %}
+<div class="card" style="margin-top:24px">
+  <div class="card-header"><h3>📋 Full Details Table</h3></div>
+  <table>
+    <thead>
+      <tr><th>ID</th><th>Title & Edition</th><th>Description</th><th>Topics</th><th>Duration</th><th>Video</th><th>Status</th><th>Students</th></tr>
+    </thead>
+    <tbody>
+      {% for c in my_courses %}
+      <tr>
+        <td>#{{ c.id }}</td>
+        <td><strong>{{ c.title }}</strong><br/><small class="text-muted">{{ c.edition }}</small></td>
+        <td style="max-width:180px;font-size:0.8rem;color:var(--muted)">{{ c.description|truncatechars:80 }}</td>
+        <td>{% for t in c.get_topics_list %}<span class="badge" style="background:#f1f5f9;color:#475569;margin:2px;font-size:0.68rem">{{ t }}</span>{% endfor %}</td>
+        <td>{{ c.duration|default:"—" }}</td>
+        <td>{% if c.youtube_url %}<span class="badge badge-active">▶ Yes</span>{% else %}<span class="badge badge-inactive">No</span>{% endif %}</td>
+        <td>{% if c.status == 'active' %}<span class="badge badge-active">active</span>
+            {% else %}<span class="badge badge-upcoming">{{ c.status }}</span>{% endif %}</td>
+        <td>{{ c.enrollments.count }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<!-- ADD MODAL -->
+<div class="modal-overlay hidden" id="addModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>➕ Add New Course</h3>
+      <button class="modal-close" onclick="document.getElementById('addModal').classList.add('hidden')">✕</button>
+    </div>
+    <form method="POST" action="{% url 'trainer_add_course' %}">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="form-group"><label>Title *</label><input type="text" name="title" required/></div>
+        <div class="form-group"><label>Edition</label><input type="text" name="edition" placeholder="e.g. Python Basics 2026 Edition"/></div>
+        <div class="form-group"><label>Description *</label><textarea name="description" required></textarea></div>
+        <div class="form-group"><label>Topics (comma separated)</label><input type="text" name="topics" placeholder="Variables, Functions, OOP"/></div>
+        <div class="form-group"><label>Duration</label><input type="text" name="duration" placeholder="e.g. 8 Weeks"/></div>
+        <div class="form-group">
+          <label>YouTube Video URL</label>
+          <input type="url" name="youtube_url" placeholder="https://www.youtube.com/watch?v=xxxxxxxx"/>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select name="status">
+            <option value="active">Active</option>
+            <option value="upcoming">Upcoming</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('addModal').classList.add('hidden')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Course</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

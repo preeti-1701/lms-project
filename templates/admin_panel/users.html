@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Users — Admin{% endblock %}
+{% block panel_label %}Admin Panel{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-label">Main</div>
+<a class="nav-item" href="{% url 'admin_dashboard' %}"><span class="nav-icon">🏠</span> Dashboard</a>
+<a class="nav-item" href="{% url 'admin_courses' %}"><span class="nav-icon">📚</span> All Courses</a>
+<a class="nav-item active" href="{% url 'admin_users' %}"><span class="nav-icon">👥</span> Users</a>
+<div class="nav-label">Account</div>
+<a class="nav-item" href="{% url 'profile' %}"><span class="nav-icon">👤</span> Profile</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>All Users</h1><p>Manage admins, students, and trainers.</p></div>
+
+<div class="card">
+  <table>
+    <thead><tr><th>ID</th><th>Name</th><th>Username</th><th>Role</th><th>Courses</th></tr></thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td>#{{ u.id }}</td>
+        <td><strong>{{ u.get_full_name|default:u.username }}</strong></td>
+        <td><code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:0.8rem">{{ u.username }}</code></td>
+        <td>
+          {% if u.profile.role == 'admin' %}<span class="badge badge-admin">admin</span>
+          {% elif u.profile.role == 'student' %}<span class="badge badge-student">student</span>
+          {% else %}<span class="badge badge-trainer">trainer</span>{% endif %}
+        </td>
+        <td>
+          {% if u.profile.role == 'admin' %}<em class="text-muted">All courses</em>
+          {% elif u.profile.role == 'trainer' %}
+            {% for c in courses %}{% if c.trainer == u %}<span class="badge" style="background:#fef3c7;color:#92400e;margin:2px">{{ c.title }}</span>{% endif %}{% endfor %}
+          {% elif u.profile.role == 'student' %}
+            {% for e in u.enrollments.all %}<span class="badge" style="background:#eff6ff;color:#1e40af;margin:2px">{{ e.course.title }}</span>{% endfor %}
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-header"><h3>🎓 Trainer Assignments</h3></div>
+  <div class="card-body">
+    {% for t in trainers %}
+    <div style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div class="user-avatar" style="background:linear-gradient(135deg,#f59e0b,#d97706);width:36px;height:36px;font-size:0.85rem">{{ t.first_name|first|upper }}</div>
+        <strong>{{ t.get_full_name|default:t.username }}</strong>
+        <span class="badge badge-trainer">trainer</span>
+      </div>
+      <div style="padding-left:48px">
+        {% for c in courses %}{% if c.trainer == t %}
+        <div class="upcoming-item" style="margin-bottom:8px;padding:10px 14px">
+          <span style="font-size:1.2rem">📘</span>
+          <div>
+            <div style="font-weight:600;font-size:0.875rem">{{ c.title }}</div>
+            <div class="text-muted" style="font-size:0.78rem">{{ c.duration|default:"—" }} · {% if c.youtube_url %}▶ Video added{% else %}No video{% endif %}</div>
+          </div>
+          {% if c.status == 'active' %}<span class="badge badge-active">active</span>
+          {% else %}<span class="badge badge-upcoming">{{ c.status }}</span>{% endif %}
+        </div>
+        {% endif %}{% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

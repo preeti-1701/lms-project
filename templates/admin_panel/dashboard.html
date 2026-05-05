@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard — LMS{% endblock %}
+{% block panel_label %}Admin Panel{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-label">Main</div>
+<a class="nav-item active" href="{% url 'admin_dashboard' %}"><span class="nav-icon">🏠</span> Dashboard</a>
+<a class="nav-item" href="{% url 'admin_courses' %}"><span class="nav-icon">📚</span> All Courses</a>
+<a class="nav-item" href="{% url 'admin_users' %}"><span class="nav-icon">👥</span> Users</a>
+<div class="nav-label">Account</div>
+<a class="nav-item" href="{% url 'profile' %}"><span class="nav-icon">👤</span> Profile</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Admin Dashboard</h1>
+  <p>Full overview of the LearnHub LMS system.</p>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat-icon blue">📚</div><div><div class="stat-val">{{ total_courses }}</div><div class="stat-lbl">Total Courses</div></div></div>
+  <div class="stat-card"><div class="stat-icon green">✅</div><div><div class="stat-val">{{ active_courses }}</div><div class="stat-lbl">Active Courses</div></div></div>
+  <div class="stat-card"><div class="stat-icon amber">🗓️</div><div><div class="stat-val">{{ upcoming_courses.count }}</div><div class="stat-lbl">Upcoming</div></div></div>
+  <div class="stat-card"><div class="stat-icon blue">👥</div><div><div class="stat-val">{{ total_enrolled }}</div><div class="stat-lbl">Enrollments</div></div></div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3>📚 All Courses</h3>
+    <a href="{% url 'admin_courses' %}" class="btn btn-primary btn-sm">Manage Courses →</a>
+  </div>
+  <table>
+    <thead><tr><th>ID</th><th>Title</th><th>Description</th><th>Trainer</th><th>Duration</th><th>Video</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for course in courses %}
+      <tr>
+        <td>#{{ course.id }}</td>
+        <td><strong>{{ course.title }}</strong><br/><small class="text-muted">{{ course.edition }}</small></td>
+        <td style="max-width:200px;font-size:0.82rem;color:var(--muted)">{{ course.description|truncatechars:70 }}</td>
+        <td>{{ course.trainer.get_full_name|default:"—" }}</td>
+        <td>{{ course.duration|default:"—" }}</td>
+        <td>{% if course.youtube_url %}<span class="badge badge-active">▶ Yes</span>{% else %}<span class="badge badge-inactive">No</span>{% endif %}</td>
+        <td>
+          {% if course.status == 'active' %}<span class="badge badge-active">active</span>
+          {% elif course.status == 'upcoming' %}<span class="badge badge-upcoming">upcoming</span>
+          {% else %}<span class="badge badge-inactive">inactive</span>{% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="text-center text-muted" style="padding:24px">No courses yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if upcoming_courses %}
+<div class="card">
+  <div class="card-header"><h3>🗓️ Upcoming Courses</h3></div>
+  <div class="card-body">
+    <div class="upcoming-list">
+      {% for c in upcoming_courses %}
+      <div class="upcoming-item">
+        <div class="upcoming-icon">📘</div>
+        <div class="upcoming-info">
+          <div class="u-title">{{ c.title }}{% if c.edition %} — {{ c.edition }}{% endif %}</div>
+          <div class="u-sub">Trainer: {{ c.trainer.get_full_name|default:"—" }} · {{ c.duration|default:"—" }}</div>
+        </div>
+        <span class="badge badge-upcoming">upcoming</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

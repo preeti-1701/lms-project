@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Edit Course — Admin{% endblock %}
+{% block panel_label %}Admin Panel{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-label">Main</div>
+<a class="nav-item" href="{% url 'admin_dashboard' %}"><span class="nav-icon">🏠</span> Dashboard</a>
+<a class="nav-item active" href="{% url 'admin_courses' %}"><span class="nav-icon">📚</span> All Courses</a>
+<a class="nav-item" href="{% url 'admin_users' %}"><span class="nav-icon">👥</span> Users</a>
+<div class="nav-label">Account</div>
+<a class="nav-item" href="{% url 'profile' %}"><span class="nav-icon">👤</span> Profile</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Edit Course</h1>
+  <p>Update details for <strong>{{ course.title }}</strong></p>
+</div>
+
+<div class="card" style="max-width:620px">
+  <form method="POST">
+    {% csrf_token %}
+    <div class="card-body">
+      <div class="form-group"><label>Title *</label><input type="text" name="title" value="{{ course.title }}" required/></div>
+      <div class="form-group"><label>Edition</label><input type="text" name="edition" value="{{ course.edition }}"/></div>
+      <div class="form-group"><label>Description *</label><textarea name="description" required>{{ course.description }}</textarea></div>
+      <div class="form-group"><label>Topics (comma separated)</label><input type="text" name="topics" value="{{ course.topics }}"/></div>
+      <div class="form-group"><label>Duration</label><input type="text" name="duration" value="{{ course.duration }}"/></div>
+      <div class="form-group">
+        <label>Trainer</label>
+        <select name="trainer">
+          <option value="">— None —</option>
+          {% for t in trainers %}
+          <option value="{{ t.id }}" {% if course.trainer == t %}selected{% endif %}>{{ t.get_full_name|default:t.username }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>YouTube Video URL</label>
+        <input type="url" name="youtube_url" value="{{ course.youtube_url }}" placeholder="https://www.youtube.com/watch?v=xxxxxxxx"/>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select name="status">
+          <option value="active"   {% if course.status == 'active' %}selected{% endif %}>Active</option>
+          <option value="upcoming" {% if course.status == 'upcoming' %}selected{% endif %}>Upcoming</option>
+          <option value="inactive" {% if course.status == 'inactive' %}selected{% endif %}>Inactive</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a href="{% url 'admin_courses' %}" class="btn btn-outline">Cancel</a>
+      <button type="submit" class="btn btn-primary">Update Course</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

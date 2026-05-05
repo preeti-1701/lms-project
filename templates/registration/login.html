@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login — LearnHub LMS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,#0d1b2a 0%,#1a3a5c 50%,#0d2137 100%);min-height:100vh;display:flex;align-items:center;justify-content:center}
+    .login-container{width:100%;max-width:440px;padding:24px}
+    .login-brand{text-align:center;margin-bottom:32px}
+    .brand-icon{font-size:52px;margin-bottom:14px}
+    .login-brand h1{font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;color:#fff;letter-spacing:-1px}
+    .login-brand h1 span{color:#06b6d4}
+    .login-brand p{color:rgba(255,255,255,0.5);font-size:0.875rem;margin-top:6px}
+    .login-card{background:#fff;border-radius:16px;padding:36px 32px;box-shadow:0 8px 40px rgba(0,0,0,0.25)}
+    .login-card h2{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:700;color:#0f172a;margin-bottom:4px}
+    .login-sub{color:#64748b;font-size:0.875rem;margin-bottom:28px}
+    .form-group{margin-bottom:20px}
+    .form-group label{display:block;font-size:0.78rem;font-weight:600;color:#64748b;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
+    .form-group input,.form-group select{width:100%;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:0.95rem;font-family:'DM Sans',sans-serif;color:#0f172a;background:#f8fafc;outline:none;transition:border-color 0.2s,box-shadow 0.2s}
+    .form-group input:focus,.form-group select:focus{border-color:#1a73e8;box-shadow:0 0 0 3px rgba(26,115,232,0.12)}
+    .btn-login{width:100%;padding:14px;background:linear-gradient(135deg,#1a73e8,#2563eb);color:#fff;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;margin-top:4px}
+    .btn-login:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,115,232,0.35)}
+    .error-msg{background:#fef2f2;border:1px solid #fca5a5;color:#ef4444;padding:10px 14px;border-radius:8px;font-size:0.875rem;margin-bottom:16px}
+  </style>
+</head>
+<body>
+<div class="login-container">
+  <div class="login-brand">
+    <div class="brand-icon">📚</div>
+    <h1>LearnHub <span>LMS</span></h1>
+    <p>Learning Management System</p>
+  </div>
+  <div class="login-card">
+    <h2>Welcome Back</h2>
+    <p class="login-sub">Sign in to continue to your dashboard</p>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="error-msg">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="POST">
+      {% csrf_token %}
+      <div class="form-group">
+        <label>Role</label>
+        <select name="role" required>
+          <option value="">— Select Role —</option>
+          <option value="admin">Admin</option>
+          <option value="student">Student</option>
+          <option value="trainer">Trainer</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" name="username" placeholder="Enter your username" required/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Enter your password" required/>
+      </div>
+      <button type="submit" class="btn-login">Sign In →</button>
+    </form>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %}Manage Courses — Admin{% endblock %}
+{% block panel_label %}Admin Panel{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-label">Main</div>
+<a class="nav-item" href="{% url 'admin_dashboard' %}"><span class="nav-icon">🏠</span> Dashboard</a>
+<a class="nav-item active" href="{% url 'admin_courses' %}"><span class="nav-icon">📚</span> All Courses</a>
+<a class="nav-item" href="{% url 'admin_users' %}"><span class="nav-icon">👥</span> Users</a>
+<div class="nav-label">Account</div>
+<a class="nav-item" href="{% url 'profile' %}"><span class="nav-icon">👤</span> Profile</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+  <div><h1>All Courses</h1><p>Add, edit or delete any course including video links.</p></div>
+  <button class="btn btn-primary" onclick="document.getElementById('addModal').classList.remove('hidden')">+ Add Course</button>
+</div>
+
+<form method="GET" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">
+  <input class="search-bar" name="q" value="{{ q }}" placeholder="🔍 Search courses…"/>
+  <select class="search-bar" name="status" style="min-width:140px">
+    <option value="">All Status</option>
+    <option value="active"   {% if status == 'active' %}selected{% endif %}>Active</option>
+    <option value="upcoming" {% if status == 'upcoming' %}selected{% endif %}>Upcoming</option>
+    <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive</option>
+  </select>
+  <button type="submit" class="btn btn-outline">Filter</button>
+</form>
+
+<div class="card">
+  <table>
+    <thead>
+      <tr><th>ID</th><th>Title & Edition</th><th>Description</th><th>Topics</th><th>Duration</th><th>Trainer</th><th>Video</th><th>Status</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for course in courses %}
+      <tr>
+        <td>#{{ course.id }}</td>
+        <td><strong>{{ course.title }}</strong><br/><small class="text-muted">{{ course.edition }}</small></td>
+        <td style="max-width:150px;font-size:0.8rem;color:var(--muted)">{{ course.description|truncatechars:60 }}</td>
+        <td style="max-width:150px">{% for topic in course.get_topics_list %}<span class="badge" style="background:#f1f5f9;color:#475569;margin:2px;font-size:0.68rem">{{ topic }}</span>{% endfor %}</td>
+        <td>{{ course.duration|default:"—" }}</td>
+        <td>{{ course.trainer.get_full_name|default:"—" }}</td>
+        <td>{% if course.youtube_url %}<span class="badge badge-active">▶ Yes</span>{% else %}<span class="badge badge-inactive">No</span>{% endif %}</td>
+        <td>
+          {% if course.status == 'active' %}<span class="badge badge-active">active</span>
+          {% elif course.status == 'upcoming' %}<span class="badge badge-upcoming">upcoming</span>
+          {% else %}<span class="badge badge-inactive">inactive</span>{% endif %}
+        </td>
+        <td style="white-space:nowrap">
+          <a href="{% url 'admin_edit_course' course.pk %}" class="btn btn-outline btn-sm">✏️ Edit</a>
+          <form method="POST" action="{% url 'admin_delete_course' course.pk %}" style="display:inline" onsubmit="return confirm('Delete {{ course.title }}?')">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="9" class="text-center text-muted" style="padding:24px">No courses found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if upcoming %}
+<div class="card">
+  <div class="card-header"><h3>🗓️ Upcoming Courses</h3></div>
+  <div class="card-body">
+    <div class="upcoming-list">
+      {% for c in upcoming %}
+      <div class="upcoming-item">
+        <div class="upcoming-icon">📘</div>
+        <div class="upcoming-info">
+          <div class="u-title">{{ c.title }}{% if c.edition %} — {{ c.edition }}{% endif %}</div>
+          <div class="u-sub">Trainer: {{ c.trainer.get_full_name|default:"—" }} · {{ c.duration|default:"—" }}</div>
+        </div>
+        <span class="badge badge-upcoming">upcoming</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- ADD MODAL -->
+<div class="modal-overlay hidden" id="addModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>➕ Add New Course</h3>
+      <button class="modal-close" onclick="document.getElementById('addModal').classList.add('hidden')">✕</button>
+    </div>
+    <form method="POST" action="{% url 'admin_add_course' %}">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="form-group"><label>Title *</label><input type="text" name="title" required/></div>
+        <div class="form-group"><label>Edition</label><input type="text" name="edition" placeholder="e.g. Python Basics 2026 Edition"/></div>
+        <div class="form-group"><label>Description *</label><textarea name="description" required></textarea></div>
+        <div class="form-group"><label>Topics (comma separated)</label><input type="text" name="topics" placeholder="Variables, Functions, OOP, File Handling"/></div>
+        <div class="form-group"><label>Duration</label><input type="text" name="duration" placeholder="e.g. 8 Weeks"/></div>
+        <div class="form-group">
+          <label>Trainer</label>
+          <select name="trainer">
+            <option value="">— Select Trainer —</option>
+            {% for t in trainers %}<option value="{{ t.id }}">{{ t.get_full_name|default:t.username }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>YouTube Video URL</label>
+          <input type="url" name="youtube_url" placeholder="https://www.youtube.com/watch?v=xxxxxxxx"/>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select name="status">
+            <option value="active">Active</option>
+            <option value="upcoming">Upcoming</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('addModal').classList.add('hidden')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Course</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

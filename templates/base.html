@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}LearnHub LMS{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+  <style>
+    /* Fallback inline styles in case static not loaded */
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--navy:#0d1b2a;--blue:#1a73e8;--blue2:#2563eb;--cyan:#06b6d4;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--muted:#64748b;--border:#e2e8f0;--bg:#f8fafc;--white:#ffffff;--card:#ffffff;--text:#0f172a;--text2:#475569;--radius:14px;--shadow:0 4px 24px rgba(0,0,0,0.08);--shadow2:0 8px 40px rgba(0,0,0,0.12)}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    .app-layout{display:flex;min-height:100vh}
+    .sidebar{width:250px;flex-shrink:0;background:var(--navy);display:flex;flex-direction:column;padding:0 0 24px 0;position:fixed;top:0;left:0;height:100vh;z-index:100;overflow-y:auto}
+    .sidebar-brand{padding:24px 20px;border-bottom:1px solid rgba(255,255,255,0.07)}
+    .sidebar-brand h2{font-family:'Syne',sans-serif;font-size:1.25rem;font-weight:800;color:#fff;letter-spacing:-0.5px}
+    .sidebar-brand h2 span{color:var(--cyan)}
+    .sidebar-brand p{color:rgba(255,255,255,0.4);font-size:0.75rem;margin-top:2px}
+    .sidebar-user{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:12px}
+    .user-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--cyan));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;color:#fff;font-size:0.9rem;flex-shrink:0}
+    .user-info .u-name{color:#fff;font-size:0.875rem;font-weight:500}
+    .user-info .u-role{font-size:0.7rem;color:rgba(255,255,255,0.4);text-transform:capitalize}
+    .sidebar-nav{padding:16px 12px;flex:1}
+    .nav-label{font-size:0.65rem;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;padding:0 8px;margin:12px 0 6px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:rgba(255,255,255,0.6);font-size:0.875rem;cursor:pointer;transition:all 0.2s;margin-bottom:2px;text-decoration:none}
+    .nav-item:hover{background:rgba(255,255,255,0.07);color:#fff}
+    .nav-item.active{background:linear-gradient(135deg,var(--blue),#1558c0);color:#fff}
+    .nav-item .nav-icon{font-size:1rem;width:20px;text-align:center}
+    .sidebar-bottom{padding:0 12px}
+    .btn-logout{width:100%;padding:10px 12px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.2);color:#f87171;border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.875rem;transition:all 0.2s;text-align:left;display:flex;align-items:center;gap:8px;text-decoration:none}
+    .btn-logout:hover{background:rgba(239,68,68,0.2);color:#fca5a5}
+    .main-content{margin-left:250px;flex:1;min-height:100vh;padding:32px;background:var(--bg)}
+    .page-header{margin-bottom:28px}
+    .page-header h1{font-family:'Syne',sans-serif;font-size:1.75rem;font-weight:800;color:var(--text);letter-spacing:-0.5px}
+    .page-header p{color:var(--muted);font-size:0.9rem;margin-top:4px}
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;margin-bottom:28px}
+    .stat-card{background:var(--card);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow);border:1px solid var(--border);display:flex;align-items:center;gap:16px;transition:transform 0.2s,box-shadow 0.2s}
+    .stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow2)}
+    .stat-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+    .stat-icon.blue{background:#eff6ff}.stat-icon.green{background:#f0fdf4}.stat-icon.amber{background:#fffbeb}.stat-icon.red{background:#fef2f2}
+    .stat-val{font-family:'Syne',sans-serif;font-size:1.75rem;font-weight:800;color:var(--text);line-height:1}
+    .stat-lbl{color:var(--muted);font-size:0.8rem;margin-top:3px}
+    .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;margin-bottom:24px}
+    .card-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .card-header h3{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700}
+    .card-body{padding:24px}
+    table{width:100%;border-collapse:collapse}
+    thead th{text-align:left;font-size:0.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--border)}
+    tbody tr{transition:background 0.15s}
+    tbody tr:hover{background:#f8fafc}
+    tbody td{padding:14px 16px;font-size:0.875rem;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+    tbody tr:last-child td{border-bottom:none}
+    .badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:0.72rem;font-weight:600}
+    .badge-active{background:#d1fae5;color:#065f46}.badge-inactive{background:#fee2e2;color:#991b1b}.badge-upcoming{background:#dbeafe;color:#1e40af}
+    .badge-admin{background:#ede9fe;color:#5b21b6}.badge-student{background:#e0f2fe;color:#075985}.badge-trainer{background:#fef3c7;color:#92400e}
+    .btn{padding:9px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.875rem;font-weight:500;cursor:pointer;border:none;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+    .btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue2)}
+    .btn-danger{background:var(--red);color:#fff}
+    .btn-sm{padding:5px 12px;font-size:0.78rem}
+    .btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text2)}.btn-outline:hover{border-color:var(--blue);color:var(--blue)}
+    .courses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+    .course-card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;transition:transform 0.2s,box-shadow 0.2s}
+    .course-card:hover{transform:translateY(-3px);box-shadow:var(--shadow2)}
+    .course-card-top{height:100px;display:flex;align-items:center;justify-content:center;font-size:2.5rem}
+    .course-card-top.default{background:linear-gradient(135deg,#1a73e8,#0d47a1)}
+    .course-card-top.python{background:linear-gradient(135deg,#3572A5,#1a4f8c)}
+    .course-card-top.java{background:linear-gradient(135deg,#b07219,#7a4e10)}
+    .course-card-body{padding:18px 20px}
+    .course-card-body h4{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:var(--text);margin-bottom:6px}
+    .course-card-body p{font-size:0.82rem;color:var(--muted);line-height:1.5;margin-bottom:12px}
+    .course-meta{display:flex;flex-wrap:wrap;gap:10px;font-size:0.78rem;color:var(--text2);margin-bottom:14px}
+    .course-card-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px}
+    .modal{background:var(--white);border-radius:var(--radius);width:100%;max-width:520px;box-shadow:var(--shadow2);max-height:90vh;overflow-y:auto}
+    .modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .modal-header h3{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700}
+    .modal-close{width:32px;height:32px;border-radius:8px;background:var(--bg);border:1px solid var(--border);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all 0.2s}
+    .modal-close:hover{background:#fee2e2;color:var(--red)}
+    .modal-body{padding:24px}
+    .modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+    .form-group{margin-bottom:16px}
+    .form-group label{display:block;font-size:0.8rem;font-weight:500;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
+    .form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color 0.2s;background:#fff}
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--blue)}
+    .form-group textarea{resize:vertical;min-height:80px}
+    .topics-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .topic-tag{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:0.78rem;color:var(--text2)}
+    .upcoming-list{display:flex;flex-direction:column;gap:12px}
+    .upcoming-item{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #bae6fd;border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:14px}
+    .upcoming-icon{font-size:1.5rem}
+    .upcoming-info .u-title{font-weight:600;color:var(--text);font-size:0.9rem}
+    .upcoming-info .u-sub{font-size:0.78rem;color:var(--muted);margin-top:2px}
+    .profile-card{background:linear-gradient(135deg,var(--navy),#1a3a5c);border-radius:var(--radius);padding:32px;color:#fff;margin-bottom:24px;display:flex;align-items:center;gap:24px}
+    .profile-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--cyan));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:1.75rem;font-weight:700;flex-shrink:0}
+    .profile-name{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800}
+    .profile-role{color:rgba(255,255,255,0.5);margin-top:4px;font-size:0.875rem}
+    .search-bar{padding:9px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.875rem;outline:none;transition:border-color 0.2s;min-width:200px;background:#fff}
+    .search-bar:focus{border-color:var(--blue)}
+    .alert{padding:12px 16px;border-radius:10px;margin-bottom:16px;font-size:0.875rem}
+    .alert-error,.alert-danger{background:#fef2f2;color:var(--red);border:1px solid #fca5a5}
+    .alert-success{background:#f0fdf4;color:#065f46;border:1px solid #a7f3d0}
+    .hidden{display:none!important}
+    .fade-in{animation:fadeUp 0.4s ease}
+    .text-muted{color:var(--muted)}
+    .text-center{text-align:center}
+    .video-wrapper{position:relative;width:100%;padding-top:56.25%;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow2);background:#000}
+    .video-wrapper iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none}
+    .video-watermark{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:10;opacity:0.18}
+    .video-watermark span{font-family:'Syne',sans-serif;font-size:clamp(1rem,3vw,2rem);font-weight:800;color:#fff;transform:rotate(-30deg);white-space:nowrap;letter-spacing:2px}
+    .course-info-bar{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-top:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+    .watch-container{max-width:960px}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <h2>Learn<span>Hub</span></h2>
+      <p>{% block panel_label %}LMS{% endblock %}</p>
+    </div>
+    <div class="sidebar-user">
+      <div class="user-avatar">
+        {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+      </div>
+      <div class="user-info">
+        <div class="u-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+        <div class="u-role">{{ request.user.profile.role }}</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">{% block sidebar_nav %}{% endblock %}</nav>
+    <div class="sidebar-bottom">
+      <a href="{% url 'logout' %}" class="btn-logout">🚪 Logout</a>
+    </div>
+  </aside>
+  <main class="main-content fade-in">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% else %}alert-error{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+</body>
+</html>
