@@ -1,0 +1,29 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+
+<a class="back" href="{% url 'manage_users' %}">← Back to users</a>
+
+<div class="page-head">
+  <div>
+    <h1>{{ title }}</h1>
+    <p class="muted">Create or update user details</p>
+  </div>
+</div>
+
+<div class="card">
+
+  <form method="post" class="form">
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <button class="btn primary" type="submit">
+      Save User
+    </button>
+  </form>
+
+</div>
+
+{% endblock %}

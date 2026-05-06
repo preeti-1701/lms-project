@@ -1,0 +1,36 @@
+{% extends 'core/base.html' %}
+{% block title %}Student Progress{% endblock %}
+
+{% block content %}
+
+<h1>Student Progress</h1>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Student</th>
+      <th>Course</th>
+      <th>Video</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for p in data %}
+    <tr>
+      <td>{{ p.student.username }}</td>
+      <td>{{ p.video.course.title }}</td>
+      <td>{{ p.video.title }}</td>
+      <td>
+        {% if p.watched %}
+          ✔ Watched
+        {% else %}
+          ❌ Not Watched
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

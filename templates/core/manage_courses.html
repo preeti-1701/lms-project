@@ -1,0 +1,75 @@
+{% extends 'core/base.html' %}
+{% block title %}Manage Courses{% endblock %}
+
+{% block content %}
+
+<div class="page-head">
+  <div>
+    <h1>Manage Courses</h1>
+    <p class="muted">Create, edit, and manage all courses</p>
+  </div>
+
+  <!-- Only Admin can see this -->
+  {% if user.is_admin or user.is_superuser %}
+    <a class="btn primary" href="{% url 'manage_course_create' %}">
+      + New Course
+    </a>
+  {% endif %}
+</div>
+
+<div class="card">
+
+  {% if courses %}
+  <table class="table">
+
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Created By</th>
+        <th>Videos</th>
+        <th>Created</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for c in courses %}
+      <tr>
+        <td><strong>{{ c.title }}</strong></td>
+        <td>{{ c.created_by.username }}</td>
+        <td>{{ c.video_count }}</td>
+        <td>{{ c.created_at|date:"Y-m-d" }}</td>
+
+        <td>
+          <!-- Edit button -->
+          <a class="btn small" href="{% url 'manage_course_detail' c.id %}">
+            Edit
+          </a>
+
+          <!-- 🔥 Delete button (ONLY ADMIN) -->
+          {% if user.is_admin or user.is_superuser %}
+          <form method="post" 
+                action="{% url 'delete_course' c.id %}" 
+                style="display:inline"
+                onsubmit="return confirm('Are you sure you want to delete this course?');">
+            {% csrf_token %}
+            <button class="btn small danger">Delete</button>
+          </form>
+          {% endif %}
+        </td>
+
+      </tr>
+      {% endfor %}
+    </tbody>
+
+  </table>
+
+  {% else %}
+    <div class="empty">
+      No courses found. Start by creating your first course.
+    </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}

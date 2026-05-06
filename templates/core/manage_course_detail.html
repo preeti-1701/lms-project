@@ -1,0 +1,72 @@
+{% extends 'core/base.html' %}
+{% block title %}Manage {{ course.title }}{% endblock %}
+
+{% block content %}
+
+<a class="back" href="{% url 'manage_courses' %}">← Back to manage courses</a>
+
+<div class="page-head">
+  <div>
+    <h1>Manage: {{ course.title }}</h1>
+    <p class="muted">Edit course details and manage videos</p>
+  </div>
+</div>
+
+<!-- ✏️ EDIT COURSE -->
+{% if user.is_admin or user.is_superuser %}
+<div class="card">
+  <h3>Edit Course</h3>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ cform.as_p }}
+
+    <button type="submit" class="btn primary">
+      Update Course
+    </button>
+  </form>
+</div>
+{% endif %}
+
+<!-- ➕ ADD VIDEO -->
+<div class="card">
+  <h3>Add Video</h3>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ vform.as_p }}
+
+    <button type="submit" name="add_video" class="btn primary">
+      Add Video
+    </button>
+  </form>
+</div>
+
+<!-- 📹 VIDEO LIST -->
+<div class="card">
+  <h3>Videos</h3>
+
+  {% if course.videos.all %}
+    <ul class="list">
+
+      {% for v in course.videos.all %}
+      <li class="list-item">
+        <div>
+          <strong>{{ v.title }}</strong>
+          <div class="muted small">Position: {{ v.position }}</div>
+        </div>
+
+        <form method="post" action="{% url 'manage_video_delete' v.id %}">
+          {% csrf_token %}
+          <button class="btn danger">Delete</button>
+        </form>
+      </li>
+      {% endfor %}
+
+    </ul>
+  {% else %}
+    <div class="empty">No videos added yet.</div>
+  {% endif %}
+</div>
+
+{% endblock %}

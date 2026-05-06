@@ -1,0 +1,67 @@
+{% extends 'core/base.html' %}
+{% block title %}Register{% endblock %}
+
+{% block content %}
+
+<div class="login-wrap">
+  <div class="login-card">
+
+    <h1 class="login-title">REGISTER</h1>
+    <p class="login-sub">Create your account</p>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="msg msg-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" class="login-form">
+      {% csrf_token %}
+
+      <label>Username</label>
+      <input type="text" name="username" required>
+
+      <label>Email</label>
+      <input type="email" name="email" required>
+
+      <label>Password</label>
+      <input type="password" name="password" required>
+
+      <label>Role</label>
+      <select name="role" id="roleSelect">
+        <option value="student">Student</option>
+        <option value="trainer">Trainer</option>
+      </select>
+
+      <div id="trainerBox" style="display:none;">
+        <label>Trainer Code</label>
+        <input type="text" name="trainer_code">
+      </div>
+
+      <button class="btn primary block" type="submit">
+        Register
+      </button>
+    </form>
+
+    <p class="login-help">
+      Already have an account?
+      <a href="{% url 'login' %}">Login</a>
+    </p>
+
+  </div>
+</div>
+
+<script>
+  const roleSelect = document.getElementById("roleSelect");
+  const trainerBox = document.getElementById("trainerBox");
+
+  roleSelect.addEventListener("change", function() {
+    if (this.value === "trainer") {
+      trainerBox.style.display = "block";
+    } else {
+      trainerBox.style.display = "none";
+    }
+  });
+</script>
+
+{% endblock %}

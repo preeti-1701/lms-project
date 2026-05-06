@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · LearnHub{% endblock %}
+{% block content %}
+<h1>Welcome, {{ user.profile.full_name|default:user.email }}</h1>
+<p class="muted">Roles: {% for r in roles %}<span class="chip">{{ r }}</span>{% empty %}<span class="chip">none</span>{% endfor %}</p>
+
+<div class="grid-3">
+  <a class="card" href="{% url 'my_courses' %}">
+    <h3>My courses</h3>
+    <p class="big">{{ assigned_count }}</p>
+    <p class="muted">Open your assigned courses</p>
+  </a>
+  {% if is_staff_user %}
+  <a class="card" href="{% url 'manage_courses' %}">
+    <h3>All courses</h3>
+    <p class="big">{{ course_count }}</p>
+    <p class="muted">Manage courses & videos</p>
+  </a>
+  {% endif %}
+  {% if is_admin_user %}
+  <a class="card" href="{% url 'manage_users' %}">
+    <h3>Users</h3>
+    <p class="big">{{ user_count }}</p>
+    <p class="muted">Manage users & roles</p>
+  </a>
+  {% endif %}
+</div>
+{% endblock %}

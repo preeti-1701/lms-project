@@ -1,0 +1,38 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ course.title }}{% endblock %}
+
+{% block content %}
+
+<a class="back" href="{% url 'course_list' %}">← Back to courses</a>
+
+<div class="page-head">
+  <div>
+    <h1>{{ course.title }}</h1>
+    <p class="muted">{{ course.description }}</p>
+  </div>
+</div>
+
+{% if videos %}
+
+  {% for v in videos %}
+  <div class="card">
+
+    <h3>{{ v.title }}</h3>
+
+    <a href="{{ v.youtube_url }}" 
+       target="_blank" 
+       rel="noopener noreferrer"
+       class="btn primary">
+      ▶ Watch on YouTube
+    </a>
+
+  </div>
+  {% endfor %}
+
+{% else %}
+
+  <div class="empty">No videos in this course yet.</div>
+
+{% endif %}
+
+{% endblock %}

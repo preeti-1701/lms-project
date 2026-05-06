@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>{% block title %}LMS{% endblock %} | Learning Management System</title>
+
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+
+{% if user.is_authenticated %}
+  <aside class="sidebar">
+    <div class="brand">📚 LMS</div>
+
+    <nav>
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <a href="{% url 'course_list' %}">Courses</a>
+
+      {% if user.is_admin or user.is_trainer or user.is_superuser %}
+        <a href="{% url 'manage_courses' %}">Manage Courses</a>
+      {% endif %}
+
+      {% if user.is_admin or user.is_superuser %}
+        <a href="{% url 'manage_users' %}">Manage Users</a>
+      {% endif %}
+      {% if user.is_admin or user.is_superuser %}
+  <a href="{% url 'manage_enrollments' %}">Enroll Requests</a>
+{% endif %}
+
+{% if user.is_trainer %}
+  <a href="{% url 'trainer_progress' %}">Student Progress</a>
+{% endif %}
+    </nav>
+
+    <div class="user-box">
+      <div class="user-name">{{ user.username }}</div>
+      <div class="user-role">{{ user.get_role_display }}</div>
+      <a class="logout" href="{% url 'logout' %}">Sign out</a>
+    </div>
+  </aside>
+
+  <main class="content">
+{% else %}
+  <main class="content full">
+{% endif %}
+
+  {% if messages %}
+    <div class="messages">
+      {% for m in messages %}
+        <div class="msg msg-{{ m.tags }}">{{ m }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% block content %}{% endblock %}
+
+</main>
+
+<!--  Add your JS (important for SRS security) -->
+<script src="{% static 'js/secure.js' %}"></script>
+
+</body>
+</html>

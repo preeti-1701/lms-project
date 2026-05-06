@@ -1,0 +1,79 @@
+{% extends 'core/base.html' %}
+{% block title %}Courses{% endblock %}
+
+{% block content %}
+
+<div class="page-head">
+  <div>
+    <h1>{% if user.is_student %}My Courses{% else %}All Courses{% endif %}</h1>
+    <p class="muted">
+      {% if user.is_student %}
+        Courses assigned to you
+      {% else %}
+        Browse and manage all available courses
+      {% endif %}
+    </p>
+  </div>
+
+  {% if user.is_admin or user.is_superuser %}
+    <a class="btn primary" href="{% url 'manage_course_create' %}">
+      + New Course
+    </a>
+  {% endif %}
+</div>
+
+{% if courses %}
+<div class="grid">
+
+  {% for c in courses %}
+  <div class="card">
+
+    <!-- Clickable content -->
+    <div onclick="window.location.href='{% url 'course_detail' c.id %}'" style="cursor:pointer">
+
+      <div class="card-icon">📘</div>
+
+      <h3>{{ c.title }}</h3>
+
+      <p class="muted">
+        {{ c.description|default:"No description available"|truncatewords:18 }}
+      </p>
+
+      <div class="muted small">
+        Created by: {{ c.created_by.username }}
+      </div>
+
+      <div class="badge">
+        {{ c.video_count }} video{{ c.video_count|pluralize }}
+      </div>
+
+    </div>
+
+    <!-- 🔥 Enroll button (student only) -->
+    {% if user.is_student %}
+      <form method="post" action="{% url 'enroll_course' c.id %}">
+        {% csrf_token %}
+        <button class="btn small primary" style="margin-top:10px;">
+          Enroll
+        </button>
+      </form>
+    {% endif %}
+
+  </div>
+  {% endfor %}
+
+</div>
+
+{% else %}
+
+  <div class="empty">
+    {% if user.is_student %}
+      You don’t have any courses assigned yet.
+    {% else %}
+      No courses created yet. Start by adding a new course.
+    {% endif %}
+  </div>
+
+{% endif %}
+
+{% endblock %}

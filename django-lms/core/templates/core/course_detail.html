@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}{{ course.title }} · LearnHub{% endblock %}
+{% block content %}
+<a href="{% url 'my_courses' %}" class="muted">← Back to courses</a>
+<h1>{{ course.title }}</h1>
+<p class="muted">{{ course.description }}</p>
+
+<div class="player-layout">
+  <div>
+    {% if embed_url %}
+      <div class="player no-select" oncontextmenu="return false;">
+        <iframe src="{{ embed_url }}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        <div class="watermark-grid">
+          {% for i in "123456" %}<span>{{ watermark }}</span>{% endfor %}
+        </div>
+        <div class="watermark-corner">{{ watermark }}</div>
+      </div>
+      <h3 style="margin-top:1rem">{{ selected.title }}</h3>
+    {% else %}
+      <p class="muted">No videos in this course yet.</p>
+    {% endif %}
+  </div>
+  <aside>
+    <h3>Lessons</h3>
+    <ul class="lesson-list">
+      {% for v in videos %}
+        <li>
+          <a href="?v={{ v.id }}" class="{% if selected and selected.id == v.id %}active{% endif %}">
+            <span class="num">{{ forloop.counter }}</span>{{ v.title }}
+          </a>
+        </li>
+      {% empty %}
+        <li class="muted">No lessons</li>
+      {% endfor %}
+    </ul>
+  </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends 'core/base.html' %}
+{% block title %}Manage Users{% endblock %}
+
+{% block content %}
+
+<div class="page-head">
+  <div>
+    <h1>Manage Users</h1>
+    <p class="muted">Create, update, and control user access</p>
+  </div>
+
+  <a class="btn primary" href="{% url 'manage_user_create' %}">
+    + New User
+  </a>
+</div>
+
+<div class="card">
+
+{% if users %}
+<table class="table">
+
+  <thead>
+    <tr>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Mobile</th>
+      <th>Role</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for u in users %}
+    <tr>
+
+      <td><strong>{{ u.username }}</strong></td>
+      <td>{{ u.email }}</td>
+      <td>{{ u.mobile|default:"-" }}</td>
+
+      <!-- Role -->
+      <td>
+        <span class="badge role-{{ u.role }}">
+          {{ u.get_role_display }}
+        </span>
+      </td>
+
+      <!-- Status -->
+      <td>
+        {% if u.is_disabled %}
+          <span class="badge danger">Disabled</span>
+        {% else %}
+          <span class="badge ok">Active</span>
+        {% endif %}
+      </td>
+
+      <!-- Actions -->
+      <td>
+
+        <a class="btn small" href="{% url 'manage_user_edit' u.id %}">
+          Edit
+        </a>
+
+        {% if u.role == 'student' %}
+          <a class="btn small" href="{% url 'manage_user_assign' u.id %}">
+            Assign
+          </a>
+        {% endif %}
+
+        <form method="post"
+              action="{% url 'manage_user_force_logout' u.id %}"
+              style="display:inline">
+          {% csrf_token %}
+          <button class="btn small danger" type="submit">
+            Force Logout
+          </button>
+        </form>
+
+      </td>
+
+    </tr>
+    {% endfor %}
+  </tbody>
+
+</table>
+
+{% else %}
+  <div class="empty">
+    No users found. Create your first user.
+  </div>
+{% endif %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'core/base.html' %}
+{% block title %}Enrollment Requests{% endblock %}
+
+{% block content %}
+
+<h1>Enrollment Requests</h1>
+
+{% if requests %}
+<table class="table">
+  <thead>
+    <tr>
+      <th>Student</th>
+      <th>Course</th>
+      <th>Status</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for r in requests %}
+    <tr>
+      <td>{{ r.student.username }}</td>
+      <td>{{ r.course.title }}</td>
+      <td>{{ r.status }}</td>
+
+      <td>
+        {% if r.status == 'pending' %}
+        <form method="post" action="{% url 'approve_enrollment' r.id %}" style="display:inline">
+          {% csrf_token %}
+          <button class="btn small primary">Approve</button>
+        </form>
+
+        <form method="post" action="{% url 'reject_enrollment' r.id %}" style="display:inline">
+          {% csrf_token %}
+          <button class="btn small danger">Reject</button>
+        </form>
+        {% else %}
+          -
+        {% endif %}
+      </td>
+
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+  <p>No requests.</p>
+{% endif %}
+
+{% endblock %}

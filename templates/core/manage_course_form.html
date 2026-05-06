@@ -1,0 +1,27 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+
+<a class="back" href="{% url 'manage_courses' %}">← Back to courses</a>
+
+<div class="page-head">
+  <div>
+    <h1>{{ title }}</h1>
+    <p class="muted">Create or edit a course</p>
+  </div>
+</div>
+
+<div class="card">
+  <form method="post">
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <button type="submit" class="btn primary">
+      Save Course
+    </button>
+  </form>
+</div>
+
+{% endblock %}

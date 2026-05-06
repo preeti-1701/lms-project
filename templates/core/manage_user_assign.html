@@ -1,0 +1,47 @@
+{% extends 'core/base.html' %}
+{% block title %}Assign Courses{% endblock %}
+
+{% block content %}
+
+<a class="back" href="{% url 'manage_users' %}">← Back to users</a>
+
+<div class="page-head">
+  <div>
+    <h1>Assign Courses</h1>
+    <p class="muted">Assign courses to <strong>{{ student.username }}</strong></p>
+  </div>
+</div>
+
+<div class="card">
+
+  <form method="post" class="form">
+    {% csrf_token %}
+
+    {% if all_courses %}
+      <div class="checks">
+
+        {% for c in all_courses %}
+        <label class="check">
+          <input type="checkbox" name="courses" value="{{ c.id }}"
+                 {% if c.id in assigned_ids %}checked{% endif %}>
+          <span>{{ c.title }}</span>
+        </label>
+        {% endfor %}
+
+      </div>
+
+      <button class="btn primary" type="submit">
+        Save Assignments
+      </button>
+
+    {% else %}
+      <div class="empty">
+        No courses available. Create a course first.
+      </div>
+    {% endif %}
+
+  </form>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends 'core/base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="page-head">
+  <div>
+    <h1>Welcome back, {{ user.username }}</h1>
+    <p class="muted">Role: {{ user.get_role_display }}</p>
+  </div>
+
+  <!-- 🔥 Quick Actions -->
+  <div>
+    <a href="{% url 'course_list' %}" class="btn">View Courses</a>
+
+    {% if user.is_admin or user.is_superuser %}
+      <a href="{% url 'manage_users' %}" class="btn primary">Manage Users</a>
+    {% endif %}
+
+    {% if user.is_admin or user.is_trainer or user.is_superuser %}
+      <a href="{% url 'manage_courses' %}" class="btn primary">Manage Courses</a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- 📊 Stats -->
+<div class="grid">
+
+  {% if user.is_admin or user.is_superuser %}
+    <div class="stat-card">
+      <div class="stat-num">{{ total_users }}</div>
+      <div>Total Users</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-num">{{ total_students }}</div>
+      <div>Total Students</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-num">{{ total_courses }}</div>
+      <div>Total Courses</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-num">{{ total_videos }}</div>
+      <div>Total Videos</div>
+    </div>
+
+  {% elif user.is_trainer %}
+    <div class="stat-card">
+      <div class="stat-num">{{ my_courses }}</div>
+      <div>Your Courses</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-num">{{ my_videos }}</div>
+      <div>Your Videos</div>
+    </div>
+
+  {% else %}
+    <div class="stat-card">
+      <div class="stat-num">{{ assigned_courses }}</div>
+      <div>Assigned Courses</div>
+    </div>
+  {% endif %}
+
+</div>
+
+<!-- 💡 Info Panel -->
+<div class="panel">
+  <h3>Quick Info</h3>
+
+  {% if user.is_admin %}
+    <p class="muted">You can manage users, assign roles, and control the entire system.</p>
+  {% elif user.is_trainer %}
+    <p class="muted">You can create courses and upload YouTube videos.</p>
+  {% else %}
+    <p class="muted">You can access your assigned courses and watch videos.</p>
+  {% endif %}
+</div>
+
+{% endblock %}
