@@ -1,191 +1,264 @@
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from .models import Course, Enrollment, Video
+from .models import Course, Enrollment, Video, VideoProgress, ActiveSession
+from .serializers import CourseSerializer # Assumes you have the serializer we discussed
+
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from reportlab.pdfgen import canvas
+from io import BytesIO
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.tokens import RefreshToken
 
-
+# ---------- AUTH ----------
 
 @api_view(['POST'])
+@permission_classes([AllowAny]) # Fixes 401 on Register
 def register(request):
     username = request.data.get('username')
-    email = request.data.get('email')
     password = request.data.get('password')
 
     if not username or not password:
         return Response({'error': 'Username and password required'}, status=400)
 
-    User.objects.create_user(
-        username=username,
-        email=email,
-        password=password
-    )
+    if User.objects.filter(username=username).exists():
+        return Response({'error': 'Username already exists'}, status=400)
 
-    return Response({'message': 'User created successfully'})
+    User.objects.create_user(username=username, password=password)
+    return Response({'message': 'User created'}, status=201)
 
 
-@api_view(['POST'])
-def login(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
-
-    user = authenticate(username=username, password=password)
-
-    if user:
-        return Response({'message': 'Login successful'})
-    else:
-        return Response({'error': 'Invalid credentials'}, status=401)
-
+# ---------- COURSES ----------
 
 @api_view(['GET'])
+@permission_classes([AllowAny]) # Allow students to see catalog before login
 def get_courses(request):
     courses = Course.objects.all()
-
-    data = []
-    for course in courses:
-        data.append({
-            'id': course.id,
-            'title': course.title,
-            'description': course.description
-        })
-
-    return Response(data)
-
-
+    serializer = CourseSerializer(courses, many=True)
+    return Response(serializer.data)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def add_course(request):
-
-    # DEBUG (remove later)
-    print("USER:", request.user)
-    print("AUTH:", request.META.get('HTTP_AUTHORIZATION'))
-
     if not request.user.is_staff:
-        return Response({'error': 'Only admin can add course'}, status=403)
-
-    title = request.data.get('title')
-    description = request.data.get('description')
+        return Response({"error": "Admin access required"}, status=403)
 
     Course.objects.create(
-        title=title,
-        description=description
+        title=request.data.get("title"),
+        description=request.data.get("description")
     )
+    return Response({"message": "Course added"}, status=201)
 
-    return Response({'message': 'Course added successfully'})
+# ---------- ENROLL ----------
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def enroll_course(request):
+    course_id = request.data.get("course_id")
+    course = get_object_or_404(Course, id=course_id)
+
+    Enrollment.objects.get_or_create(user=request.user, course=course)
+    return Response({"message": "Successfully enrolled"})
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_my_courses(request):
 
-    enrollments = Enrollment.objects.filter(user=request.user)
+    enrollments = Enrollment.objects.filter(
+        user=request.user
+    ).select_related('course')
 
     data = []
+
     for enrollment in enrollments:
+
         course = enrollment.course
+
+        videos = Video.objects.filter(course=course)
+
+        total_videos = videos.count()
+
+        completed_videos = VideoProgress.objects.filter(
+            user=request.user,
+            video__in=videos,
+            completed=True
+        ).count()
+
+        progress = 0
+
+        if total_videos > 0:
+            progress = int(
+                (completed_videos / total_videos) * 100
+            )
+
         data.append({
-            'id': course.id,
-            'title': course.title,
-            'description': course.description
+            "id": course.id,
+            "title": course.title,
+            "description": course.description,
+            "progress": progress,
+            "completed_videos": completed_videos,
+            "total_videos": total_videos,
         })
 
     return Response(data)
 
+# ---------- VIDEO ----------
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def add_video(request):
+    if not request.user.is_staff:
+        return Response({"error": "Admin access required"}, status=403)
 
-    course_id = request.data.get('course_id')
-    youtube_link = request.data.get('youtube_link')
-
-    try:
-        course = Course.objects.get(id=course_id)
-    except Course.DoesNotExist:
-        return Response({'error': 'Course not found'}, status=404)
-
+    course = get_object_or_404(Course, id=request.data.get("course_id"))
     Video.objects.create(
         course=course,
-        youtube_link=youtube_link
+        title=request.data.get("title"),
+        youtube_link=request.data.get("youtube_link")
     )
+    return Response({"message": "Video added"}, status=201)
 
-    return Response({'message': 'Video added successfully'})
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_videos(request, course_id):
-
-    # Check if user is enrolled
-    is_enrolled = Enrollment.objects.filter(
-        user=request.user,
-        course_id=course_id
-    ).exists()
-
-    if not is_enrolled:
-        return Response({'error': 'You are not enrolled in this course'})
-
-    videos = Video.objects.filter(course_id=course_id)
-
-    data = []
-    for video in videos:
-        data.append({
-            'id': video.id,
-            'youtube_link': video.youtube_link
-        })
-
-    return Response(data)
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def enroll_course(request):
-    
-    course_id = request.data.get('course_id')
-
-    # Check course exists
-    try:
-        course = Course.objects.get(id=course_id)
-    except Course.DoesNotExist:
-        return Response({'error': 'Course not found'})
-
-    # Check already enrolled
-    if Enrollment.objects.filter(user=request.user, course=course).exists():
-        return Response({'message': 'Already enrolled'})
-
-    # Create enrollment
-    Enrollment.objects.create(user=request.user, course=course)
-
-    return Response({'message': 'Enrolled successfully'})
+# ---------- COURSE DETAIL ----------
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def course_detail(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    
+    # Security Check: Ensure user is enrolled
+    if not Enrollment.objects.filter(user=request.user, course=course).exists():
+        return Response({"error": "Not enrolled in this course"}, status=403)
 
-    # Check enrollment
-    is_enrolled = Enrollment.objects.filter(
+    # Uses the Serializer we refined earlier to handle progress logic
+    serializer = CourseSerializer(course, context={'request': request})
+    return Response(serializer.data)
+
+# ---------- MARK COMPLETE ----------
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def mark_video_complete(request):
+    video_id = request.data.get("video_id")
+    video = get_object_or_404(Video, id=video_id)
+
+    progress, created = VideoProgress.objects.get_or_create(
         user=request.user,
-        course_id=course_id
-    ).exists()
+        video=video
+    )
 
-    if not is_enrolled:
-        return Response({'error': 'Not enrolled'})
+    progress.completed = True
+    progress.save()
 
-    course = Course.objects.get(id=course_id)
-    videos = Video.objects.filter(course=course)
+    return Response({"message": "Progress saved"})
 
-    video_data = []
-    for v in videos:
-        video_data.append({
-            'id': v.id,
-            'youtube_link': v.youtube_link
-        })
+# ---------- USER ----------
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user(request):
+
+    # ✅ Get current JWT token
+    auth_header = request.headers.get("Authorization")
+
+    if not auth_header:
+        return Response({"error": "No token"}, status=401)
+
+    token = auth_header.split()[1]
+
+    # ✅ Update active session
+    ActiveSession.objects.update_or_create(
+        user=request.user,
+        defaults={"token": token}
+    )
 
     return Response({
-        'id': course.id,
-        'title': course.title,
-        'description': course.description,
-        'videos': video_data
+        "username": request.user.username,
+        "is_staff": request.user.is_staff
+    })
+
+# ---------- CERTIFICATE ----------
+
+@api_view(['GET'])
+def generate_certificate(request, course_id):
+    # Manual Auth check for PDF generation
+    auth = JWTAuthentication()
+    header = request.headers.get("Authorization")
+    if not header:
+        return Response({"error": "Unauthorized"}, status=401)
+
+    try:
+        token = header.split()[1]
+        validated = auth.get_validated_token(token)
+        user = auth.get_user(validated)
+    except:
+        return Response({"error": "Invalid Session"}, status=401)
+
+    course = get_object_or_404(Course, id=course_id)
+    videos = Video.objects.filter(course=course)
+    total = videos.count()
+    
+    if total == 0:
+        return Response({"error": "Course has no content"}, status=400)
+
+    completed = VideoProgress.objects.filter(
+        user=user,
+        video__in=videos,
+        completed=True
+    ).count()
+
+    if completed < total:
+        return Response({"error": "Course not fully completed"}, status=403)
+
+    # PDF Generation
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer)
+    p.setFont("Helvetica-Bold", 24)
+    p.drawCentredString(300, 750, "CERTIFICATE OF COMPLETION")
+    p.setFont("Helvetica", 18)
+    p.drawCentredString(300, 650, f"This is to certify that {user.username}")
+    p.drawCentredString(300, 620, f"has successfully completed the course:")
+    p.setFont("Helvetica-Bold", 20)
+    p.drawCentredString(300, 580, f"{course.title}")
+    p.setFont("Helvetica", 12)
+    p.drawCentredString(300, 500, f"Issued on: {user.date_joined.strftime('%Y-%m-%d')}")
+    p.save()
+    
+    buffer.seek(0)
+    return HttpResponse(buffer, content_type='application/pdf')
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def resume_course(request, course_id):
+
+    course = Course.objects.get(id=course_id)
+
+    videos = Video.objects.filter(course=course)
+
+    progress = VideoProgress.objects.filter(
+        user=request.user,
+        video__in=videos,
+        completed=False
+    ).order_by('-updated_at').first()
+
+    if progress:
+        return Response({
+            "video_id": progress.video.id
+        })
+
+    first_video = videos.first()
+
+    return Response({"video_id": first_video.id if first_video else None
+    })
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def admin_stats(request):
+
+    return Response({
+        "students": User.objects.count(),
+        "courses": Course.objects.count(),
+        "enrollments": Enrollment.objects.count(),
     })

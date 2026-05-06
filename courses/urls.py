@@ -1,18 +1,43 @@
 from django.urls import path
 from .views import (
-    register, login, get_courses, add_course,
-    get_my_courses, add_video, get_videos,
-    enroll_course, course_detail
+    register,
+    get_courses,
+    add_course,
+    enroll_course,
+    get_my_courses,
+    add_video,
+    course_detail,
+    mark_video_complete,
+    get_user,
+    generate_certificate
+)
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
 )
 
 urlpatterns = [
+
+    # AUTH
     path('register/', register),
-    path('login/', login),
+    path('token/', TokenObtainPairView.as_view()),
+    path('token/refresh/', TokenRefreshView.as_view()),
+    path('user/', get_user),
+
+    # COURSES
     path('courses/', get_courses),
-    path('courses/add/', add_course),
+    path('add-course/', add_course),
+
+    # ENROLLMENT
     path('enroll/', enroll_course),
     path('my-courses/', get_my_courses),
-    path('videos/add/', add_video),
-    path('videos/<int:course_id>/', get_videos),
+
+    # VIDEOS
+    path('add-video/', add_video),
     path('course/<int:course_id>/', course_detail),
+    path('mark-complete/', mark_video_complete),
+
+    # CERTIFICATE
+    path('certificate/<int:course_id>/', generate_certificate),
+
 ]
