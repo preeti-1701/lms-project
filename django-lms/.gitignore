@@ -1,8 +1,0 @@
-__pycache__/
-*.pyc
-.venv/
-venv/
-.env
-db.sqlite3
-staticfiles/
-.DS_Store
