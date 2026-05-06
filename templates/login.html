@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LMS Portal</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            height: 100vh;
+            background: #0f172a;
+        }
+
+        /* LEFT SIDE */
+        .left {
+            width: 50%;
+            background: linear-gradient(135deg, #000000, #0f172a, #1d4ed8);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .left h1 {
+            font-size: 42px;
+            letter-spacing: 1px;
+        }
+
+        .left p {
+            opacity: 0.7;
+            margin-top: 10px;
+        }
+
+        /* RIGHT SIDE */
+        .right {
+            width: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f8fafc;
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            width: 320px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .login-box h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #0f172a;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        #result {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #888;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<!-- LEFT PANEL -->
+<div class="left">
+    <h1>LMS Portal</h1>
+    <p>Smart Learning • Better Future</p>
+</div>
+
+<!-- RIGHT LOGIN -->
+<div class="right">
+    <div class="login-box">
+
+        <h2>Sign In</h2>
+
+        <label>Email:</label><br>
+        <input type="text" id="email" autocomplete="off"><br><br>
+
+        <label>Password:</label><br>
+        <input type="password" id="password" autocomplete="new-password"><br><br>
+
+        <button onclick="login()">Login</button>
+
+        <p id="result"></p>
+
+        <div class="footer">
+            © 2026 LMS Portal
+        </div>
+
+    </div>
+</div>
+
+<script>
+function login() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    fetch("http://127.0.0.1:8000/api/login/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            email: email,
+            password: password
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+
+        if (data.role) {
+
+            if (data.role === "student") {
+                window.location.href = "/student/";
+            } else if (data.role === "admin") {
+                window.location.href = "/admin_dashboard/";
+            } else if (data.role === "trainer") {
+                window.location.href = "/trainer/";
+            }
+
+        } else {
+            document.getElementById("result").innerText = data.error || "Login failed";
+        }
+
+    });
+}
+</script>
+
+</body>
+</html>

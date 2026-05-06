@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Video</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-5">
+    <div class="card p-4 shadow">
+        <h3>Add Video to "{{ course.title }}"</h3>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label>Video Title</label>
+                <input type="text" name="title" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label>YouTube URL</label>
+                <input type="text" name="url" class="form-control" required>
+            </div>
+
+            <button class="btn btn-success">Save Video</button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,3 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
-# Create your views here.
+# LOGOUT FUNCTION
+def logout_view(request):
+    request.session.flush()   # clears session
+    return redirect('/')      # go to login page

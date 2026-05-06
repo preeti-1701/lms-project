@@ -1,0 +1,14 @@
+<h2>{{ course.title }}</h2>
+
+{% for lesson in lessons %}
+
+    <h4>{{ lesson.title }}</h4>
+
+    <!-- Clickable button -->
+    <a href="{{ lesson.video_url }}" target="_blank" class="btn btn-primary">
+        ▶️ Watch on YouTube
+    </a>
+
+    <br><br>
+
+{% endfor %}

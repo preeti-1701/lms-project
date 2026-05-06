@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Trainer Dashboard</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #f5f7fa;
+        }
+
+        /* Cards */
+        .card-box {
+            border-radius: 15px;
+            padding: 20px;
+            background: white;
+            box-shadow: 0px 4px 15px rgba(0,0,0,0.08);
+            transition: 0.3s;
+        }
+
+        .card-box:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Header Gradient */
+        .header-box {
+            background: linear-gradient(90deg, #1e3c72, #2a5298);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- 🔵 NAVBAR -->
+<nav class="navbar px-4" style="background: linear-gradient(90deg, #0f2027, #203a43, #2c5364);">
+    
+    <span class="navbar-brand text-white fw-bold">LMS System</span>
+
+    <div class="ms-auto d-flex align-items-center">
+
+        <!-- Welcome -->
+        <span class="text-white me-3">Welcome, {{ user_name }}</span>
+
+        <!-- Dashboard Button -->
+        <a href="/trainer/" class="btn btn-light btn-sm me-2">
+            Dashboard
+        </a>
+
+        <!-- Logout -->
+        <a href="/logout/" class="btn btn-danger btn-sm">
+            Logout
+        </a>
+
+    </div>
+</nav>
+
+<!-- 🔷 HEADER -->
+<div class="container mt-4">
+    <div class="header-box">
+        <h3>Trainer Dashboard</h3>
+        <p>Manage your courses and upload videos easily</p>
+    </div>
+</div>
+
+<div class="container mt-4">
+
+    <!-- 🔷 STATS -->
+    <div class="row mb-4">
+
+        <div class="col-md-4">
+            <div class="card-box text-center" style="background:#e3f2fd;">
+                <h2>{{ courses|length }}</h2>
+                <p>Total Courses</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card-box text-center" style="background:#e8f5e9;">
+                <h2>{{ courses|length }}</h2>
+                <p>Active Courses</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 📚 COURSES -->
+    <h4 class="mb-3">Your Courses</h4>
+
+    {% if courses %}
+    <div class="row">
+
+        {% for course in courses %}
+        <div class="col-md-4 mb-3">
+
+            <div class="card-box">
+
+                <!-- Title -->
+                <h5 class="fw-bold">📘 {{ course.title }}</h5>
+
+                <!-- Description -->
+                <p class="text-muted small">
+                    {{ course.description|default:"Manage your course videos" }}
+                </p>
+
+                <!-- Buttons -->
+                <div class="mt-2">
+
+                    <a href="/add-video/{{ course.id }}" class="btn btn-primary btn-sm">
+                        ➕ Add Video
+                    </a>
+
+                    {% if course.lesson_set.first %}
+                        <a href="{{ course.lesson_set.first.video_url }}" target="_blank"
+                           class="btn btn-outline-dark btn-sm">
+                            View Course
+                        </a>
+                    {% else %}
+                        <button class="btn btn-secondary btn-sm" disabled>
+                            No Video
+                        </button>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+        {% endfor %}
+
+    </div>
+
+    {% else %}
+        <div class="alert alert-info mt-3">
+            No courses assigned yet.
+        </div>
+    {% endif %}
+
+</div>
+
+</body>
+</html>
