@@ -5,7 +5,23 @@
 {% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
     <h2>Dashboard</h2>
-    <button onclick="loadCourses()" class="btn btn-outline">Refresh Courses</button>
+    <div style="display: flex; gap: 1rem;">
+        <button id="manageUsersBtn" onclick="window.location.href='/auth/manage-users/'" class="btn" style="display: none; background: #6366f1; border: none;">Manage Users</button>
+        <button id="approvalsBtn" onclick="window.location.href='/auth/approvals/'" class="btn" style="display: none; background: #10b981; border: none;">Review Approvals</button>
+        <button id="createCourseBtn" onclick="toggleCreateForm()" class="btn" style="display: none;">+ Create Course</button>
+        <button onclick="loadCourses()" class="btn btn-outline">Refresh Courses</button>
+    </div>
+</div>
+
+<!-- Create Course Form (Hidden by default) -->
+<div id="createCourseForm" class="glass-card" style="display: none; margin-bottom: 2rem;">
+    <h3>Create New Course</h3>
+    <input type="text" id="courseTitle" class="form-control" placeholder="Course Title">
+    <textarea id="courseDesc" class="form-control" placeholder="Course Description" style="min-height: 100px; resize: vertical;"></textarea>
+    <select id="courseTrainer" class="form-control" style="margin-bottom: 1.5rem;">
+        <option value="">Select Trainer (Default: You)</option>
+    </select>
+    <button onclick="submitCourse()" class="btn">Save Course</button>
 </div>
 
 <div id="courses" class="grid-layout">
@@ -27,15 +43,31 @@ async function loadCourses() {
 
         let html = "";
 
+        const role = localStorage.getItem("role");
+        
+        // Show Create button for admins only
+        if (role === 'admin') {
+            document.getElementById('createCourseBtn').style.display = 'inline-block';
+            document.getElementById('approvalsBtn').style.display = 'inline-block';
+            document.getElementById('manageUsersBtn').style.display = 'inline-block';
+            loadTrainers();
+        }
+
         if (!data.courses || data.courses.length === 0) {
             html = "<p style='color: var(--text-muted);'>No courses found.</p>";
         } else {
             data.courses.forEach(c => {
+                let manageBtn = '';
+                if (role === 'trainer' || role === 'admin') {
+                    manageBtn = `<button onclick="manageCourse(${c.id})" class="btn btn-outline" style="margin-top: 0.5rem;">Manage Content</button>`;
+                }
+                
                 html += `
                     <div class="course-card">
                         <h3 class="course-title">${c.title}</h3>
                         <p class="course-meta">Trainer: ${c.trainer || 'Unknown'}</p>
-                        <button onclick="viewVideos(${c.id})" class="btn" style="margin-top: auto;">Open</button>
+                        <button onclick="viewVideos(${c.id})" class="btn" style="margin-top: auto;">Open Course</button>
+                        ${manageBtn}
                     </div>
                 `;
             });
@@ -49,6 +81,65 @@ async function loadCourses() {
 
 function viewVideos(courseId) {
     window.location.href = `/video/${courseId}/`;
+}
+
+function manageCourse(courseId) {
+    window.location.href = `/course/manage/${courseId}/`;
+}
+
+function toggleCreateForm() {
+    const form = document.getElementById('createCourseForm');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+async function loadTrainers() {
+    try {
+        const res = await fetch('/auth/trainers/', { credentials: 'same-origin' });
+        const data = await res.json();
+        if (res.ok) {
+            let html = '<option value="">Select Trainer (Default: You)</option>';
+            data.trainers.forEach(t => {
+                html += `<option value="${t.id}">${t.name || t.email}</option>`;
+            });
+            document.getElementById('courseTrainer').innerHTML = html;
+        }
+    } catch (e) {
+        console.error("Failed to load trainers", e);
+    }
+}
+
+async function submitCourse() {
+    const title = document.getElementById('courseTitle').value;
+    const desc = document.getElementById('courseDesc').value;
+    const trainerId = document.getElementById('courseTrainer').value;
+    
+    if (!title || !desc) {
+        alert("Please fill in both title and description");
+        return;
+    }
+
+    try {
+        const res = await fetch('/course/create/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ title: title, description: desc, trainer_id: trainerId })
+        });
+        
+        const data = await res.json();
+        if (res.ok) {
+            alert("Course created successfully!");
+            document.getElementById('courseTitle').value = '';
+            document.getElementById('courseDesc').value = '';
+            document.getElementById('courseTrainer').value = '';
+            toggleCreateForm();
+            loadCourses();
+        } else {
+            alert(data.error || "Failed to create course");
+        }
+    } catch (err) {
+        alert("Error creating course");
+    }
 }
 
 // Auto-load on page load

@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - LearnManag{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>Manage Users</h2>
+    <a href="/dashboard/" class="btn btn-outline">Back to Dashboard</a>
+</div>
+
+<div class="glass-card" style="padding: 1.5rem; overflow-x: auto; margin-bottom: 2rem;">
+    <h3 style="color: var(--danger); margin-top: 0; margin-bottom: 1rem;">Security Violations Log</h3>
+    <p class="subtitle" style="color: var(--text-muted); margin-bottom: 1.5rem;">Recent attempts to capture screenshots, record screens, or use developer tools.</p>
+    <div id="violationList">
+        <p style="color: var(--text-muted);">Loading violations...</p>
+    </div>
+</div>
+
+<div class="glass-card" style="padding: 1.5rem; overflow-x: auto;">
+    <p class="subtitle" style="color: var(--text-muted); margin-bottom: 1.5rem;">Manage approved users, view their activity, and control access.</p>
+    
+    <div id="userList">
+        <p style="color: var(--text-muted);">Loading users...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function loadUsers() {
+    try {
+        const res = await fetch('/auth/all-users/', { credentials: 'same-origin' });
+        if (!res.ok) {
+            document.getElementById('userList').innerHTML = `<p style="color: var(--danger);">Failed to load users.</p>`;
+            return;
+        }
+        
+        const data = await res.json();
+        
+        if (data.users.length === 0) {
+            document.getElementById('userList').innerHTML = `<p style="color: var(--text-muted);">No other users found.</p>`;
+            return;
+        }
+        
+        let html = `
+            <table style="width: 100%; text-align: left; border-collapse: collapse; color: white;">
+                <thead>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <th style="padding: 1rem 0.5rem; color: var(--text-muted);">Name & Email</th>
+                        <th style="padding: 1rem 0.5rem; color: var(--text-muted);">Role</th>
+                        <th style="padding: 1rem 0.5rem; color: var(--text-muted);">Last Device / IP</th>
+                        <th style="padding: 1rem 0.5rem; color: var(--text-muted);">Session</th>
+                        <th style="padding: 1rem 0.5rem; color: var(--text-muted); text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        data.users.forEach(u => {
+            const roleColor = u.role === 'trainer' ? 'var(--primary)' : 'var(--secondary)';
+            const statusColor = u.is_active ? '#10b981' : 'var(--danger)';
+            const statusText = u.is_active ? 'Active' : 'Suspended';
+            
+            const sessionDot = u.has_active_session ? 
+                '<span style="color: #10b981; font-weight: bold;">&bull; Online</span>' : 
+                '<span style="color: var(--text-muted);">&bull; Offline</span>';
+
+            html += `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 1rem 0.5rem;">
+                        <strong>${u.name}</strong><br>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">${u.email}</span>
+                    </td>
+                    <td style="padding: 1rem 0.5rem;">
+                        <span style="color: ${roleColor}; text-transform: uppercase; font-size: 0.8rem; font-weight: bold;">${u.role}</span><br>
+                        <span style="font-size: 0.8rem; color: ${statusColor};">${statusText}</span>
+                    </td>
+                    <td style="padding: 1rem 0.5rem;">
+                        <div style="font-size: 0.85rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${u.last_device}">${u.last_device}</div>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">${u.last_ip}</span>
+                    </td>
+                    <td style="padding: 1rem 0.5rem; font-size: 0.85rem;">
+                        ${sessionDot}
+                    </td>
+                    <td style="padding: 1rem 0.5rem; text-align: right;">
+                        <button onclick="toggleStatus(${u.id}, ${u.is_active})" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                            ${u.is_active ? 'Suspend' : 'Reactivate'}
+                        </button>
+                        ${u.has_active_session ? `
+                        <button onclick="forceLogout(${u.id})" class="btn btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; margin-left: 0.5rem;">
+                            Force Logout
+                        </button>
+                        ` : ''}
+                    </td>
+                </tr>
+            `;
+        });
+        
+        html += `</tbody></table>`;
+        document.getElementById('userList').innerHTML = html;
+        
+    } catch (e) {
+        document.getElementById('userList').innerHTML = `<p style="color: var(--danger);">Connection error.</p>`;
+    }
+}
+
+async function toggleStatus(userId, isActive) {
+    const action = isActive ? 'SUSPEND' : 'REACTIVATE';
+    if (!confirm(`Are you sure you want to ${action} this account?`)) return;
+    
+    try {
+        const res = await fetch(`/auth/toggle-status/${userId}/`, { method: 'POST', credentials: 'same-origin' });
+        if (res.ok) {
+            alert("Account status updated.");
+            loadUsers();
+        } else {
+            const data = await res.json();
+            alert(data.error || "Failed to update status.");
+        }
+    } catch (e) {
+        alert("Network error.");
+    }
+}
+
+async function forceLogout(userId) {
+    if (!confirm("Are you sure you want to instantly terminate this user's active session?")) return;
+    
+    try {
+        const res = await fetch(`/auth/force-logout/${userId}/`, { method: 'POST', credentials: 'same-origin' });
+        if (res.ok) {
+            alert("User's session has been terminated.");
+            loadUsers();
+        } else {
+            const data = await res.json();
+            alert(data.error || "Failed to terminate session.");
+        }
+    } catch (e) {
+        alert("Network error.");
+    }
+}
+
+async function loadViolations() {
+    try {
+        const res = await fetch('/auth/violations/', { credentials: 'same-origin' });
+        if (!res.ok) {
+            document.getElementById('violationList').innerHTML = `<p style="color: var(--danger);">Failed to load violations.</p>`;
+            return;
+        }
+        
+        const data = await res.json();
+        
+        if (data.violations.length === 0) {
+            document.getElementById('violationList').innerHTML = `<p style="color: var(--text-muted);">No security violations recorded yet.</p>`;
+            return;
+        }
+        
+        let html = `
+            <table style="width: 100%; text-align: left; border-collapse: collapse; color: white;">
+                <thead>
+                    <tr style="border-bottom: 1px solid rgba(239, 68, 68, 0.3);">
+                        <th style="padding: 1rem 0.5rem; color: var(--text-muted);">User</th>
+                        <th style="padding: 1rem 0.5rem; color: var(--text-muted);">Reason</th>
+                        <th style="padding: 1rem 0.5rem; color: var(--text-muted);">Time</th>
+                        <th style="padding: 1rem 0.5rem; color: var(--text-muted);">Total Strikes</th>
+                        <th style="padding: 1rem 0.5rem; color: var(--text-muted); text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        data.violations.forEach(v => {
+            html += `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 1rem 0.5rem;">
+                        <strong>${v.name}</strong><br>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">${v.email}</span>
+                    </td>
+                    <td style="padding: 1rem 0.5rem; color: var(--danger);">
+                        ${v.reason}
+                    </td>
+                    <td style="padding: 1rem 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
+                        ${v.timestamp}
+                    </td>
+                    <td style="padding: 1rem 0.5rem; font-weight: bold; color: ${v.total_strikes >= 3 ? 'var(--danger)' : '#f59e0b'};">
+                        ${v.total_strikes}
+                    </td>
+                    <td style="padding: 1rem 0.5rem; text-align: right;">
+                        <button onclick="toggleStatus(${v.user_id}, ${v.is_active})" class="btn ${v.is_active ? 'btn-danger' : 'btn-outline'}" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                            ${v.is_active ? 'Suspend Account' : 'Reactivate'}
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        html += `</tbody></table>`;
+        document.getElementById('violationList').innerHTML = html;
+        
+    } catch (e) {
+        document.getElementById('violationList').innerHTML = `<p style="color: var(--danger);">Connection error.</p>`;
+    }
+}
+
+loadUsers();
+loadViolations();
+</script>
+{% endblock %}

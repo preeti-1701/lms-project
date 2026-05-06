@@ -25,3 +25,11 @@ class Course(models.Model):
 
     def __str__(self):
         return self.title
+
+class EnrollmentExpiry(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    student = models.ForeignKey(User, on_delete=models.CASCADE)
+    expires_at = models.DateTimeField(null=True, blank=True) # null means lifetime access
+
+    class Meta:
+        unique_together = ('course', 'student')

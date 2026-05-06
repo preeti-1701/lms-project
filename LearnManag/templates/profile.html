@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - LearnManag{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; min-height: 70vh;">
+    <div class="glass-card" style="max-width: 500px; width: 100%; text-align: center;">
+        
+        <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #38bdf8); margin: 0 auto 1.5rem auto; display: flex; justify-content: center; align-items: center; font-size: 3rem; color: white; font-weight: bold; font-family: 'Outfit', sans-serif;" id="profileInitial">
+            ?
+        </div>
+
+        <h2 id="profileName" style="margin-bottom: 0.5rem;">Loading...</h2>
+        <p id="profileRole" style="color: var(--primary); font-weight: bold; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem; margin-bottom: 2rem;">ROLE</p>
+
+        <div style="text-align: left; background: rgba(15, 23, 42, 0.5); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--glass-border);">
+            <div style="margin-bottom: 1rem;">
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Email Address</p>
+                <p id="profileEmail" style="font-size: 1.1rem; margin: 0.2rem 0 0 0;">...</p>
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Date Joined</p>
+                <p id="profileDate" style="font-size: 1.1rem; margin: 0.2rem 0 0 0;">...</p>
+            </div>
+            <div>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;" id="courseCountLabel">Courses</p>
+                <p id="profileCourseCount" style="font-size: 1.1rem; margin: 0.2rem 0 0 0;">...</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function loadProfile() {
+    try {
+        const res = await fetch('/auth/profile-api/', { credentials: 'same-origin' });
+        if (res.ok) {
+            const data = await res.json();
+            
+            document.getElementById('profileName').textContent = data.name;
+            document.getElementById('profileRole').textContent = data.role;
+            document.getElementById('profileEmail').textContent = data.email;
+            document.getElementById('profileDate').textContent = data.date_joined;
+            document.getElementById('profileCourseCount').textContent = data.course_count;
+            
+            // Set initial letter
+            if (data.name) {
+                document.getElementById('profileInitial').textContent = data.name.charAt(0).toUpperCase();
+            }
+
+            // Set dynamic label based on role
+            const label = document.getElementById('courseCountLabel');
+            if (data.role === 'student') {
+                label.textContent = "Courses Enrolled";
+            } else if (data.role === 'trainer') {
+                label.textContent = "Courses Managed";
+            } else {
+                label.textContent = "Total System Courses";
+            }
+            
+        } else {
+            document.getElementById('profileName').textContent = "Error loading profile";
+        }
+    } catch (e) {
+        document.getElementById('profileName').textContent = "Connection Error";
+    }
+}
+
+loadProfile();
+</script>
+{% endblock %}

@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Course - LearnManag{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>Manage Course: <span style="color: var(--primary);">{{ course.title }}</span></h2>
+    <a href="/dashboard/" class="btn btn-outline">Back to Dashboard</a>
+</div>
+
+<div class="grid-layout">
+    <!-- Add Video Form -->
+    <div class="glass-card">
+        <h3>Add Video Content</h3>
+        <p class="subtitle" style="margin-bottom: 1.5rem; color: var(--text-muted);">Embed a new YouTube video</p>
+        
+        <input type="text" id="videoTitle" class="form-control" placeholder="Video Title (e.g. Introduction to Java)">
+        <input type="text" id="youtubeUrl" class="form-control" placeholder="YouTube URL">
+        <button onclick="addVideo()" class="btn" style="width: 100%;">Save Video</button>
+    </div>
+
+    <!-- Manage Playlist Form -->
+    <div class="glass-card">
+        <h3>Manage Playlist</h3>
+        <p class="subtitle" style="margin-bottom: 1.5rem; color: var(--text-muted);">Drag and drop to reorder videos</p>
+        
+        <div id="videoList" style="margin-bottom: 1.5rem; min-height: 50px;">
+            <p style="color: var(--text-muted);">Loading videos...</p>
+        </div>
+        
+        <button onclick="saveVideoOrder()" class="btn" style="width: 100%;">Save Playlist Order</button>
+    </div>
+
+    <!-- Assign Students Form -->
+    <div class="glass-card" id="enrollStudentsCard" style="display: none;">
+        <h3>Enroll Students</h3>
+        <p class="subtitle" style="margin-bottom: 1.5rem; color: var(--text-muted);">Select students to grant access</p>
+        
+        <input type="text" id="studentSearch" class="form-control" placeholder="Search students by name or email..." onkeyup="filterStudents()" style="margin-bottom: 1rem; padding: 0.6rem 1rem;">
+
+        <div id="studentList" style="margin-bottom: 1.5rem; max-height: 250px; overflow-y: auto; background: rgba(15, 23, 42, 0.6); padding: 1rem; border-radius: 8px; border: 1px solid var(--glass-border);">
+            <p style="color: var(--text-muted);">Loading students...</p>
+        </div>
+
+        <select id="enrollmentDuration" class="form-control" style="margin-bottom: 1.5rem;">
+            <option value="">Lifetime Access</option>
+            <option value="7">7 Days Access</option>
+            <option value="30">30 Days Access</option>
+            <option value="90">90 Days Access</option>
+            <option value="365">1 Year Access</option>
+        </select>
+        
+        <button onclick="assignStudents()" class="btn" style="width: 100%;">Enroll Selected Students</button>
+    </div>
+
+    <!-- Currently Enrolled Students Form -->
+    <div class="glass-card" id="currentStudentsCard" style="display: none;">
+        <h3>Currently Enrolled Students</h3>
+        <p class="subtitle" style="margin-bottom: 1.5rem; color: var(--text-muted);">Manage existing enrollments</p>
+        
+        <div id="enrolledStudentList" style="max-height: 250px; overflow-y: auto; background: rgba(15, 23, 42, 0.6); padding: 1rem; border-radius: 8px; border: 1px solid var(--glass-border);">
+            <p style="color: var(--text-muted);">Loading students...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const courseId = {{ course.id }};
+
+async function loadStudents() {
+    try {
+        const res = await fetch('/auth/students/', { credentials: 'same-origin' });
+        const data = await res.json();
+        
+        if (res.ok) {
+            let html = '';
+            if (data.students.length === 0) {
+                html = '<p style="color: var(--text-muted);">No students registered yet.</p>';
+            } else {
+                data.students.forEach(s => {
+                    html += `
+                        <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" name="student" value="${s.id}">
+                            ${s.email} (${s.name || 'Student'})
+                        </label>
+                    `;
+                });
+            }
+            document.getElementById('studentList').innerHTML = html;
+        } else {
+            document.getElementById('studentList').innerHTML = `<p style="color: var(--danger);">${data.error || 'Failed to load'}</p>`;
+        }
+    } catch (e) {
+        document.getElementById('studentList').innerHTML = '<p style="color: var(--danger);">Error connecting to server</p>';
+    }
+}
+
+async function loadEnrolledStudents() {
+    try {
+        const res = await fetch(`/course/enrolled/${courseId}/`, { credentials: 'same-origin' });
+        const data = await res.json();
+        
+        if (res.ok) {
+            let html = '';
+            if (data.students.length === 0) {
+                html = '<p style="color: var(--text-muted);">No students currently enrolled.</p>';
+            } else {
+                data.students.forEach(s => {
+                    html += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; padding-bottom: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <div>
+                                <strong style="color: white;">${s.name || s.email}</strong><br>
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">Expires: <span style="color: var(--secondary);">${s.expires}</span></span>
+                            </div>
+                            <button onclick="unenrollStudent(${s.id})" class="btn btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; border-radius: 6px;">Remove</button>
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById('enrolledStudentList').innerHTML = html;
+        } else {
+            document.getElementById('enrolledStudentList').innerHTML = `<p style="color: var(--danger);">${data.error || 'Failed to load'}</p>`;
+        }
+    } catch (e) {
+        document.getElementById('enrolledStudentList').innerHTML = '<p style="color: var(--danger);">Error connecting to server</p>';
+    }
+}
+
+async function unenrollStudent(studentId) {
+    if (!confirm("Are you sure you want to remove this student's access to the course?")) return;
+    
+    try {
+        const res = await fetch('/course/unenroll/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ course_id: courseId, student_id: studentId })
+        });
+        
+        if (res.ok) {
+            alert("Student removed successfully.");
+            loadEnrolledStudents();
+        } else {
+            const data = await res.json();
+            alert(data.error || "Failed to remove student");
+        }
+    } catch (e) {
+        alert("Error connecting to server");
+    }
+}
+
+function filterStudents() {
+    const input = document.getElementById('studentSearch');
+    const filter = input.value.toLowerCase();
+    const studentList = document.getElementById('studentList');
+    const labels = studentList.getElementsByTagName('label');
+
+    for (let i = 0; i < labels.length; i++) {
+        const text = labels[i].innerText || labels[i].textContent;
+        if (text.toLowerCase().indexOf(filter) > -1) {
+            labels[i].style.display = "flex";
+        } else {
+            labels[i].style.display = "none";
+        }
+    }
+}
+
+async function addVideo() {
+    const title = document.getElementById('videoTitle').value;
+    const url = document.getElementById('youtubeUrl').value;
+    
+    if (!title || !url) {
+        alert("Please provide both title and URL");
+        return;
+    }
+    
+    try {
+        const res = await fetch('/video-api/add/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ course_id: courseId, title: title, youtube_url: url })
+        });
+        
+        const data = await res.json();
+        if (res.ok) {
+            alert("Video added successfully!");
+            document.getElementById('videoTitle').value = '';
+            document.getElementById('youtubeUrl').value = '';
+            loadCourseVideos();
+        } else {
+            alert(data.error || "Failed to add video");
+        }
+    } catch (e) {
+        alert("Error adding video");
+    }
+}
+
+async function assignStudents() {
+    const checkboxes = document.querySelectorAll('input[name="student"]:checked');
+    const studentIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+    const durationDays = document.getElementById('enrollmentDuration').value;
+    
+    if (studentIds.length === 0) {
+        alert("Please select at least one student");
+        return;
+    }
+    
+    try {
+        const res = await fetch('/course/assign/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ course_id: courseId, student_ids: studentIds, duration_days: durationDays })
+        });
+        
+        const data = await res.json();
+        if (res.ok) {
+            alert("Students enrolled successfully!");
+            checkboxes.forEach(cb => cb.checked = false);
+            loadEnrolledStudents();
+        } else {
+            alert(data.error || "Failed to enroll students");
+        }
+    } catch (e) {
+        alert("Error enrolling students");
+    }
+}
+
+let currentVideos = [];
+
+async function loadCourseVideos() {
+    try {
+        const res = await fetch(`/video-api/${courseId}/`, { credentials: 'same-origin' });
+        const data = await res.json();
+        
+        if (res.ok) {
+            currentVideos = data.videos;
+            renderVideoList();
+        } else {
+            document.getElementById('videoList').innerHTML = `<p style="color: var(--danger);">${data.error || 'Failed to load videos'}</p>`;
+        }
+    } catch (e) {
+        document.getElementById('videoList').innerHTML = '<p style="color: var(--danger);">Error connecting to server</p>';
+    }
+}
+
+function renderVideoList() {
+    let html = '';
+    if (!currentVideos || currentVideos.length === 0) {
+        html = '<p style="color: var(--text-muted);">No videos added yet.</p>';
+    } else {
+        currentVideos.forEach((v, index) => {
+            html += `
+                <div class="draggable-video" draggable="true" data-id="${v.id}" style="padding: 1rem; margin-bottom: 0.5rem; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--glass-border); border-radius: 8px; cursor: grab; color: white; display: flex; align-items: center; gap: 1rem;">
+                    <span style="color: var(--text-muted); cursor: grab;">☰</span>
+                    <span>${v.title}</span>
+                </div>
+            `;
+        });
+    }
+    const container = document.getElementById('videoList');
+    container.innerHTML = html;
+    
+    const draggables = document.querySelectorAll('.draggable-video');
+    draggables.forEach(draggable => {
+        draggable.addEventListener('dragstart', () => {
+            draggable.classList.add('dragging');
+            draggable.style.opacity = '0.5';
+        });
+        
+        draggable.addEventListener('dragend', () => {
+            draggable.classList.remove('dragging');
+            draggable.style.opacity = '1';
+        });
+    });
+    
+    container.addEventListener('dragover', e => {
+        e.preventDefault();
+        const afterElement = getDragAfterElement(container, e.clientY);
+        const draggable = document.querySelector('.dragging');
+        if (afterElement == null) {
+            container.appendChild(draggable);
+        } else {
+            container.insertBefore(draggable, afterElement);
+        }
+    });
+}
+
+function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll('.draggable-video:not(.dragging)')];
+    
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+async function saveVideoOrder() {
+    const elements = document.querySelectorAll('.draggable-video');
+    const videoOrders = [];
+    
+    elements.forEach((el, index) => {
+        videoOrders.push({
+            id: parseInt(el.getAttribute('data-id')),
+            order: index
+        });
+    });
+    
+    if (videoOrders.length === 0) return;
+    
+    try {
+        const res = await fetch('/video-api/reorder/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ course_id: courseId, video_orders: videoOrders })
+        });
+        
+        if (res.ok) {
+            alert("Playlist order saved successfully!");
+        } else {
+            alert("Failed to save order");
+        }
+    } catch (e) {
+        alert("Error saving order");
+    }
+}
+
+// Check role
+if (localStorage.getItem('role') === 'student') {
+    alert("Unauthorized access");
+    window.location.href = '/dashboard/';
+} else {
+    if (localStorage.getItem('role') === 'admin') {
+        document.getElementById('enrollStudentsCard').style.display = 'block';
+        document.getElementById('currentStudentsCard').style.display = 'block';
+        loadEnrolledStudents();
+    }
+    loadStudents();
+    loadCourseVideos();
+}
+</script>
+{% endblock %}

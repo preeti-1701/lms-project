@@ -49,6 +49,9 @@
             <input type="password" id="password" class="form-control" placeholder="Password" required>
             <button type="submit" class="btn login-btn">Sign In</button>
         </form>
+        <div style="margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
+            Don't have an account? <a href="/register/" style="color: var(--secondary); text-decoration: none; font-weight: 500;">Apply here</a>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -75,6 +78,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
 
         if (response.ok) {
             localStorage.setItem("role", data.role);
+            localStorage.removeItem("security_strikes");
             window.location.href = "/dashboard/";
         } else {
             alert(data.error || "Login failed");

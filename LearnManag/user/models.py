@@ -42,6 +42,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=100)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
+    active_session_key = models.CharField(max_length=40, blank=True, null=True)
+    last_ip = models.GenericIPAddressField(blank=True, null=True)
+    last_device = models.CharField(max_length=255, blank=True, null=True)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -57,3 +60,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.email
     
 
+class SecurityViolation(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='security_violations')
+    reason = models.CharField(max_length=255)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"{self.user.email} - {self.reason}"

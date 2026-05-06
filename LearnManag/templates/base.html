@@ -9,13 +9,27 @@
     <style>
         :root {
             --bg-color: #0f172a;
-            --glass-bg: rgba(30, 41, 59, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-bg: rgba(30, 41, 59, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.15);
             --primary: #8b5cf6;
             --primary-hover: #7c3aed;
+            --secondary: #38bdf8;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --danger: #ef4444;
+        }
+
+        /* Animated Mesh Gradient Background */
+        @keyframes bg-pan {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Page Load Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         body {
@@ -24,13 +38,27 @@
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-color);
             background-image: 
-                radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.15) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.25) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.25) 0px, transparent 50%);
             background-attachment: fixed;
+            background-size: 200% 200%;
+            animation: bg-pan 15s ease infinite;
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
+            width: 100%;
+            box-sizing: border-box;
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         h1, h2, h3, h4, h5, h6 {
@@ -39,14 +67,15 @@
             color: var(--text-main);
         }
 
+        /* Navbar Enhancements */
         .navbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem 2rem;
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            padding: 1.2rem 2rem;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--glass-border);
             position: sticky;
             top: 0;
@@ -56,13 +85,12 @@
         .navbar-brand {
             font-family: 'Outfit', sans-serif;
             font-weight: 800;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             background: linear-gradient(135deg, #a78bfa, #38bdf8);
-            background-clip: text;
             -webkit-background-clip: text;
-            color: transparent;
             -webkit-text-fill-color: transparent;
             text-decoration: none;
+            letter-spacing: -0.5px;
         }
 
         .navbar-nav {
@@ -75,75 +103,91 @@
             color: var(--text-muted);
             text-decoration: none;
             font-weight: 500;
-            transition: color 0.2s ease;
+            transition: color 0.3s ease;
+            position: relative;
+            padding-bottom: 4px;
         }
 
-        .nav-link:hover {
-            color: var(--text-main);
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: var(--primary);
+            transition: width 0.3s ease;
         }
 
+        .nav-link:hover { color: white; }
+        .nav-link:hover::after { width: 100%; }
+
+        /* Unified Button Style from Register.html */
         .btn {
-            background: var(--primary);
+            display: inline-block;
+            text-align: center;
+            padding: 0.75rem 1.25rem;
+            background: linear-gradient(135deg, #8b5cf6, #38bdf8);
             color: white;
             border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            font-weight: 600;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
             font-family: 'Inter', sans-serif;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 6px 20px -5px rgba(139, 92, 246, 0.5);
             text-decoration: none;
-            display: inline-block;
         }
 
         .btn:hover {
-            background: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px -5px rgba(139, 92, 246, 0.7);
+            background: linear-gradient(135deg, #7c3aed, #0ea5e9);
         }
 
         .btn-danger {
             background: rgba(239, 68, 68, 0.1);
             color: var(--danger);
-            border: 1px solid rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            box-shadow: none;
         }
 
         .btn-danger:hover {
-            background: var(--danger);
+            background: linear-gradient(135deg, #ef4444, #dc2626);
             color: white;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            box-shadow: 0 8px 20px -5px rgba(239, 68, 68, 0.5);
+            border-color: transparent;
         }
 
         .btn-outline {
             background: transparent;
             border: 1px solid var(--glass-border);
             color: var(--text-main);
+            box-shadow: none;
         }
 
         .btn-outline:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 20px -5px rgba(255, 255, 255, 0.1);
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-            flex: 1;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
+        /* Glass Card Enhanced */
         .glass-card {
             background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
             border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
+        /* Grid & Course Cards */
         .grid-layout {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -152,9 +196,10 @@
         }
 
         .course-card {
-            background: rgba(30, 41, 59, 0.5);
+            background: rgba(30, 41, 59, 0.6);
             border: 1px solid var(--glass-border);
-            border-radius: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
             padding: 1.5rem;
             transition: all 0.3s ease;
             display: flex;
@@ -163,10 +208,10 @@
         }
 
         .course-card:hover {
-            transform: translateY(-5px);
-            background: rgba(30, 41, 59, 0.8);
-            border-color: rgba(139, 92, 246, 0.5);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            transform: translateY(-8px);
+            background: rgba(30, 41, 59, 0.9);
+            border-color: rgba(139, 92, 246, 0.6);
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.4), 0 0 15px rgba(139, 92, 246, 0.2);
         }
 
         .course-card .course-title {
@@ -174,6 +219,7 @@
             font-weight: 600;
             color: white;
             margin: 0;
+            font-family: 'Outfit', sans-serif;
         }
         
         .course-card .course-meta {
@@ -181,23 +227,43 @@
             font-size: 0.9rem;
         }
 
+        /* Unified Form Controls */
         .form-control {
             width: 100%;
-            padding: 0.75rem 1rem;
+            padding: 0.85rem 1rem;
             background: rgba(15, 23, 42, 0.6);
             border: 1px solid var(--glass-border);
-            border-radius: 8px;
+            border-radius: 12px;
             color: white;
             font-family: 'Inter', sans-serif;
-            margin-bottom: 1.5rem;
+            font-size: 1rem;
+            margin-bottom: 1.2rem;
             box-sizing: border-box;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: all 0.3s ease;
         }
 
         .form-control:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+        }
+
+        select.form-control option {
+            background-color: var(--bg-color);
+            color: white;
         }
 
         /* Custom Scrollbar */
@@ -215,6 +281,45 @@
             background: #475569;
         }
 
+        /* Security Elements */
+        #anti-snipping-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+            font-size: 2rem;
+            font-family: 'Outfit', sans-serif;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.1s;
+        }
+        #anti-snipping-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .security-watermark {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 999998;
+            opacity: 1; /* Rely on SVG fill opacity instead */
+            background-repeat: repeat;
+        }
+
+        @media print {
+            body { display: none !important; }
+        }
+
         {% block extra_css %}{% endblock %}
     </style>
 </head>
@@ -226,6 +331,7 @@
         <div class="navbar-nav">
             <a href="/dashboard/" class="nav-link">Dashboard</a>
             <a href="/courses/" class="nav-link">Courses</a>
+            <a href="/auth/profile/" class="nav-link">Profile</a>
             <button onclick="logout()" class="btn btn-danger">Logout</button>
         </div>
     </nav>
@@ -238,13 +344,111 @@
     <script>
         async function logout() {
             try {
-                await fetch('/auth/logout/', { method: 'POST' });
+                await fetch('/auth/logout/', { method: 'POST', credentials: 'same-origin' });
             } catch (e) {
                 console.error('Logout error', e);
             }
             localStorage.removeItem("role");
             window.location.href = "/login/";
         }
+
+        // --- ANTI SCREEN RECORDING / SCREENSHOT SUITE ---
+        
+        // 1. Dynamic Watermarking
+        document.addEventListener("DOMContentLoaded", () => {
+            const userEmail = "{{ user.email|escapejs }}" || "Confidential - Do Not Share";
+            
+            const watermark = document.createElement('div');
+            watermark.className = 'security-watermark';
+            document.body.appendChild(watermark);
+            
+            const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='250' height='150'>
+                <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' transform='rotate(-30 125 75)' fill='rgba(255, 255, 255, 0.15)' font-size='18' font-weight='bold' font-family='sans-serif'>${userEmail}</text>
+            </svg>`;
+            const encodedSvg = btoa(unescape(encodeURIComponent(svg)));
+            watermark.style.backgroundImage = `url("data:image/svg+xml;base64,${encodedSvg}")`;
+
+            // 2. Focus Obscuring (Anti-Snipping Tool)
+            const overlay = document.createElement('div');
+            overlay.id = 'anti-snipping-overlay';
+            overlay.innerHTML = 'Screen recording / snipping is disabled. Click to resume.';
+            document.body.appendChild(overlay);
+            
+            window.addEventListener('blur', () => overlay.classList.add('active'));
+            window.addEventListener('focus', () => overlay.classList.remove('active'));
+            
+            // Allow dismissing the overlay by clicking it
+            overlay.addEventListener('click', () => {
+                overlay.classList.remove('active');
+            });
+            
+            // --- THREE-STRIKE SECURITY SYSTEM ---
+            function registerSecurityViolation(reason) {
+                // Instantly force the screen black before alerting
+                overlay.classList.add('active');
+                
+                // Short timeout allows the browser to actually paint the black screen before the alert blocks the main thread
+                setTimeout(async () => {
+                    try {
+                        const res = await fetch('/auth/log-violation/', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'same-origin',
+                            body: JSON.stringify({ reason: reason })
+                        });
+                        
+                        if (res.ok) {
+                            const data = await res.json();
+                            let strikes = data.strikes || 1;
+                            
+                            if (strikes >= 3) {
+                                alert("SECURITY VIOLATION (STRIKE " + strikes + "): You have been forcefully logged out due to repeated security violations (" + reason + ").");
+                                localStorage.removeItem("role");
+                                window.location.href = "/login/";
+                            } else {
+                                alert("SECURITY WARNING (STRIKE " + strikes + "/3): Screenshots, printing, and developer tools are strictly prohibited. Further attempts will result in an automatic force-logout.");
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Failed to log security violation", e);
+                    }
+                }, 50);
+            }
+
+            // 3. Prevent Right Click & Copy
+            document.addEventListener('contextmenu', e => {
+                e.preventDefault();
+                registerSecurityViolation("Right-Click / Context Menu");
+            });
+            document.addEventListener('copy', e => {
+                e.preventDefault();
+                if (e.clipboardData) {
+                    e.clipboardData.setData('text/plain', 'Content protected.');
+                }
+                registerSecurityViolation("Copy attempt");
+            });
+            
+            // 4. Prevent Keyboard Shortcuts (Ctrl+S, Ctrl+P, F12)
+            document.addEventListener('keydown', e => {
+                if ((e.ctrlKey && ['s', 'p', 'c'].includes(e.key.toLowerCase())) ||
+                   (e.ctrlKey && e.shiftKey && ['i', 'j'].includes(e.key.toLowerCase())) ||
+                   e.key === 'F12') {
+                    e.preventDefault();
+                    registerSecurityViolation("Restricted Keyboard Shortcut");
+                }
+            });
+
+            // 5. Defeat PrintScreen via Clipboard Overwrite and Overlay
+            document.addEventListener('keyup', e => {
+                if (e.key === 'PrintScreen') {
+                    navigator.clipboard.writeText('Screenshots are disabled for security reasons.')
+                        .catch(err => console.error('Clipboard clear failed'));
+                    
+                    overlay.classList.add('active');
+                    registerSecurityViolation("PrintScreen Screenshot");
+                }
+            });
+        });
     </script>
     
     {% block extra_js %}{% endblock %}

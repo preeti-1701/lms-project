@@ -16,9 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
-from authentication.views import login_page, dashboard_view
+from authentication.views import login_page, dashboard_view, register_page, approvals_page
 from course.views import get_courses, course_page
 from video.views import video_page
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/',include('authentication.urls')),
@@ -26,6 +27,8 @@ urlpatterns = [
     path('video-api/', include('video.urls')),
     path('', login_page),
     path('login/', login_page),
+    path('register/', register_page),
+    path('approvals/', approvals_page),
     path('dashboard/', dashboard_view),
     path('courses/', course_page),
     path('video/<int:course_id>/', video_page),
