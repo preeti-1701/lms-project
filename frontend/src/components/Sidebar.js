@@ -1,20 +1,37 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
+
 import "./Sidebar.css";
 
 export default function Sidebar() {
-  const location = useLocation();
+
+  const role =
+    localStorage.getItem("role");
 
   return (
-    <div className="sidebar">
-      <h2 className="logo">🎓 LMS</h2>
 
-      <Link to="/dashboard" className={location.pathname === "/dashboard" ? "active" : ""}>
+    <div className="sidebar">
+
+      <h2>LMS</h2>
+
+      <Link to="/">
         Dashboard
       </Link>
 
-      <Link to="/courses" className={location.pathname === "/courses" ? "active" : ""}>
-        Courses
-      </Link>
+      {(role === "admin" ||
+        role === "trainer") && (
+
+        <Link to="/courses">
+          Courses
+        </Link>
+      )}
+
+      {role === "admin" && (
+
+        <Link to="/admin-dashboard">
+          Admin Panel
+        </Link>
+      )}
+
     </div>
   );
 }

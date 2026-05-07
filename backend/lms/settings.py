@@ -20,7 +20,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',  # ✅ ADD THIS
+    'django.contrib.messages.middleware.MessageMiddleware', 
+      'django.middleware.clickjacking.XFrameOptionsMiddleware', # ✅ ADD THIS
 ]
 
 TEMPLATES = [
@@ -60,3 +61,6 @@ STATIC_URL = '/static/'
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
