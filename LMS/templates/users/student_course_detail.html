@@ -108,7 +108,7 @@
     <div class="sidebar">
         <a href="{% url 'student_dashboard' %}" class="sidebar-header">
             <i class="fa-solid fa-graduation-cap"></i>
-            <span>LMS</span>
+            <span>LearnDesk</span>
         </a>
         <div class="sidebar-menu">
             <a href="{% url 'student_dashboard' %}" class="menu-item">
@@ -175,11 +175,9 @@
                         </div>
                         
                         {% if not is_enrolled %}
-                        <form method="POST" action="{% url 'student_course_detail' course.id %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="enroll">
-                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Enroll Now</button>
-                        </form>
+                        <div style="display: flex; align-items: center; gap: 8px; color: var(--danger); font-weight: 600; padding: 12px 24px; border-radius: 10px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);">
+                            <i class="fa-solid fa-lock"></i> Not Enrolled
+                        </div>
                         {% else %}
                         <span class="btn btn-success"><i class="fa-solid fa-check-circle"></i> Enrolled</span>
                         {% endif %}
@@ -194,9 +192,9 @@
                 </div>
                 
                 {% if not is_enrolled %}
-                <div class="locked-banner">
+                <div class="locked-banner" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: var(--danger);">
                     <i class="fa-solid fa-lock"></i>
-                    You must enroll in this course to access the video content.
+                    You are not enrolled in this course. Please contact admin for access.
                 </div>
                 {% endif %}
 

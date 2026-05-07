@@ -7,7 +7,7 @@ User = get_user_model()
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = User
-        fields = ("email", "full_name", "mobile", "role")
+        fields = ("email", "full_name", "mobile")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

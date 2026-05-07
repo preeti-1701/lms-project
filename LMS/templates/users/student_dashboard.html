@@ -90,7 +90,7 @@
     <div class="sidebar">
         <a href="#" class="sidebar-header">
             <i class="fa-solid fa-graduation-cap"></i>
-            <span>LMS</span>
+            <span>LearnDesk</span>
         </a>
         <div class="sidebar-menu">
             <div class="menu-item active" onclick="switchTab('dashboard', this)">
@@ -156,7 +156,7 @@
                             {% if course.id in enrolled_course_ids %}
                                 <div class="course-badge badge-enrolled"><i class="fa-solid fa-check"></i> Enrolled</div>
                             {% else %}
-                                <div class="course-badge badge-available">Available</div>
+                                <div class="course-badge badge-locked" style="background: rgba(239, 68, 68, 0.9); color: white;"><i class="fa-solid fa-lock"></i> Not Enrolled</div>
                             {% endif %}
                         </div>
                         <div class="course-content">
@@ -171,7 +171,7 @@
                                 </div>
                                 
                                 {% if course.id not in enrolled_course_ids %}
-                                    <span class="btn btn-primary">Enroll</span>
+                                    <span class="btn btn-outline" style="color: var(--text-muted); border-color: var(--border); pointer-events: none;"><i class="fa-solid fa-lock" style="margin-right: 5px;"></i> Locked</span>
                                 {% else %}
                                     <span class="btn btn-outline">View Course</span>
                                 {% endif %}

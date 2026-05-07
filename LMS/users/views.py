@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .forms import CustomUserCreationForm, CustomLoginForm, TrainerRegistrationForm
 from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
 import random
 import string
 
@@ -105,22 +106,6 @@ class AdminDashboardView(LoginRequiredMixin, AdminRequiredMixin, TemplateView):
         
         return context
 
-@method_decorator(never_cache, name='dispatch')
-class AdminCourseVideosView(LoginRequiredMixin, AdminRequiredMixin, TemplateView):
-    template_name = "users/admin_course_videos.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        course_id = self.kwargs.get('course_id')
-        try:
-            course = Course.objects.get(id=course_id)
-            context['course'] = course
-            context['videos'] = course.videos.all().order_by('order', 'id')
-        except Course.DoesNotExist:
-            context['course'] = None
-            context['videos'] = []
-        return context
-
     def post(self, request, *args, **kwargs):
         action = request.POST.get('action')
         if action == 'change_password':
@@ -139,8 +124,77 @@ class AdminCourseVideosView(LoginRequiredMixin, AdminRequiredMixin, TemplateView
                     messages.error(request, "New passwords do not match.")
             else:
                 messages.error(request, "Incorrect old password.")
+        elif action == 'add_student':
+            email = request.POST.get('email')
+            full_name = request.POST.get('full_name')
+            mobile = request.POST.get('mobile')
+            
+            if User.objects.filter(email=email).exists():
+                messages.error(request, "A user with this email already exists.")
+            else:
+                student_code = "STU-" + ''.join(random.choices(string.digits, k=4))
+                User.objects.create_user(
+                    email=email,
+                    password=student_code,
+                    full_name=full_name,
+                    mobile=mobile,
+                    role='STUDENT'
+                )
+                
+                # Send email to the student
+                subject = 'LearnDesk Account Created'
+                message = f'''Hello,
+
+Your LearnDesk student account has been created.
+
+You can log in using the following details:
+Email: {email}
+Password: {student_code}
+
+Please log in and change your password after your first login.
+
+Thank you,
+LearnDesk Team.'''
+                from django.conf import settings
+                from_email = settings.EMAIL_HOST_USER
+                try:
+                    send_mail(subject, message, from_email, [email], fail_silently=False)
+                    messages.success(request, f"Student added successfully! An email has been sent to {email} with their login details.")
+                except Exception as e:
+                    print(f"Failed to send email to {email}: {str(e)}")
+                    messages.warning(request, f"Student added successfully (Code: {student_code}), but we couldn't send the email. Please provide the code manually.")
+
+        elif action == 'add_enrollment':
+            student_id = request.POST.get('student_id')
+            course_id = request.POST.get('course_id')
+            if student_id and course_id:
+                try:
+                    student = User.objects.get(id=student_id, role='STUDENT')
+                    course = Course.objects.get(id=course_id)
+                    Enrollment.objects.get_or_create(student=student, course=course)
+                    messages.success(request, f"Successfully enrolled {student.full_name} in {course.title}!")
+                except (User.DoesNotExist, Course.DoesNotExist):
+                    messages.error(request, "Student or Course not found.")
+            else:
+                messages.error(request, "Please select both a student and a course.")
         
         return redirect('admin_dashboard')
+
+@method_decorator(never_cache, name='dispatch')
+class AdminCourseVideosView(LoginRequiredMixin, AdminRequiredMixin, TemplateView):
+    template_name = "users/admin_course_videos.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        course_id = self.kwargs.get('course_id')
+        try:
+            course = Course.objects.get(id=course_id)
+            context['course'] = course
+            context['videos'] = course.videos.all().order_by('order', 'id')
+        except Course.DoesNotExist:
+            context['course'] = None
+            context['videos'] = []
+        return context
 
 @method_decorator(never_cache, name='dispatch')
 class TrainerRegistrationView(LoginRequiredMixin, AdminRequiredMixin, FormView):

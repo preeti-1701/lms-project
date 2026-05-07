@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LMS Admin Dashboard</title>
+    <title>LearnDesk Admin Dashboard</title>
     <!-- Modern Typography -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- FontAwesome -->
@@ -691,7 +691,7 @@
     <div class="sidebar">
         <a href="#" class="sidebar-header">
             <i class="fa-solid fa-graduation-cap"></i>
-            <span>LMS</span>
+            <span>LearnDesk</span>
         </a>
         <div class="sidebar-menu">
             <div class="menu-item active" onclick="switchTab('dashboard')">
@@ -865,7 +865,7 @@
                         </div>
                         <div class="actions-group">
                             <button class="btn btn-outline"><i class="fa-solid fa-filter"></i> Filter</button>
-                            <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Student</button>
+                            <button class="btn btn-primary" onclick="openModal('add-student-modal')"><i class="fa-solid fa-plus"></i> Add Student</button>
                         </div>
                     </div>
 
@@ -1028,10 +1028,8 @@
                                     <td>
                                         <div class="actions-group">
                                             <a href="{% url 'admin_course_videos' course.id %}" class="btn btn-outline btn-icon" title="View Videos"><i class="fa-solid fa-eye"></i></a>
-                                            <button class="btn btn-outline btn-icon"><i
-                                                    class="fa-solid fa-pen"></i></button>
-                                            <button class="btn btn-danger btn-icon"><i
-                                                    class="fa-solid fa-trash"></i></button>
+                                            <a href="{% url 'admin:users_course_change' course.id %}" target="_blank" class="btn btn-outline btn-icon" title="Edit Course"><i class="fa-solid fa-pen"></i></a>
+                                            <button class="btn btn-danger btn-icon" title="Delete Course"><i class="fa-solid fa-trash"></i></button>
                                         </div>
                                     </td>
                                 </tr>
@@ -1050,13 +1048,18 @@
 
             <!-- 5. ENROLLMENTS SECTION -->
             <section id="enrollments" class="content-section">
-                <div class="form-grid">
-                    <!-- Enrollment Table -->
-                    <div class="card-panel">
-                        <div class="card-header">
-                            <div class="card-title">Active Enrollments</div>
+                <div class="card-panel">
+                    <div class="toolbar">
+                        <div class="search-bar">
+                            <i class="fa-solid fa-search"></i>
+                            <input type="text" placeholder="Search enrollments...">
                         </div>
-                        <div class="table-responsive">
+                        <div class="actions-group">
+                            <button class="btn btn-primary" onclick="openModal('add-enrollment-modal')"><i class="fa-solid fa-plus"></i> Give Enrollment</button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
                             <table>
                                 <tr>
                                     <th>Student</th>
@@ -1122,7 +1125,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Email Address</label>
-                        <input type="email" class="form-control" value="{{ user.email|default:'admin@lms.com' }}"
+                        <input type="email" class="form-control" value="{{ user.email|default:'admin@learndesk.com' }}"
                             disabled>
                     </div>
 
@@ -1248,6 +1251,78 @@
         </div>
     </div>
     {% endfor %}
+
+    <!-- Add Student Modal -->
+    <div class="modal-overlay" id="add-student-modal" onclick="closeModal(event, this)">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">Add New Student</div>
+                <button type="button" class="modal-close" onclick="closeModalBtn('add-student-modal')"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{% url 'admin_dashboard' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_student">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" name="full_name" class="form-control" required placeholder="Enter student's full name">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" name="email" class="form-control" required placeholder="Enter student's email">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mobile Number</label>
+                        <input type="text" name="mobile" class="form-control" placeholder="Enter mobile number (optional)">
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                        <button type="button" class="btn btn-outline" onclick="closeModalBtn('add-student-modal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Student</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Enrollment Modal -->
+    <div class="modal-overlay" id="add-enrollment-modal" onclick="closeModal(event, this)">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">Give Course Enrollment</div>
+                <button type="button" class="modal-close" onclick="closeModalBtn('add-enrollment-modal')"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{% url 'admin_dashboard' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_enrollment">
+                    <div class="form-group">
+                        <label class="form-label">Select Student</label>
+                        <select name="student_id" class="form-control" required>
+                            <option value="">-- Choose Student --</option>
+                            {% for student in students %}
+                            <option value="{{ student.id }}">{{ student.full_name }} ({{ student.email }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Select Course</label>
+                        <select name="course_id" class="form-control" required>
+                            <option value="">-- Choose Course --</option>
+                            {% for course in courses %}
+                            <option value="{{ course.id }}">{{ course.title }} (by {{ course.created_by.full_name }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                        <button type="button" class="btn btn-outline" onclick="closeModalBtn('add-enrollment-modal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Enroll Student</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- JavaScript for Navigation -->
     <script>
