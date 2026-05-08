@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Watch Video</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <style>
+        body { background-color: #121212; color: #ffffff; }
+        
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px; /* REDUCED SCREEN RATIO/SIZE */
+            margin: 0 auto;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        #watermark-layer {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none; 
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="container-fluid py-4">
+
+<div class="d-flex justify-content-between align-items-center mb-4 px-4" style="max-width: 900px; margin: 0 auto;">
+    <h3 id="video-title">Loading...</h3>
+    <button class="btn btn-outline-light" onclick="window.close()">Close Tab</button>
+</div>
+
+<div class="video-container">
+    <div id="yt-player"></div>
+    <div id="watermark-layer"></div>
+</div>
+
+<div class="text-center mt-3 text-muted" id="status-text">
+    Status: Watching...
+</div>
+
+<script>
+    const pathParts = window.location.pathname.split("/");
+    const courseId = pathParts[2];
+    const videoId = pathParts[4];
+    let player; // YouTube Player instance
+
+    async function fetchVideoData() {
+        const token = localStorage.getItem("token");
+        const response = await fetch("/api/my-courses/", {
+            headers: { "Authorization": "Bearer " + token }
+        });
+        const courses = await response.json();
+        const course = courses.find(c => c.id == courseId);
+        return course?.videos.find(v => v.id == videoId);
+    }
+
+    // This function is automatically called by YouTube's script when it loads
+    async function onYouTubeIframeAPIReady() {
+        const video = await fetchVideoData();
+        if (!video) return;
+
+        document.getElementById("video-title").innerText = video.title;
+        if (video.completed) document.getElementById("status-text").innerHTML = "✅ You have already completed this video.";
+
+        // Extract raw YouTube ID from your embed URL format
+        const ytId = video.embed_url.split('/embed/')[1];
+
+        // Initialize Official Player
+        player = new YT.Player('yt-player', {
+            height: '100%',
+            width: '100%',
+            videoId: ytId,
+            playerVars: {
+                'playsinline': 1,
+                'rel': 0,
+                'modestbranding': 1,
+                'origin': window.location.origin // FIXES MANY ERROR 153 ISSUES
+            },
+            events: {
+                'onStateChange': onPlayerStateChange
+            }
+        });
+    }
+
+    // Triggered whenever the video plays, pauses, or finishes
+    function onPlayerStateChange(event) {
+        // YT.PlayerState.ENDED = 0
+        if (event.data === 0) {
+            markVideoComplete();
+        }
+    }
+
+    async function markVideoComplete() {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`/api/mark-complete/${videoId}/`, {
+            method: "POST",
+            headers: { "Authorization": "Bearer " + token }
+        });
+        if (res.ok) {
+            document.getElementById("status-text").innerHTML = "✅ Video Completed! You can safely close this tab.";
+            // Reload opener window if it exists so the dashboard updates
+            if (window.opener && !window.opener.closed) {
+                window.opener.location.reload(); 
+            }
+        }
+    }
+
+    async function setupWatermark() {
+        const token = localStorage.getItem("token");
+        let userIdentifier = "Student";
+        
+        try {
+            // Safely grab the full name or email to prevent "undefined"
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            userIdentifier = payload.full_name || payload.email || "Student ID: " + payload.user_id;
+        } catch(e) {
+            console.error("Could not parse token for watermark");
+        }
+
+        let userIp = "Unknown IP";
+        try {
+            const ipRes = await fetch("https://api.ipify.org?format=json");
+            const ipData = await ipRes.json();
+            userIp = ipData.ip;
+        } catch(e) {}
+
+        const watermarkText = `${userIdentifier} | IP: ${userIp}`;
+        
+        // REVERTED: Back to 350x200 canvas so it repeats tightly all over the screen.
+        // Opacity set to 0.2 for a balanced visibility.
+        const svg = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="350" height="200">
+                <text x="50%" y="50%" transform="rotate(-25 175 100)" 
+                      fill="rgba(255, 255, 255, 0.36)" font-size="20" 
+                      font-family="Arial, sans-serif" font-weight="bold" 
+                      text-anchor="middle" dominant-baseline="middle">
+                    ${watermarkText}
+                </text>
+            </svg>`;
+            
+        const encodedSvg = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg)));
+        document.getElementById("watermark-layer").style.backgroundImage = `url('${encodedSvg}')`;
+    }
+
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    setupWatermark();
+</script>
+
+</body>
+</html>

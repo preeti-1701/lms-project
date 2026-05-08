@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Course Overview</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container mt-5">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 id="course-title">Loading Course...</h2>
+        <p id="course-desc" class="text-muted"></p>
+    </div>
+    <button class="btn btn-secondary" onclick="window.location.href='/dashboard/'">Back to Dashboard</button>
+</div>
+
+<div class="row" id="video-grid"></div>
+
+<script>
+    async function loadCourse() {
+        const token = localStorage.getItem("token");
+        const courseId = window.location.pathname.split("/")[2];
+
+        const response = await fetch("/api/my-courses/", {
+            headers: { "Authorization": "Bearer " + token }
+        });
+
+        const data = await response.json();
+        const course = data.find(c => c.id == courseId);
+
+        if (!course) {
+            document.getElementById("course-title").innerText = "Course not found.";
+            return;
+        }
+
+        // Set Title & Description
+        document.getElementById("course-title").innerText = course.title;
+        document.getElementById("course-desc").innerText = course.description;
+
+        const container = document.getElementById("video-grid");
+        container.innerHTML = ""; 
+
+        course.videos.forEach(video => {
+            const videoId = video.embed_url.split("/embed/")[1]?.split("?")[0];
+            const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+            
+            // Show dynamic status based on backend data
+            const statusBadge = video.completed 
+                ? `<span class="text-success fw-bold">✅ Completed</span>` 
+                : `<span class="text-muted small">⭕ Pending</span>`;
+
+            container.innerHTML += `
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <img src="${thumbnailUrl}" class="card-img-top" alt="Thumbnail" style="height: 200px; object-fit: cover;">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">${video.title}</h5>
+                            <div class="mt-auto d-flex justify-content-between align-items-center">
+                                <a href="/course/${courseId}/video/${video.id}/" target="_blank" class="btn btn-primary btn-sm">Watch Video</a>
+                                ${statusBadge}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    loadCourse();
+</script>
+
+</body>
+</html>

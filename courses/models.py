@@ -25,3 +25,11 @@ class Video(models.Model):
 
     def __str__(self):
         return self.title
+    
+class VideoProgress(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE)
+    is_completed = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ('user', 'video')

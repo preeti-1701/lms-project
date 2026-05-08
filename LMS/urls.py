@@ -17,13 +17,27 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path , include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from users.views import LoginView , ForceLogoutView
+from users.views import CreateUserView, LoginView , ForceLogoutView, UpdateUserView , UsersListView
+
+from users.views import login_page
+from courses.views import admin_dashboard, dashboard, course_page, trainer_dashboard , trainer_manage_course_page, watch_video_page
 
 urlpatterns = [
+    path('', login_page),
+    path('dashboard/', dashboard),
+    path('course/<int:course_id>/', course_page),
+    path('course/<int:course_id>/video/<int:video_id>/', watch_video_page),
+    path('api/create-user/', CreateUserView.as_view()),
+    path('trainer/', trainer_dashboard),
+    path('admin-dashboard/', admin_dashboard),
+    path('trainer/course/<int:course_id>/', trainer_manage_course_page),
+
     path('admin/', admin.site.urls),
     path('api/login/', LoginView.as_view()),
     path('api/force-logout/<int:user_id>/', ForceLogoutView.as_view()),
     path('api/token/', TokenObtainPairView.as_view()),
     path('api/token/refresh/', TokenRefreshView.as_view()),
+    path('api/update-user/<int:user_id>/', UpdateUserView.as_view()),
+    path('api/users/', UsersListView.as_view()),
     path('api/', include('courses.urls')),
 ]

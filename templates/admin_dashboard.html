@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container mt-5">
+    <div class="d-flex justify-content-between mb-4">
+        <h2>Admin Control Center</h2>
+        <button class="btn btn-danger" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="card p-3 mb-4 shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4>1. User Management</h4>
+            <button class="btn btn-sm btn-primary" onclick="toggleCreateUserForm()">+ Create New User</button>
+        </div>
+
+        <div id="createUserForm" class="p-3 mb-3 border rounded bg-light" style="display: none;">
+            <h5>Create User</h5>
+            <div class="row">
+                <div class="col-md-3"><input class="form-control" id="newEmail" placeholder="Email"></div>
+                <div class="col-md-3"><input class="form-control" type="password" id="newPassword" placeholder="Password"></div>
+                <div class="col-md-3"><input class="form-control" id="newName" placeholder="Full Name"></div>
+                <div class="col-md-2">
+                    <select class="form-control" id="newRole">
+                        <option value="student">Student</option>
+                        <option value="trainer">Trainer</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="col-md-1"><button class="btn btn-success w-100" onclick="createUser()">Save</button></div>
+            </div>
+        </div>
+
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="users-table-body"></tbody>
+        </table>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card p-3 mb-3 shadow-sm">
+                <h4>2. Create Course</h4>
+                <input class="form-control mb-2" id="courseTitle" placeholder="Course Title">
+                <textarea class="form-control mb-3" id="courseDesc" placeholder="Description"></textarea>
+                <button class="btn btn-success" onclick="createCourse()">Create Course</button>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card p-3 shadow-sm">
+                <h4>3. Manage & Assign Courses</h4>
+                <p class="text-muted small">Select a course to assign students to it.</p>
+                <div id="admin-courses-list"></div>
+                
+                <hr>
+                <div id="assignment-section" class="p-3 bg-light border rounded" style="display: none;">
+                    <h5 id="selected-course-title" class="text-primary"></h5>
+                    <p>Select Students to Assign:</p>
+                    <div id="students-list" class="mb-3" style="max-height: 200px; overflow-y: auto;"></div>
+                    <button class="btn btn-warning" onclick="assignSelectedStudents()">Save Assignments</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    let currentSelectedCourseId = null;
+    let allCourses = []; 
+
+    function logout() {
+        localStorage.removeItem("token");
+        window.location.href = "/";
+    }
+
+    function toggleCreateUserForm() {
+        const form = document.getElementById("createUserForm");
+        form.style.display = form.style.display === "none" ? "block" : "none";
+    }
+
+    async function authFetch(url, options = {}) {
+        const token = localStorage.getItem("token");
+        options.headers = { ...options.headers, "Authorization": "Bearer " + token };
+        return fetch(url, options);
+    }
+
+    // --- USER MANAGEMENT ---
+    async function createUser() {
+        const payload = {
+            email: document.getElementById("newEmail").value,
+            password: document.getElementById("newPassword").value,
+            full_name: document.getElementById("newName").value,
+            role: document.getElementById("newRole").value
+        };
+        const res = await authFetch("/api/create-user/", {
+            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
+        });
+        if(res.ok) { 
+            alert("User Created!"); 
+            document.getElementById("createUserForm").style.display = "none";
+            loadDashboardData(); 
+        } else {
+            const data = await res.json();
+            alert("Error: " + JSON.stringify(data));
+        }
+    }
+
+    async function forceLogoutUser(userId) {
+        if(confirm("Force this user to logout from all devices?")) {
+            const res = await authFetch(`/api/force-logout/${userId}/`, { method: "POST" });
+            if(res.ok) alert("User logged out successfully.");
+        }
+    }
+
+    async function toggleUserStatus(userId, currentStatus) {
+        const newStatus = !currentStatus;
+        const action = newStatus ? "Enable" : "Disable";
+        if(confirm(`Are you sure you want to ${action} this user?`)) {
+            const res = await authFetch(`/api/update-user/${userId}/`, {
+                method: "PUT", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ is_active: newStatus })
+            });
+            if(res.ok) loadDashboardData();
+        }
+    }
+
+    async function editUserRole(userId) {
+        const newRole = prompt("Enter new role (admin, trainer, student):");
+        if(newRole && ['admin', 'trainer', 'student'].includes(newRole.toLowerCase())) {
+            const res = await authFetch(`/api/update-user/${userId}/`, {
+                method: "PUT", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ role: newRole.toLowerCase() })
+            });
+            if(res.ok) loadDashboardData();
+        } else if (newRole) {
+            alert("Invalid role.");
+        }
+    }
+
+    // --- COURSE MANAGEMENT ---
+    async function createCourse() {
+        const title = document.getElementById("courseTitle").value;
+        const description = document.getElementById("courseDesc").value;
+        
+        if(!title || !description) return alert("Title and Description are required!");
+
+        const payload = { title, description };
+        const res = await authFetch("/api/create-course/", {
+            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
+        });
+        
+        if(res.ok) { 
+            alert("Course Created!"); 
+            document.getElementById("courseTitle").value = "";
+            document.getElementById("courseDesc").value = "";
+            loadDashboardData(); 
+        } else {
+            const err = await res.json();
+            alert("Failed to create course: " + JSON.stringify(err));
+        }
+    }
+
+    // --- DASHBOARD DATA LOADING ---
+    async function loadDashboardData() {
+        // Load Users
+        const studentRes = await authFetch("/api/users/");
+        const allUsers = await studentRes.json();
+        
+        const userTbody = document.getElementById("users-table-body");
+        userTbody.innerHTML = "";
+        
+        const studentContainer = document.getElementById("students-list");
+        studentContainer.innerHTML = "";
+
+        allUsers.forEach(u => {
+            // 1. Populate User Table
+            const statusBadge = u.is_active ? `<span class="badge bg-success">Active</span>` : `<span class="badge bg-danger">Disabled</span>`;
+            const disableBtnTxt = u.is_active ? "Disable" : "Enable";
+            const disableBtnClass = u.is_active ? "btn-outline-danger" : "btn-outline-success";
+
+            userTbody.innerHTML += `
+                <tr>
+                    <td><strong>${u.full_name}</strong></td>
+                    <td>${u.email}</td>
+                    <td><span class="badge bg-secondary">${u.role}</span></td>
+                    <td>${statusBadge}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="editUserRole(${u.id})">Edit Role</button>
+                        <button class="btn btn-sm ${disableBtnClass}" onclick="toggleUserStatus(${u.id}, ${u.is_active})">${disableBtnTxt}</button>
+                        <button class="btn btn-sm btn-dark" onclick="forceLogoutUser(${u.id})">Force Logout</button>
+                    </td>
+                </tr>
+            `;
+
+            // 2. Populate Students for Course Assignment (Only active students)
+            if (u.role === 'student') {
+                studentContainer.innerHTML += `
+                    <div class="form-check">
+                        <input class="form-check-input student-checkbox" type="checkbox" value="${u.id}" id="std_${u.id}">
+                        <label class="form-check-label" for="std_${u.id}">${u.email} (${u.full_name})</label>
+                    </div>`;
+            }
+        });
+
+        // Load Courses
+        const courseRes = await authFetch("/api/trainer-courses/");
+        allCourses = await courseRes.json(); 
+        
+        const courseContainer = document.getElementById("admin-courses-list");
+        courseContainer.innerHTML = "";
+        allCourses.forEach(c => {
+            courseContainer.innerHTML += `
+                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                    <span><strong>${c.title}</strong> <span class="badge bg-secondary ms-2">${c.assigned_students.length} Enrolled</span></span>
+                    <button class="btn btn-sm btn-primary" onclick="openAssignMenu(${c.id}, '${c.title}')">Assign Students</button>
+                </div>`;
+        });
+    }
+
+    function openAssignMenu(courseId, courseTitle) {
+        currentSelectedCourseId = courseId;
+        document.getElementById("selected-course-title").innerText = `Assigning to: ${courseTitle}`;
+        document.getElementById("assignment-section").style.display = "block";
+        
+        const selectedCourse = allCourses.find(c => c.id === courseId);
+        const enrolledIds = selectedCourse.assigned_students || [];
+
+        document.querySelectorAll(".student-checkbox").forEach(cb => {
+            cb.checked = enrolledIds.includes(parseInt(cb.value));
+        });
+    }
+
+    async function assignSelectedStudents() {
+        if (!currentSelectedCourseId) return;
+        const selectedStudentIds = Array.from(document.querySelectorAll('.student-checkbox:checked')).map(cb => parseInt(cb.value));
+
+        const res = await authFetch(`/api/assign-students/${currentSelectedCourseId}/`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ student_ids: selectedStudentIds })
+        });
+
+        if (res.ok) {
+            alert("Students successfully assigned!");
+            loadDashboardData(); 
+            document.getElementById("assignment-section").style.display = "none"; 
+        } else {
+            // FIX: Show the error message if it fails
+            const errData = await res.json();
+            alert("Failed to assign: " + (errData.error || "Unknown error"));
+        }
+    }
+
+    loadDashboardData();
+</script>
+</body>
+</html>
