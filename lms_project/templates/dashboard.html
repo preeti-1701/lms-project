@@ -1,55 +1,196 @@
 {% extends 'base.html' %}
-{% load static %}
+{% block content %}
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>LMS</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-
-<nav class="navbar navbar-dark bg-dark px-4">
-    <span class="navbar-brand">LMS</span>
-
-    {% if user.is_authenticated %}
-        <div>
-            <span class="text-white me-3">{{ user.email }}</span>
-            <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">Logout</a>
-        </div>
-    {% endif %}
-</nav>
-
-<div class="container mt-5">
-    {% block content %}
-    
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-capitalize">{{ user.role }} Dashboard</h2>
-    </div>
-
-    <h2>Courses</h2>
-
-    {% for course in courses %}
-        <div class="card mb-4 p-3">
-            <h3>{{ course.title }}</h3>
-
-            {% for video in course.video_set.all %}
-                <div class="mb-2">
-                    <p>{{ video.title }}</p>
-
-                    <!-- YouTube Open Button -->
-                    <a href="{{ video.youtube_link }}" 
-                       target="_blank" 
-                       class="btn btn-primary btn-sm">
-                        Watch Video
-                    </a>
-                </div>
-            {% endfor %}
-        </div>
-    {% endfor %}
-
-    {% endblock %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="text-capitalize">{{ user.role }} Dashboard</h2>
+  <span class="badge bg-primary px-3 py-2">Active Session</span>
 </div>
 
-</body>
-</html>
+{% if user.role == 'trainer' %}
+<div class="card mb-5 border-0 shadow-sm">
+  <div class="card-body">
+    <h4 class="card-title mb-3">Add New Course</h4>
+    <form method="POST" class="row g-3">
+      {% csrf_token %}
+      <div class="col-md-9">
+        <input type="text" name="title" class="form-control" placeholder="Course Title" required>
+      </div>
+      <div class="col-md-3">
+        <button type="submit" name="add_course" class="btn btn-success w-100">Create Course</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<div class="row">
+  {% if courses %}
+    {% for course in courses %}
+    <div class="col-12 mb-4">
+      <div class="card h-100 shadow-sm">
+
+        <!-- HEADER -->
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+          <h3 class="h5 mb-0 text-primary">{{ course.title }}</h3>
+
+          {% if user.role == 'trainer' %}
+          <div class="d-flex gap-2">
+            <!-- UPDATE -->
+            <form method="POST" class="d-flex">
+              {% csrf_token %}
+              <input type="hidden" name="course_id" value="{{ course.id }}">
+              <input type="text" name="title" class="form-control form-control-sm me-2"
+                     placeholder="New Title" style="width:150px;">
+              <button type="submit" name="update_course" class="btn btn-sm btn-warning">Update</button>
+            </form>
+            <!-- DELETE -->
+            <form method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="course_id" value="{{ course.id }}">
+              <button type="submit" name="delete_course" class="btn btn-sm btn-danger"
+                      onclick="return confirm('Delete this course?')">Delete</button>
+            </form>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- BODY -->
+        <div class="card-body">
+          {% if user.role == 'trainer' %}
+          <div class="row g-4 mb-4">
+            <!-- ASSIGN STUDENT -->
+            <div class="col-lg-6 border-end">
+              <h6 class="text-muted mb-3">Assign Student</h6>
+              <form method="POST" class="input-group">
+                {% csrf_token %}
+                <input type="hidden" name="course_id" value="{{ course.id }}">
+                <select name="student_id" class="form-select form-select-sm">
+                  {% for student in students %}
+                  <option value="{{ student.id }}">{{ student.username }}</option>
+                  {% endfor %}
+                </select>
+                <button type="submit" name="assign_student" class="btn btn-sm btn-outline-primary">Assign</button>
+              </form>
+            </div>
+
+            <!-- ADD VIDEO -->
+            <div class="col-lg-6">
+              <h6 class="text-muted mb-3">Add Video Material</h6>
+              <form method="POST" class="row g-2">
+                {% csrf_token %}
+                <input type="hidden" name="course_id" value="{{ course.id }}">
+                <div class="col-6">
+                  <input type="text" name="video_title" class="form-control form-control-sm" placeholder="Title">
+                </div>
+                <div class="col-6">
+                  <input type="url" name="youtube_link" class="form-control form-control-sm" placeholder="YouTube URL">
+                </div>
+                <div class="col-12 mt-2">
+                  <button type="submit" name="add_video" class="btn btn-sm btn-dark w-100">Upload Video</button>
+                </div>
+              </form>
+            </div>
+          </div>
+          <hr>
+          {% endif %}
+
+          <!-- COURSE CONTENT -->
+          <h6 class="mb-3">Course Content</h6>
+          <div class="d-flex flex-wrap gap-2">
+            {% for video in course.video_set.all %}
+              <button class="btn btn-light border btn-sm"
+                      onclick="openVideo('{{ video.youtube_link }}')">
+                <span class="text-danger me-1">▶</span> {{ video.title }}
+              </button>
+            {% empty %}
+              <p class="text-muted small">No videos available yet.</p>
+            {% endfor %}
+          </div>
+
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+  {% else %}
+  <div class="col-12">
+    <div class="alert alert-light border text-center py-5">
+      <p class="mb-0 text-muted">
+        {% if user.role == 'student' %}No courses assigned to you yet.
+        {% elif user.role == 'trainer' %}You haven't created any courses yet.
+        {% else %}No courses available in the system.{% endif %}
+      </p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- VIDEO MODAL -->
+<div class="modal fade" id="videoModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content bg-dark position-relative">
+
+      <!-- Watermark -->
+      <div style="
+          position: absolute; top: 50%; left: 50%;
+          transform: translate(-50%, -50%);
+          opacity: 0.15; font-size: 1.5rem; color: white;
+          pointer-events: none; z-index: 10; white-space: nowrap;">
+        {{ user.email }}
+      </div>
+
+      <div class="modal-header border-0">
+        <h5 class="modal-title text-white">Now Playing</h5>
+        <button type="button" class="btn-close btn-close-white"
+                data-bs-dismiss="modal" onclick="stopVideo()"></button>
+      </div>
+
+      <div class="modal-body p-0">
+        <div class="ratio ratio-16x9">
+          <iframe id="videoFrame" src="" allowfullscreen
+                  allow="autoplay; encrypted-media"></iframe>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'PrintScreen' || (e.ctrlKey && e.shiftKey && e.key === 'S')) {
+        e.preventDefault();
+        alert('Screenshots are disabled on this platform.');
+    }
+});
+
+function openVideo(youtubeUrl) {
+    let videoId = null;
+    try {
+        const url = new URL(youtubeUrl);
+        if (url.hostname.includes('youtu.be')) {
+            videoId = url.pathname.slice(1);
+        } else {
+            videoId = url.searchParams.get('v');
+        }
+    } catch(e) {
+        videoId = youtubeUrl;
+    }
+
+    const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+    document.getElementById('videoFrame').src = embedUrl;
+
+    const modal = new bootstrap.Modal(document.getElementById('videoModal'));
+    modal.show();
+}
+
+function stopVideo() {
+    document.getElementById('videoFrame').src = '';
+}
+
+document.getElementById('videoModal').addEventListener('hidden.bs.modal', stopVideo);
+</script>
+
+{% endblock %}
