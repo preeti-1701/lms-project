@@ -27,13 +27,13 @@ Submit assignments
 View grades and attendance
 
 Technologies Used                    					Technology	Purpose
-Python																				Backend Programming
-Django																				Web Framework
-HTML/CSS																			Frontend Design
-Bootstrap																			Responsive UI
-SQLite/MySQL																	Database
-JavaScript																		Client-side Functionality
-Git & GitHub																	Version Control
+Python																		Backend Programming
+Django																		Web Framework
+HTML/CSS																	Frontend Design
+Bootstrap																	Responsive UI
+SQLite/MySQL															Database
+JavaScript																Client-side Functionality
+Git & GitHub															Version Control
 
 System Requirements
 Software Requirements
