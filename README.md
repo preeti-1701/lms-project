@@ -6,12 +6,14 @@ This project is designed using Python and the Django framework to provide a secu
 
 Features
 Admin Module
+
 Manage students and teachers
 Add, update, and delete courses
 Monitor system activities
 Manage user authentication and permissions
 
 Teacher Module
+
 Create and manage courses
 Upload study materials
 Post assignments and quizzes
@@ -24,15 +26,14 @@ Access learning materials
 Submit assignments
 View grades and attendance
 
-Technologies Used
-Technology	Purpose
-Python	Backend Programming
-Django	Web Framework
-HTML/CSS	Frontend Design
-Bootstrap	Responsive UI
-SQLite/MySQL	Database
-JavaScript	Client-side Functionality
-Git & GitHub	Version Control
+Technologies Used                    					Technology	Purpose
+Python																				Backend Programming
+Django																				Web Framework
+HTML/CSS																			Frontend Design
+Bootstrap																			Responsive UI
+SQLite/MySQL																	Database
+JavaScript																		Client-side Functionality
+Git & GitHub																	Version Control
 
 System Requirements
 Software Requirements
