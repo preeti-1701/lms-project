@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 
@@ -13,6 +13,10 @@ import SecureVideoPage from './pages/SecureVideoPage'
 
 function App() {
   const { user, loading } = useAuth()
+  const location = useLocation()
+
+  // detect secure video route
+  const isSecureVideoPage = location.pathname.startsWith('/secure-video/')
 
   // 🔥 SAFE LOADING UI (prevents blank screen)
   if (loading) {
@@ -45,9 +49,23 @@ function App() {
     }
   }
 
+  if (isSecureVideoPage) {
+    return (
+      <Routes>
+        <Route
+          path="/secure-video/:token"
+          element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <SecureVideoPage />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    )
+  }
+
   return (
     <div className="app">
-      {/* Navbar only when authenticated */}
       {user && <Navbar />}
 
       <main className="main-content">
@@ -111,8 +129,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-          {/* Secure Video Page */}
-
 
           {/* ROOT REDIRECT (SAFE) */}
           <Route

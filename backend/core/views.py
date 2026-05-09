@@ -454,7 +454,7 @@ def dashboard_stats(request):
 # =========================
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsStudent])
 def report_security_event(request):
     """
     Student reports security event (screenshot, recording attempt, etc.)
@@ -481,10 +481,22 @@ def report_security_event(request):
             user_agent=request.headers.get('User-Agent', ''),
             ip_address=request.META.get('REMOTE_ADDR')
         )
-        return Response({
+
+        response_data = {
             'message': 'Security event reported',
             'id': notification.id
-        }, status=status.HTTP_201_CREATED)
+        }
+
+        # Auto-logout for critical violations
+        critical_types = ['screenshot', 'screen_record', 'print']
+        if notification_type in critical_types:
+            request.user.session_token = str(uuid.uuid4())
+            request.user.save(update_fields=['session_token'])
+            response_data['force_logout'] = True
+            response_data['reason'] = f'Critical violation: {notification_type}'
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
+
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -573,7 +585,7 @@ def secure_video_token(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsStudent])
 def report_security_violation(request):
     """
     Enhanced security report with auto-force-logout on critical violations
@@ -584,11 +596,21 @@ def report_security_violation(request):
     
     # Create notification
     try:
+        notification_kwargs = {}
+        for k, v in data.items():
+            if k == 'course_id':
+                notification_kwargs['course_id'] = v
+            elif k == 'video_id':
+                notification_kwargs['video_id'] = v
+            elif k == 'description':
+                notification_kwargs['description'] = v
+
         notification = SecurityNotification.objects.create(
             student=request.user,
             notification_type=notification_type,
-            **{k: v for k, v in data.items() if k in ['course_id', 'video_id', 'description']}
+            **notification_kwargs
         )
+
     except Exception:
         return Response({'error': 'Failed to create notification'}, status=400)
     

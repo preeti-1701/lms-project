@@ -108,6 +108,21 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Cross-tab logout synchronization for backend force_logout
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (!e?.key || e.key !== 'force_logout') return
+      // Another tab requested force logout: clear local auth immediately
+      clearAuth()
+      navigate('/login?expired=true')
+    }
+
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
+
+
+
   // Check if session just expired
   const isSessionExpired = () => {
     return sessionStorage.getItem('session_expired') === 'true'

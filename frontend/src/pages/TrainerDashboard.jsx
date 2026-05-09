@@ -49,10 +49,11 @@ export default function TrainerDashboard() {
           setNotifications(res.data);
         })
         .catch(err => console.error(err));
-    }, 30000);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, []);
+
 
   if (loading) return <div className="loading">Loading...</div>;
 

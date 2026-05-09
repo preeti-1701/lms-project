@@ -48,6 +48,10 @@ class UserSerializer(serializers.ModelSerializer):
 # =========================
 class VideoSerializer(serializers.ModelSerializer):
     url = serializers.URLField(write_only=True, required=False, source='youtube_url')
+
+    # embed URL for inline playback
+    embed_url = serializers.ReadOnlyField(source='youtube_embed_url')
+
     video_url = serializers.SerializerMethodField()
     watch_url = serializers.SerializerMethodField()
     course = serializers.PrimaryKeyRelatedField(queryset=Course.objects.all(), required=False)
@@ -56,9 +60,11 @@ class VideoSerializer(serializers.ModelSerializer):
         model = Video
         fields = [
             'id', 'title', 'course', 'youtube_url', 'url',
+            'embed_url',
             'video_url', 'watch_url', 'order', 'duration', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
+
 
     def get_video_url(self, obj):
         """Returns embed URL for inline playback"""

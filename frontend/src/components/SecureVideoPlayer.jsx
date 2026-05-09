@@ -38,11 +38,11 @@ export default function SecureVideoPlayer({
     setTimeout(() => setSecurityAlert(null), 5000);
   };
 
-  // Handle "watch video" - open in YouTube new tab
+  // Handle "watch video" - embed inside LMS (no direct YouTube tab)
   const handleWatchVideo = () => {
-    window.open(url, '_blank');
     setVideoPlaying(true);
   };
+
 
   // Initialize security protection - runs on mount
   useEffect(() => {
@@ -232,14 +232,30 @@ export default function SecureVideoPlayer({
           Video Playing in YouTube
         </h3>
         <p style={{ color: '#888', margin: '10px 0' }}>
-          "{title}" is now playing in a new tab
+          "{title}" is now playing inside the LMS
         </p>
-        
+
+        {/* YouTube iframe embed (no new tab) */}
+        <div style={{ position: 'relative', zIndex: 1, height: '70vh', width: '100%', marginTop: 12 }}>
+          <iframe
+            title={title}
+            src={url}
+            style={{
+              width: '100%',
+              height: '100%',
+              border: 'none',
+              borderRadius: 8,
+            }}
+            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+
         <div style={{ 
           background: '#2d2d2d', 
           padding: '15px', 
           borderRadius: '4px',
-          marginTop: '20px',
+          marginTop: '12px',
           textAlign: 'left'
         }}>
           <p style={{ color: '#dc3545', fontWeight: 'bold', marginBottom: '10px' }}>
@@ -256,6 +272,7 @@ export default function SecureVideoPlayer({
             ⚠️ All violations are being monitored and reported!
           </p>
         </div>
+
 
         <button 
           onClick={handleFinishedWatching}

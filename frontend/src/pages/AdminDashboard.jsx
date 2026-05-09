@@ -65,7 +65,8 @@ export default function AdminDashboard() {
     }, 30000); // 30 seconds polling
 
     return () => clearInterval(interval);
-  }, [unreadCount]);
+  }, []);
+
 
   const handleForceLogout = async (userId) => {
     if (!confirm('Force logout this user?')) return;

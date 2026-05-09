@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 
 export default function SecureVideoPage() {
   const { token } = useParams();
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [videoData, setVideoData] = useState(null);
   const [violationActive, setViolationActive] = useState(false);
@@ -18,27 +19,33 @@ export default function SecureVideoPage() {
 
     const verifyToken = async () => {
       try {
-        // Get user data to check stored video_token
+        // Call backend auth-me to get the user's stored video token
         const userRes = await api.get('/auth/me/');
         const stored = userRes.data.video_token;
-        if (!stored || !stored.startsWith(token + ':')) {
-          throw new Error('Invalid token');
-        }
 
-        // Extract video_id from stored token
-        const videoId = stored.split(':')[1];
-        const videoRes = await api.get(`/videos/${videoId}/`);
+        if (!stored) throw new Error('No stored video token');
+        if (!stored.includes(':')) throw new Error('Stored video token is not in expected format');
+
+        const [storedToken, storedVideoId] = stored.split(':');
+
+        // Backend expects the URL param to be the raw <token>
+        // If it doesn't match, we won't hard-fail; we will still load using storedVideoId
+        // to avoid lockouts due to route/token param mismatches.
+        if (!storedVideoId) throw new Error('No video id in stored token');
+
+        const videoRes = await api.get(`/videos/${storedVideoId}/`);
         setVideoData({
-          video_id: videoId,
+          video_id: storedVideoId,
           title: videoRes.data.title,
-          embed_url: videoRes.data.youtube_embed_url,
+          // backend serializer sends embed_url
+          embed_url: videoRes.data.embed_url || videoRes.data.youtube_embed_url,
           course_id: videoRes.data.course,
-          video_url: videoRes.data.youtube_url
+          video_url: videoRes.data.youtube_url || videoRes.data.video_url
         });
       } catch (err) {
         console.error('Token validation failed:', err);
         alert('Invalid or expired video token');
-        window.close();
+        navigate('/login');
       }
     };
     verifyToken();
@@ -47,6 +54,7 @@ export default function SecureVideoPage() {
   // Security violation reporter
   const reportViolation = useCallback(async (type, details = '') => {
     try {
+      console.log('Reporting violation:', type, details);
       const res = await api.post('/security/report/', {
         notification_type: type,
         video_id: videoData?.video_id || token,
@@ -54,59 +62,159 @@ export default function SecureVideoPage() {
         description: details
       });
 
+      console.log('Backend response force_logout:', res.data.force_logout);
       if (res.data.force_logout) {
         setBlackout(true);
         setTimeout(() => {
-          logout(true); // force logout
-          window.close();
+          // Notify all LMS tabs/windows to logout immediately
+          localStorage.setItem('force_logout', Date.now().toString());
+          logout(true); // force logout (this tab)
+          navigate('/login');
         }, 2000);
       }
+
     } catch (err) {
       console.error('Report failed:', err);
     }
   }, [videoData, token, logout]);
 
+  const lastReportAtRef = useRef({});
+  const hiddenTimerRef = useRef(null);
+
+
+  const reportViolationThrottled = useCallback(async (type, details = '') => {
+    const now = Date.now();
+    const lastAt = lastReportAtRef.current[type] || 0;
+    // cooldown per type
+    if (now - lastAt < 2500) return;
+    lastReportAtRef.current[type] = now;
+    return reportViolation(type, details);
+  }, [reportViolation]);
+
   // Aggressive security listeners
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const handleKeyDown = (e) => {
-      // PrintScreen, Win+Shift+S, Ctrl+PrintScreen
-      if (e.key === 'PrintScreen' || 
-          (e.key === 's' && e.shiftKey && (e.ctrlKey || e.metaKey)) ||
-          (e.ctrlKey && e.key === 'p')) {
-        e.preventDefault();
-        reportViolation('screenshot', 'PrintScreen detected');
-        setBlackout(true);
+    // Best-effort DevTools heuristics based on viewport vs outer dimensions
+    // (keyboard events can be unreliable when the YouTube iframe has focus)
+    const devtoolsOpen = () => {
+      try {
+        return (window.outerWidth - window.innerWidth > 160) ||
+               (window.outerHeight - window.innerHeight > 160);
+      } catch (_) {
         return false;
       }
     };
 
-    // Visibility change (tab switch)
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        reportViolation('screen_record', 'Tab hidden - possible recording');
+    const devtoolsInterval = window.setInterval(() => {
+      if (!document.hidden && devtoolsOpen()) {
         setBlackout(true);
+        Promise.resolve().then(() => {
+          reportViolationThrottled('screen_record', 'DevTools detected (heuristic)');
+        });
       }
+    }, 1500);
+
+    // Visibility change: avoid logging out on normal LMS tab navigation.
+    // Only report if the page stays hidden for a threshold (stable timer via ref).
+    const handleKeyDown = (e) => {
+      // PrintScreen, Ctrl+Shift+I, F12, Ctrl+S and similar heuristics
+      const isPrintScreen = e.key === 'PrintScreen'
+      const isF12 = e.key === 'F12'
+      const isCtrlShiftI = e.key === 'I' && e.ctrlKey && e.shiftKey
+      const isCtrlS = e.key === 's' && e.ctrlKey
+      const isCtrlP = e.key === 'p' && e.ctrlKey
+
+      // Win+Shift+S (often key is 's' with shift) heuristic
+      const isWinShiftS = e.key === 's' && e.shiftKey && (e.ctrlKey || e.metaKey)
+
+      if (isPrintScreen || isF12 || isCtrlShiftI || isCtrlS || isCtrlP || isWinShiftS) {
+        // Immediate deterrence: blackout/blur UI BEFORE awaiting backend
+        setBlackout(true)
+        try {
+          window.blur()
+        } catch (_) {}
+
+        const vType = 'screen_record'
+        const vDetails = 'Suspicious key combo detected'
+
+        // After blackout appears, report asynchronously
+        Promise.resolve().then(() => {
+          reportViolationThrottled(vType, vDetails)
+        })
+
+        return false
+      }
+    };
+
+
+    // Visibility change: avoid logging out on normal LMS tab navigation.
+    // Only report if the page stays hidden for a threshold (stable timer via ref).
+    const HIDDEN_MS = 7000;
+
+
+    const handleVisibilityChange = () => {
+      if (document.hidden === true) {
+        // Start timer only if not already running
+        if (!hiddenTimerRef.current) {
+          console.log('TAB HIDDEN TIMER STARTED');
+          hiddenTimerRef.current = window.setTimeout(() => {
+            hiddenTimerRef.current = null;
+            console.log('TAB HIDDEN TIMER FIRED');
+            setBlackout(true);
+            Promise.resolve().then(() => {
+              console.log('REPORT SENT');
+              return reportViolationThrottled(
+                'screen_record',
+                'Protected video tab hidden >7s'
+              );
+            });
+          }, HIDDEN_MS);
+        }
+      } else {
+        // Visibility restored
+        if (hiddenTimerRef.current) {
+          window.clearTimeout(hiddenTimerRef.current);
+          hiddenTimerRef.current = null;
+          console.log('TAB HIDDEN TIMER CLEARED');
+        }
+      }
+
+    };
+
+    // NOTE: Avoid reporting on window blur alone because the YouTube iframe
+    // steals focus during normal playback.
+    // We rely on visibilitychange (tab hidden) + explicit suspicious keyboard events.
+    const handleBlur = () => {
+      // no-op
     };
 
     // Context menu, drag, select
     const handleContext = (e) => {
       e.preventDefault();
-      reportViolation('right_click');
+      reportViolationThrottled('right_click');
     };
 
-    // Clipboard events
+      // Clipboard events
     const handleClipboard = () => {
-      reportViolation('screenshot', 'Clipboard access detected');
+      setBlackout(true);
+      try {
+        window.blur();
+      } catch (_) {}
+
+      Promise.resolve().then(() => {
+        reportViolationThrottled('screenshot', 'Clipboard access detected');
+      });
     };
 
     // Pointer events for mouse capture
     document.addEventListener('contextmenu', handleContext);
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleBlur);
     document.addEventListener('copy', handleClipboard);
     document.addEventListener('cut', handleClipboard);
+
 
     // Prevent text selection and drag
     document.body.style.userSelect = 'none';
@@ -117,17 +225,21 @@ export default function SecureVideoPage() {
       document.removeEventListener('contextmenu', handleContext);
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleBlur);
       document.removeEventListener('copy', handleClipboard);
       document.removeEventListener('cut', handleClipboard);
     };
   }, [reportViolation]);
 
-  if (!videoData) {
+    if (!videoData) {
     return <div style={{padding: '40px', textAlign: 'center'}}>Loading secure video...</div>;
   }
 
+
+
   return (
     <div ref={containerRef} style={{
+
       height: '100vh',
       width: '100vw',
       background: '#000',
@@ -163,34 +275,43 @@ export default function SecureVideoPage() {
         </div>
       )}
 
-      {/* Watermark overlay */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        pointerEvents: 'none',
-        zIndex: 100,
-        opacity: 0.15
-      }}>
-        {['TL', 'TR', 'BL', 'BR'].map((pos, i) => (
-          <div key={i} style={{
-            position: 'absolute',
-            color: '#fff',
-            fontSize: '24px',
-            fontWeight: 'bold',
-            transform: 'rotate(-45deg)',
-            whiteSpace: 'nowrap',
-            textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
-          }}>
-            {pos === 'TL' && {top: '10%', left: '10%'}}
-            {pos === 'TR' && {top: '10%', right: '10%'}}
-            {pos === 'BL' && {bottom: '10%', left: '10%'}}
-            {pos === 'BR' && {bottom: '10%', right: '10%'}}
-            <span>{user?.email} | {new Date().toLocaleString()}</span>
-          </div>
-        ))}
+      {/* Watermark overlay (tiled diagonal) */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          pointerEvents: 'none',
+          zIndex: 100,
+          opacity: 0.22,
+          overflow: 'hidden'
+        }}
+      >
+        {/* Create repeated tiles */}
+        {Array.from({ length: 36 }).map((_, i) => {
+          const x = (i % 6) * 180;
+          const y = Math.floor(i / 6) * 120;
+          return (
+            <div
+              key={i}
+              style={{
+                position: 'absolute',
+                left: x,
+                top: y,
+                transform: 'rotate(-35deg)',
+                whiteSpace: 'nowrap',
+                color: '#fff',
+                fontSize: '18px',
+                fontWeight: 700,
+                letterSpacing: '0.5px',
+                textShadow: '2px 2px 6px rgba(0,0,0,0.9)'
+              }}
+            >
+              {user?.email} | {new Date().toLocaleString()}
+              {videoData?.video_id ? ` | VID-${videoData.video_id}` : ''}
+              {videoData?.course_id ? ` | C-${videoData.course_id}` : ''}
+            </div>
+          );
+        })}
       </div>
 
       {/* YouTube iframe */}

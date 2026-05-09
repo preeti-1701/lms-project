@@ -19,6 +19,7 @@ export default function StudentDashboard() {
       const enrollRes = await api.get('/enrollments/');
       const enrollments = enrollRes.data;
       
+      
       // Map enrolled course IDs
       const enrolledIds = enrollments.map(e => e.course);
       
@@ -125,11 +126,20 @@ export default function StudentDashboard() {
                       try {
                         const videoRes = await api.get(`/videos/?course_id=${course.id}`);
                         const firstVideo = videoRes.data[0];
-                        if (firstVideo && firstVideo.watch_url) {
-                          window.open(firstVideo.watch_url, '_blank', 'noopener,noreferrer');
+                        if (firstVideo) {
+                          // Open LMS secure page in a new tab
+                          const tokenRes = await api.post('/security/token/', {
+                            video_id: firstVideo.id,
+                          });
+
+                          // Use absolute URL to avoid nested routing like LMS/LMS/LMS
+                          // Also ensure token is URL-safe (prevents accidental extra routing segments)
+                          const safeToken = encodeURIComponent(tokenRes.data.token);
+                          window.open(`http://localhost:5173/secure-video/${safeToken}`, '_blank', 'noopener,noreferrer');
                         } else {
                           alert('No videos in course');
                         }
+
                       } catch (err) {
                         alert('Error opening video');
                       }
