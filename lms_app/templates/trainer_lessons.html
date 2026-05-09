@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Trainer Lessons</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Poppins',sans-serif;
+    background:#eef2ff;
+    min-height:100vh;
+    display:flex;
+    overflow-x:hidden;
+}
+
+/* ================= SIDEBAR ================= */
+
+.sidebar{
+    width:280px;
+    background:linear-gradient(180deg,#0f172a,#111827);
+    color:white;
+    padding:28px 22px;
+    position:fixed;
+    height:100vh;
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:45px;
+}
+
+.logo-box{
+    width:52px;
+    height:52px;
+    border-radius:16px;
+    background:linear-gradient(135deg,#7c3aed,#4f46e5);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:24px;
+    font-weight:700;
+}
+
+.logo h2{
+    font-size:26px;
+    font-weight:700;
+}
+
+.menu{
+    margin-top:25px;
+}
+
+.menu a{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    color:#cbd5e1;
+    text-decoration:none;
+    padding:15px 18px;
+    border-radius:16px;
+    margin-bottom:14px;
+    transition:0.3s;
+    font-size:15px;
+    font-weight:500;
+}
+
+.menu a:hover{
+    background:#1e293b;
+    color:white;
+    transform:translateX(4px);
+}
+
+/* PROFILE */
+
+.profile-box{
+    position:absolute;
+    bottom:28px;
+    left:22px;
+    right:22px;
+    background:#1e293b;
+    border-radius:18px;
+    padding:18px;
+}
+
+.profile-name{
+    font-size:15px;
+    font-weight:600;
+}
+
+.profile-role{
+    color:#94a3b8;
+    font-size:13px;
+    margin-top:4px;
+}
+
+/* ================= MAIN ================= */
+
+.main{
+    margin-left:280px;
+    flex:1;
+}
+
+/* ================= TOPBAR ================= */
+
+.topbar{
+    background:white;
+    padding:22px 40px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 4px 25px rgba(0,0,0,0.05);
+}
+
+.topbar h2{
+    font-size:32px;
+    font-weight:700;
+}
+
+.topbar span{
+    color:#7c3aed;
+}
+
+/* ================= HERO ================= */
+
+.hero{
+    padding:35px 40px 10px;
+}
+
+.hero-card{
+    background:linear-gradient(135deg,#7c3aed,#4f46e5);
+    border-radius:32px;
+    padding:45px;
+    color:white;
+    position:relative;
+    overflow:hidden;
+}
+
+.hero-card::before{
+    content:'';
+    position:absolute;
+    width:300px;
+    height:300px;
+    background:rgba(255,255,255,0.08);
+    border-radius:50%;
+    top:-120px;
+    right:-80px;
+}
+
+.hero-card h1{
+    font-size:42px;
+    margin-bottom:14px;
+}
+
+.hero-card p{
+    width:60%;
+    line-height:1.9;
+    color:#e9d5ff;
+    font-size:15px;
+}
+
+/* ================= CONTENT ================= */
+
+.container{
+    padding:30px 40px 40px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(340px,1fr));
+    gap:32px;
+}
+
+/* ================= CARD ================= */
+
+.card{
+    background:rgba(255,255,255,0.7);
+    backdrop-filter:blur(16px);
+    border-radius:28px;
+    overflow:hidden;
+    box-shadow:0 15px 40px rgba(0,0,0,0.08);
+    transition:0.35s;
+    position:relative;
+}
+
+.card:hover{
+    transform:translateY(-10px);
+}
+
+/* WATERMARK */
+
+.watermark{
+    position:absolute;
+    bottom:-10px;
+    right:10px;
+    font-size:90px;
+    font-weight:700;
+    opacity:0.03;
+    pointer-events:none;
+}
+
+/* ================= IMAGE ================= */
+
+.thumb{
+    position:relative;
+}
+
+.thumb img{
+    width:100%;
+    height:230px;
+    object-fit:cover;
+}
+
+/* LESSON BADGE */
+
+.badge{
+    position:absolute;
+    top:18px;
+    left:18px;
+    background:white;
+    color:#4f46e5;
+    padding:8px 14px;
+    border-radius:30px;
+    font-size:13px;
+    font-weight:600;
+}
+
+/* ================= CONTENT ================= */
+
+.content{
+    padding:28px;
+}
+
+.content h3{
+    margin-bottom:14px;
+    font-size:25px;
+    color:#0f172a;
+}
+
+.content p{
+    color:#64748b;
+    line-height:1.9;
+    margin-bottom:24px;
+    font-size:14px;
+}
+
+/* ================= STATS ================= */
+
+.stats{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:24px;
+}
+
+.stat-box{
+    background:#eef2ff;
+    border-radius:16px;
+    padding:14px;
+    width:48%;
+    text-align:center;
+}
+
+.stat-box h4{
+    font-size:20px;
+    color:#4f46e5;
+}
+
+.stat-box span{
+    font-size:13px;
+    color:#64748b;
+}
+
+/* ================= BUTTONS ================= */
+
+.actions{
+    display:flex;
+    gap:15px;
+}
+
+.btn{
+    flex:1;
+    text-align:center;
+    padding:15px;
+    border-radius:16px;
+    text-decoration:none;
+    color:white;
+    font-weight:600;
+    transition:0.3s;
+    font-size:14px;
+}
+
+.lesson{
+    background:linear-gradient(135deg,#7c3aed,#4f46e5);
+}
+
+.open{
+    background:linear-gradient(135deg,#06b6d4,#3b82f6);
+}
+
+.btn:hover{
+    transform:translateY(-4px);
+}
+
+/* ================= EMPTY ================= */
+
+.empty{
+    background:white;
+    border-radius:28px;
+    padding:50px;
+    text-align:center;
+    color:#64748b;
+    font-size:18px;
+}
+
+/* ================= MOBILE ================= */
+
+@media(max-width:900px){
+
+    .sidebar{
+        display:none;
+    }
+
+    .main{
+        margin-left:0;
+    }
+
+    .hero-card p{
+        width:100%;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- ================= SIDEBAR ================= -->
+
+<div class="sidebar">
+
+    <div class="logo">
+
+        <div class="logo-box">
+            T
+        </div>
+
+        <h2>
+            TrainerHub
+        </h2>
+
+    </div>
+
+    <!-- MENU -->
+
+    <div class="menu">
+
+        <a href="/trainer/dashboard/">
+            🏠 Dashboard
+        </a>
+
+        <a href="/trainer/students/">
+            👨‍🎓 Students
+        </a>
+
+        <a href="/trainer/lessons/">
+            📚 Lessons
+        </a>
+
+        <a href="/logout/">
+            🚪 Logout
+        </a>
+
+    </div>
+
+    <!-- PROFILE -->
+
+    <div class="profile-box">
+
+        <div class="profile-name">
+
+            {{ request.user.username }}
+
+        </div>
+
+        <div class="profile-role">
+
+            Trainer Account
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================= MAIN ================= -->
+
+<div class="main">
+
+    <!-- TOPBAR -->
+
+    <div class="topbar">
+
+        <h2>
+
+            Manage
+            <span>Lessons</span>
+
+        </h2>
+
+        <div>
+
+            📚 Trainer LMS Panel
+
+        </div>
+
+    </div>
+
+    <!-- HERO -->
+
+    <div class="hero">
+
+        <div class="hero-card">
+
+            <h1>
+
+                Course Lessons 🚀
+
+            </h1>
+
+            <p>
+
+                Manage premium learning content, add lessons,
+                organize educational videos, and monitor your
+                course library professionally.
+
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- CONTENT -->
+
+    <div class="container">
+
+        {% if courses %}
+
+        <div class="grid">
+
+            {% for course in courses %}
+
+            <div class="card">
+
+                <div class="watermark">
+                    LMS
+                </div>
+
+                <!-- IMAGE -->
+
+                <div class="thumb">
+
+                    {% if course.image %}
+
+                    <img src="{{ course.image.url }}">
+
+                    {% else %}
+
+                    <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop">
+
+                    {% endif %}
+
+                    <div class="badge">
+
+                        {{ course.videos.count }} Lessons
+
+                    </div>
+
+                </div>
+
+                <!-- CONTENT -->
+
+                <div class="content">
+
+                    <h3>
+
+                        {{ course.title }}
+
+                    </h3>
+
+                    <p>
+
+                        {{ course.description|truncatewords:24 }}
+
+                    </p>
+
+                    <!-- STATS -->
+
+                    <div class="stats">
+
+                        <div class="stat-box">
+
+                            <h4>
+
+                                {{ course.videos.count }}
+
+                            </h4>
+
+                            <span>
+
+                                Lessons
+
+                            </span>
+
+                        </div>
+
+                        <div class="stat-box">
+
+                            <h4>
+
+                                {{ course.level }}
+
+                            </h4>
+
+                            <span>
+
+                                Level
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <!-- BUTTONS -->
+
+                    <div class="actions">
+
+                        <a href="{% url 'add_lesson' course.id %}"
+                        class="btn lesson">
+
+                            + Add Lesson
+
+                        </a>
+
+                        <a href="{% url 'open_video' course.id %}"
+                        class="btn open">
+
+                            ▶ Open Course
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% else %}
+
+        <div class="empty">
+
+            No courses available
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Course Player</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Poppins',sans-serif;
+    background:#0f172a;
+    color:white;
+    user-select:none;
+    overflow-x:hidden;
+}
+
+/* ================= WATERMARK ================= */
+
+.watermark{
+
+    position:fixed;
+
+    top:50%;
+
+    left:50%;
+
+    transform:translate(-50%,-50%);
+
+    font-size:34px;
+
+    font-weight:700;
+
+    color:white;
+
+    opacity:0.06;
+
+    z-index:9999;
+
+    pointer-events:none;
+
+    animation:moveWatermark 12s infinite alternate;
+
+    text-align:center;
+
+    line-height:1.8;
+}
+
+@keyframes moveWatermark{
+
+    0%{
+        transform:translate(-50%,-50%);
+    }
+
+    100%{
+        transform:translate(-40%,-40%);
+    }
+
+}
+
+/* ================= MAIN ================= */
+
+.container{
+    max-width:1300px;
+    margin:auto;
+    padding:40px 25px;
+}
+
+/* ================= HEADER ================= */
+
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:35px;
+}
+
+.course-title{
+    font-size:34px;
+    font-weight:700;
+}
+
+.back-btn{
+    text-decoration:none;
+    background:#1e293b;
+    color:white;
+    padding:12px 18px;
+    border-radius:12px;
+    transition:0.3s;
+}
+
+.back-btn:hover{
+    background:#334155;
+}
+
+/* ================= LAYOUT ================= */
+
+.layout{
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:30px;
+}
+
+/* ================= VIDEO CARD ================= */
+
+.video-card{
+    background:#111827;
+    border-radius:24px;
+    padding:30px;
+    position:relative;
+    overflow:hidden;
+}
+
+/* ================= THUMB ================= */
+
+.thumbnail{
+    width:100%;
+    overflow:hidden;
+    border-radius:20px;
+    position:relative;
+}
+
+.thumbnail img{
+    width:100%;
+    height:450px;
+    object-fit:cover;
+}
+
+/* ================= PLAY BUTTON ================= */
+
+.play-btn{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:100px;
+    height:100px;
+    border-radius:50%;
+    background:red;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    text-decoration:none;
+    color:white;
+    font-size:40px;
+    transition:0.3s;
+}
+
+.play-btn:hover{
+    transform:translate(-50%,-50%) scale(1.08);
+}
+
+/* ================= VIDEO INFO ================= */
+
+.video-info{
+    margin-top:28px;
+}
+
+.video-info h2{
+    font-size:30px;
+    margin-bottom:12px;
+}
+
+.video-info p{
+    color:#94a3b8;
+    line-height:1.8;
+}
+
+/* ================= PROGRESS ================= */
+
+.progress-section{
+    margin-top:30px;
+}
+
+.progress-head{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:12px;
+    font-size:14px;
+}
+
+.progress-box{
+    width:100%;
+    height:14px;
+    background:#1e293b;
+    border-radius:30px;
+    overflow:hidden;
+}
+
+.progress-bar{
+    height:100%;
+    background:linear-gradient(90deg,#06b6d4,#3b82f6);
+    transition:0.5s;
+}
+
+/* ================= PLAYLIST ================= */
+
+.playlist{
+    background:#111827;
+    border-radius:24px;
+    padding:25px;
+}
+
+.playlist h3{
+    margin-bottom:20px;
+    font-size:24px;
+}
+
+/* ================= LESSON ================= */
+
+.lesson{
+    background:#1e293b;
+    border-radius:16px;
+    padding:18px;
+    margin-bottom:15px;
+    transition:0.3s;
+}
+
+.lesson:hover{
+    background:#334155;
+}
+
+.lesson-title{
+    margin-bottom:8px;
+    font-size:15px;
+}
+
+.lesson a{
+    color:#38bdf8;
+    text-decoration:none;
+    font-size:13px;
+}
+
+/* ================= MOBILE ================= */
+
+@media(max-width:900px){
+
+    .layout{
+        grid-template-columns:1fr;
+    }
+
+    .thumbnail img{
+        height:260px;
+    }
+
+}
+
+</style>
+</head>
+
+<body oncontextmenu="return false;">
+
+<!-- ================= WATERMARK ================= -->
+
+<div class="watermark">
+
+    {{ request.user.username }}
+
+    <br>
+
+    {{ request.user.email }}
+
+    <br>
+
+    <span id="timestamp"></span>
+
+</div>
+
+<!-- ================= MAIN ================= -->
+
+<div class="container">
+
+    <!-- HEADER -->
+
+    <div class="header">
+
+        <div class="course-title">
+            {{ course.title }}
+        </div>
+
+        <a href="/student/dashboard/" class="back-btn">
+            ← Back Dashboard
+        </a>
+
+    </div>
+
+    <!-- LAYOUT -->
+
+    <div class="layout">
+
+        <!-- VIDEO SECTION -->
+
+        <div class="video-card">
+
+            <div class="thumbnail">
+
+                {% for v in videos|slice:":1" %}
+
+                <img src="https://img.youtube.com/vi/{{ v.youtube_link|cut:'https://www.youtube.com/watch?v=' }}/maxresdefault.jpg">
+
+                <!-- OPEN IN YOUTUBE -->
+
+                <a href="{{ v.youtube_link }}"
+                   target="_blank"
+                   class="play-btn">
+
+                    ▶
+
+                </a>
+
+                {% endfor %}
+
+            </div>
+
+            <!-- INFO -->
+
+            <div class="video-info">
+
+                <h2>
+                    Start Learning 🚀
+                </h2>
+
+                <p>
+                    Click play to open lessons directly on YouTube
+                    in a new tab. Security protection is enabled
+                    for educational content.
+                </p>
+
+                <!-- PROGRESS -->
+
+                <div class="progress-section">
+
+                    <div class="progress-head">
+
+                        <span>Course Progress</span>
+
+                        <span id="progressText">
+                            {{ progress }}%
+                        </span>
+
+                    </div>
+
+                    <div class="progress-box">
+
+                        <div class="progress-bar"
+                             id="progressBar"
+                             style="width:{{ progress }}%;">
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- PLAYLIST -->
+
+        <div class="playlist">
+
+            <h3>
+                📚 Playlist
+            </h3>
+
+            {% for v in videos %}
+
+            <div class="lesson">
+
+                <div class="lesson-title">
+
+                    ▶ {{ v.title }}
+
+                </div>
+
+                <a href="{{ v.youtube_link }}"
+                   target="_blank">
+
+                    Watch on YouTube
+
+                </a>
+
+            </div>
+
+            {% empty %}
+
+            <p>
+                No lessons available
+            </p>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================= TIMESTAMP ================= -->
+
+<script>
+
+setInterval(function(){
+
+    let now = new Date();
+
+    document.getElementById("timestamp").innerHTML =
+    now.toLocaleTimeString();
+
+},1000);
+
+</script>
+
+<!-- ================= DISABLE RIGHT CLICK ================= -->
+
+<script>
+
+document.addEventListener('contextmenu', function(e){
+
+    e.preventDefault();
+
+    alert("Right Click Disabled");
+
+});
+
+</script>
+
+<!-- ================= BLOCK SHORTCUTS ================= -->
+
+<script>
+
+document.addEventListener('keydown', function(e){
+
+    // F12
+    if(e.keyCode == 123){
+
+        e.preventDefault();
+
+    }
+
+    // CTRL + SHIFT + I
+    if(e.ctrlKey && e.shiftKey && e.keyCode == 73){
+
+        e.preventDefault();
+
+    }
+
+    // CTRL + U
+    if(e.ctrlKey && e.keyCode == 85){
+
+        e.preventDefault();
+
+    }
+
+});
+
+</script>
+
+<!-- ================= SECURITY ================= -->
+
+<script>
+
+document.addEventListener("visibilitychange", function(){
+
+    if(document.hidden){
+
+        document.body.style.filter = "blur(20px)";
+
+    }else{
+
+        document.body.style.filter = "blur(0px)";
+    }
+
+});
+
+</script>
+
+<!-- ================= AUTO LOGOUT ================= -->
+
+<script>
+
+let suspiciousCount = 0;
+
+document.addEventListener("visibilitychange", function(){
+
+    if(document.hidden){
+
+        suspiciousCount++;
+
+        if(suspiciousCount >= 3){
+
+            alert("Security violation detected");
+
+            window.location.href="/logout/";
+
+        }
+
+    }
+
+});
+
+</script>
+
+<!-- ================= CSRF + PROGRESS ================= -->
+
+<script>
+
+function getCookie(name) {
+
+    let cookieValue = null;
+
+    if (document.cookie && document.cookie !== '') {
+
+        const cookies = document.cookie.split(';');
+
+        for (let i = 0; i < cookies.length; i++) {
+
+            const cookie = cookies[i].trim();
+
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+
+                cookieValue = decodeURIComponent(
+                    cookie.substring(name.length + 1)
+                );
+
+                break;
+            }
+        }
+    }
+
+    return cookieValue;
+}
+
+const csrftoken = getCookie('csrftoken');
+
+let progress = {{ progress|default:0 }};
+
+function updateProgress(){
+
+    if(progress < 100){
+
+        progress += 10;
+
+        document.getElementById("progressBar").style.width =
+        progress + "%";
+
+        document.getElementById("progressText").innerText =
+        progress + "%";
+
+        fetch("/courses/{{ course.id }}/progress/", {
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json",
+                "X-CSRFToken": csrftoken
+            },
+
+            body:JSON.stringify({
+                progress:progress
+            })
+
+        });
+
+    }
+
+}
+
+setInterval(updateProgress,30000);
+
+</script>
+
+</body>
+</html>

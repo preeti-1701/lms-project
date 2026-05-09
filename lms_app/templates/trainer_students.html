@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Trainer Students</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Poppins',sans-serif;
+    background:#f1f5f9;
+    display:flex;
+    min-height:100vh;
+}
+
+/* ================= SIDEBAR ================= */
+
+.sidebar{
+    width:270px;
+    background:#0f172a;
+    color:white;
+    padding:25px 20px;
+    position:fixed;
+    height:100vh;
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:40px;
+}
+
+.logo-box{
+    width:48px;
+    height:48px;
+    border-radius:14px;
+    background:linear-gradient(135deg,#06b6d4,#3b82f6);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    font-weight:700;
+}
+
+.logo h2{
+    font-size:24px;
+}
+
+.menu{
+    margin-top:20px;
+}
+
+.menu a{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    color:#cbd5e1;
+    text-decoration:none;
+    padding:14px;
+    border-radius:14px;
+    margin-bottom:10px;
+    transition:0.3s;
+    font-size:15px;
+}
+
+.menu a:hover{
+    background:#1e293b;
+    color:white;
+}
+
+/* PROFILE */
+
+.profile-box{
+    position:absolute;
+    bottom:25px;
+    left:20px;
+    right:20px;
+    background:#1e293b;
+    border-radius:16px;
+    padding:16px;
+}
+
+.profile-name{
+    font-size:15px;
+    font-weight:600;
+}
+
+.profile-role{
+    color:#94a3b8;
+    font-size:12px;
+}
+
+/* ================= MAIN ================= */
+
+.main{
+    margin-left:270px;
+    flex:1;
+}
+
+/* TOPBAR */
+
+.topbar{
+    background:white;
+    padding:20px 35px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 4px 20px rgba(0,0,0,0.05);
+}
+
+.topbar h2{
+    font-size:22px;
+}
+
+.topbar span{
+    color:#3b82f6;
+}
+
+/* HERO */
+
+.hero{
+    padding:35px;
+}
+
+.hero-card{
+    background:linear-gradient(135deg,#1e3a8a,#3b82f6);
+    border-radius:28px;
+    padding:40px;
+    color:white;
+}
+
+.hero-card h1{
+    font-size:38px;
+    margin-bottom:12px;
+}
+
+.hero-card p{
+    width:60%;
+    line-height:1.8;
+    color:#dbeafe;
+}
+
+/* TABLE SECTION */
+
+.container{
+    padding:0 35px 35px;
+}
+
+.table-box{
+    background:white;
+    border-radius:24px;
+    overflow:hidden;
+    box-shadow:0 12px 30px rgba(0,0,0,0.06);
+}
+
+/* TABLE */
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+thead{
+    background:#0f172a;
+    color:white;
+}
+
+th{
+    padding:18px;
+    text-align:left;
+    font-size:14px;
+    font-weight:600;
+}
+
+td{
+    padding:18px;
+    border-bottom:1px solid #e2e8f0;
+    font-size:14px;
+    color:#334155;
+}
+
+/* PROGRESS */
+
+.progress-wrapper{
+    width:100%;
+    height:10px;
+    background:#e2e8f0;
+    border-radius:20px;
+    overflow:hidden;
+    margin-top:8px;
+}
+
+.progress-bar{
+    height:100%;
+    background:linear-gradient(90deg,#06b6d4,#3b82f6);
+}
+
+/* BADGE */
+
+.badge{
+    display:inline-block;
+    padding:6px 12px;
+    border-radius:20px;
+    color:white;
+    font-size:12px;
+    font-weight:600;
+}
+
+.completed{
+    background:#22c55e;
+}
+
+.learning{
+    background:#f59e0b;
+}
+
+/* WATERMARK */
+
+.watermark{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    opacity:0.03;
+    font-size:120px;
+    font-weight:700;
+    pointer-events:none;
+}
+
+/* EMPTY */
+
+.empty{
+    text-align:center;
+    padding:40px;
+    color:#64748b;
+    font-size:18px;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+
+<div class="sidebar">
+
+    <div class="logo">
+
+        <div class="logo-box">
+            T
+        </div>
+
+        <h2>
+            TeachHub
+        </h2>
+
+    </div>
+
+    <!-- MENU -->
+
+    <div class="menu">
+
+        <a href="/trainer/dashboard/">
+            🏠 Dashboard
+        </a>
+
+        <a href="/trainer/lessons/">
+            🎥 Manage Lessons
+        </a>
+
+        <a href="/trainer/students/">
+            👨‍🎓 Students
+        </a>
+
+        <a href="/logout/">
+            🚪 Logout
+        </a>
+
+    </div>
+
+    <!-- PROFILE -->
+
+    <div class="profile-box">
+
+        <div class="profile-name">
+            {{ request.user.username }}
+        </div>
+
+        <div class="profile-role">
+            Trainer
+        </div>
+
+    </div>
+
+</div>
+
+<!-- MAIN -->
+
+<div class="main">
+
+    <!-- TOPBAR -->
+
+    <div class="topbar">
+
+        <h2>
+            Welcome,
+            <span>{{ request.user.username }}</span>
+        </h2>
+
+        <div>
+            👨‍🎓 Student Monitoring
+        </div>
+
+    </div>
+
+    <!-- HERO -->
+
+    <div class="hero">
+
+        <div class="hero-card">
+
+            <h1>
+                Student Progress Tracker 🚀
+            </h1>
+
+            <p>
+                Monitor enrolled students, track learning progress,
+                and manage educational performance professionally.
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- STUDENT TABLE -->
+
+    <div class="container">
+
+        <div class="table-box">
+
+            <div class="watermark">
+                LMS
+            </div>
+
+            {% if enrollments %}
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Student
+                        </th>
+
+                        <th>
+                            Course
+                        </th>
+
+                        <th>
+                            Progress
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for enroll in enrollments %}
+
+                    <tr>
+
+                        <td>
+
+                            {{ enroll.student.username }}
+
+                        </td>
+
+                        <td>
+
+                            {{ enroll.course.title }}
+
+                        </td>
+
+                        <td>
+
+                            {{ enroll.progress }}%
+
+                            <div class="progress-wrapper">
+
+                                <div class="progress-bar"
+                                style="width:{{ enroll.progress }}%;">
+
+                                </div>
+
+                            </div>
+
+                        </td>
+
+                        <td>
+
+                            {% if enroll.progress == 100 %}
+
+                            <span class="badge completed">
+
+                                Completed
+
+                            </span>
+
+                            {% else %}
+
+                            <span class="badge learning">
+
+                                Learning
+
+                            </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+            {% else %}
+
+            <div class="empty">
+
+                No students enrolled yet
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

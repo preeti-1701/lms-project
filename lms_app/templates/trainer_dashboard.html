@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Trainer Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Poppins',sans-serif;
+    background:#f1f5f9;
+    display:flex;
+    min-height:100vh;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+    width:270px;
+    background:#0f172a;
+    color:white;
+    padding:25px 20px;
+    position:fixed;
+    height:100vh;
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:40px;
+}
+
+.logo-box{
+    width:48px;
+    height:48px;
+    border-radius:14px;
+    background:linear-gradient(135deg,#06b6d4,#3b82f6);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    font-weight:700;
+}
+
+.logo h2{
+    font-size:24px;
+}
+
+.menu{
+    margin-top:20px;
+}
+
+.menu a{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    color:#cbd5e1;
+    text-decoration:none;
+    padding:14px;
+    border-radius:14px;
+    margin-bottom:10px;
+    transition:0.3s;
+    font-size:15px;
+}
+
+.menu a:hover{
+    background:#1e293b;
+    color:white;
+}
+
+/* PROFILE */
+
+.profile-box{
+    position:absolute;
+    bottom:25px;
+    left:20px;
+    right:20px;
+    background:#1e293b;
+    border-radius:16px;
+    padding:16px;
+}
+
+.profile-name{
+    font-size:15px;
+    font-weight:600;
+}
+
+.profile-role{
+    color:#94a3b8;
+    font-size:12px;
+}
+
+/* MAIN */
+
+.main{
+    margin-left:270px;
+    flex:1;
+}
+
+/* TOPBAR */
+
+.topbar{
+    background:white;
+    padding:20px 35px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 4px 20px rgba(0,0,0,0.05);
+}
+
+.topbar h2{
+    font-size:22px;
+}
+
+.topbar span{
+    color:#3b82f6;
+}
+
+/* HERO */
+
+.hero{
+    padding:35px;
+}
+
+.hero-card{
+    background:linear-gradient(135deg,#1e3a8a,#3b82f6);
+    border-radius:28px;
+    padding:40px;
+    color:white;
+}
+
+.hero-card h1{
+    font-size:38px;
+    margin-bottom:12px;
+}
+
+.hero-card p{
+    width:60%;
+    line-height:1.8;
+    color:#dbeafe;
+}
+
+/* STATS */
+
+.stats-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:25px;
+    margin-top:30px;
+}
+
+.stat-card{
+    background:white;
+    padding:24px;
+    border-radius:22px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.05);
+}
+
+.stat-card h3{
+    color:#64748b;
+    font-size:14px;
+    margin-bottom:10px;
+}
+
+.stat-card h1{
+    font-size:34px;
+    color:#0f172a;
+}
+
+/* SECTION */
+
+.section{
+    padding:0 35px 35px;
+}
+
+.section-header{
+    margin-bottom:20px;
+}
+
+.section-header h2{
+    font-size:26px;
+}
+
+/* GRID */
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(330px,1fr));
+    gap:28px;
+}
+
+/* CARD */
+
+.card{
+    background:white;
+    border-radius:24px;
+    overflow:hidden;
+    box-shadow:0 12px 30px rgba(0,0,0,0.06);
+    transition:0.3s;
+}
+
+.card:hover{
+    transform:translateY(-8px);
+}
+
+/* THUMB */
+
+.thumb{
+    height:190px;
+    overflow:hidden;
+}
+
+.thumb img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+/* CONTENT */
+
+.content{
+    padding:22px;
+}
+
+.content h3{
+    font-size:22px;
+    margin-bottom:10px;
+}
+
+.desc{
+    color:#64748b;
+    font-size:14px;
+    line-height:1.7;
+    margin-bottom:18px;
+}
+
+/* ACTIONS */
+
+.actions{
+    display:flex;
+    gap:12px;
+}
+
+.btn{
+    flex:1;
+    text-align:center;
+    text-decoration:none;
+    color:white;
+    padding:11px;
+    border-radius:14px;
+    font-size:14px;
+    font-weight:500;
+    transition:0.3s;
+}
+
+.btn:hover{
+    transform:scale(1.03);
+}
+
+.lesson{
+    background:linear-gradient(135deg,#06b6d4,#0891b2);
+}
+
+.open{
+    background:linear-gradient(135deg,#6366f1,#8b5cf6);
+}
+
+/* INFO */
+
+.info{
+    display:flex;
+    justify-content:space-between;
+    margin-top:18px;
+    font-size:13px;
+    color:#64748b;
+}
+
+/* EMPTY */
+
+.empty{
+    color:#64748b;
+    font-size:18px;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+
+<div class="sidebar">
+
+    <div class="logo">
+
+        <div class="logo-box">
+            T
+        </div>
+
+        <h2>TeachHub</h2>
+
+    </div>
+
+    <div class="menu">
+
+        <a href="{% url 'trainer_dashboard' %}">
+            🏠 Dashboard
+        </a>
+
+        <a href="{% url 'trainer_lessons' %}">
+            🎥 Manage Lessons
+        </a>
+
+        <a href="{% url 'trainer_students' %}">
+            👨‍🎓 Students
+        </a>
+
+        <a href="{% url 'logout' %}">
+            🚪 Logout
+        </a>
+
+    </div>
+
+    <!-- PROFILE -->
+
+    <div class="profile-box">
+
+        <div class="profile-name">
+            {{ request.user.username }}
+        </div>
+
+        <div class="profile-role">
+            Trainer
+        </div>
+
+    </div>
+
+</div>
+
+<!-- MAIN -->
+
+<div class="main">
+
+    <!-- TOPBAR -->
+
+    <div class="topbar">
+
+        <h2>
+            Welcome,
+            <span>{{ request.user.username }}</span>
+        </h2>
+
+        <div>
+            🎓 Trainer Workspace
+        </div>
+
+    </div>
+
+    <!-- HERO -->
+
+    <div class="hero">
+
+        <div class="hero-card">
+
+            <h1>
+                Manage Learning Content 🚀
+            </h1>
+
+            <p>
+                Add lessons, monitor student learning,
+                track progress, and manage educational content.
+            </p>
+
+        </div>
+
+        <!-- STATS -->
+
+        <div class="stats-grid">
+
+            <div class="stat-card">
+
+                <h3>Total Courses</h3>
+
+                <h1>{{ total_courses }}</h1>
+
+            </div>
+
+            <div class="stat-card">
+
+                <h3>Total Lessons</h3>
+
+                <h1>{{ total_videos }}</h1>
+
+            </div>
+
+            <div class="stat-card">
+
+                <h3>Total Students</h3>
+
+                <h1>{{ total_students }}</h1>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- COURSES -->
+
+    <div class="section">
+
+        <div class="section-header">
+
+            <h2>
+                Course Lessons
+            </h2>
+
+        </div>
+
+        <div class="grid">
+
+            {% for course in courses %}
+
+            <div class="card">
+
+                <!-- THUMB -->
+
+                <div class="thumb">
+
+                    {% if course.image %}
+
+                    <img src="{{ course.image.url }}">
+
+                    {% else %}
+
+                    <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg">
+
+                    {% endif %}
+
+                </div>
+
+                <!-- CONTENT -->
+
+                <div class="content">
+
+                    <h3>
+
+                        {{ course.title }}
+
+                    </h3>
+
+                    <p class="desc">
+
+                        {{ course.description|truncatewords:20 }}
+
+                    </p>
+
+                    <!-- ACTIONS -->
+
+                    <div class="actions">
+
+                        <a href="{% url 'add_lesson' course.id %}"
+                        class="btn lesson">
+
+                            + Add Lesson
+
+                        </a>
+
+                        <a href="{% url 'open_video' course.id %}"
+                        class="btn open">
+
+                            ▶ Open
+
+                        </a>
+
+                    </div>
+
+                    <!-- INFO -->
+
+                    <div class="info">
+
+                        <span>
+                            🎥 {{ course.videos.count }} Lessons
+                        </span>
+
+                        <span>
+                            💰 ₹ {{ course.price }}
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% empty %}
+
+            <p class="empty">
+                No courses available
+            </p>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

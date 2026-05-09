@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Analytics</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Poppins',sans-serif;
+    background:#f1f5f9;
+    display:flex;
+    min-height:100vh;
+}
+
+/* ================= SIDEBAR ================= */
+
+.sidebar{
+    width:270px;
+    background:#0f172a;
+    color:white;
+    padding:25px 20px;
+    position:fixed;
+    height:100vh;
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:40px;
+}
+
+.logo-box{
+    width:48px;
+    height:48px;
+    border-radius:14px;
+    background:linear-gradient(135deg,#06b6d4,#3b82f6);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    font-weight:700;
+}
+
+.logo h2{
+    font-size:24px;
+}
+
+.menu{
+    margin-top:20px;
+}
+
+.menu a{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    color:#cbd5e1;
+    text-decoration:none;
+    padding:14px;
+    border-radius:14px;
+    margin-bottom:10px;
+    transition:0.3s;
+    font-size:15px;
+}
+
+.menu a:hover{
+    background:#1e293b;
+    color:white;
+}
+
+/* PROFILE */
+
+.profile-box{
+    position:absolute;
+    bottom:25px;
+    left:20px;
+    right:20px;
+    background:#1e293b;
+    border-radius:16px;
+    padding:16px;
+}
+
+.profile-name{
+    font-size:15px;
+    font-weight:600;
+}
+
+.profile-role{
+    color:#94a3b8;
+    font-size:12px;
+}
+
+/* ================= MAIN ================= */
+
+.main{
+    margin-left:270px;
+    flex:1;
+}
+
+/* TOPBAR */
+
+.topbar{
+    background:white;
+    padding:20px 35px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 4px 20px rgba(0,0,0,0.05);
+}
+
+.topbar h2{
+    font-size:24px;
+}
+
+.topbar span{
+    color:#3b82f6;
+}
+
+/* HERO */
+
+.hero{
+    padding:35px;
+}
+
+.hero-card{
+    background:linear-gradient(135deg,#0f172a,#1e3a8a);
+    border-radius:28px;
+    padding:40px;
+    color:white;
+}
+
+.hero-card h1{
+    font-size:38px;
+    margin-bottom:12px;
+}
+
+.hero-card p{
+    width:60%;
+    line-height:1.8;
+    color:#cbd5e1;
+}
+
+/* STATS GRID */
+
+.container{
+    padding:0 35px 35px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:28px;
+}
+
+/* CARD */
+
+.card{
+    background:white;
+    border-radius:24px;
+    padding:28px;
+    box-shadow:0 12px 30px rgba(0,0,0,0.06);
+    position:relative;
+    overflow:hidden;
+    transition:0.3s;
+}
+
+.card:hover{
+    transform:translateY(-8px);
+}
+
+/* ICON */
+
+.icon{
+    width:65px;
+    height:65px;
+    border-radius:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:28px;
+    color:white;
+    margin-bottom:22px;
+}
+
+/* COLORS */
+
+.students{
+    background:linear-gradient(135deg,#06b6d4,#3b82f6);
+}
+
+.trainers{
+    background:linear-gradient(135deg,#7c3aed,#4f46e5);
+}
+
+.courses{
+    background:linear-gradient(135deg,#22c55e,#16a34a);
+}
+
+.enrollments{
+    background:linear-gradient(135deg,#f59e0b,#ea580c);
+}
+
+/* TEXT */
+
+.card h2{
+    font-size:38px;
+    margin-bottom:10px;
+    color:#0f172a;
+}
+
+.card p{
+    color:#64748b;
+    font-size:15px;
+}
+
+/* WATERMARK */
+
+.watermark{
+    position:absolute;
+    right:-10px;
+    bottom:-20px;
+    font-size:90px;
+    font-weight:700;
+    opacity:0.04;
+    pointer-events:none;
+}
+
+/* EXTRA SECTION */
+
+.summary{
+    margin-top:35px;
+    background:white;
+    border-radius:28px;
+    padding:35px;
+    box-shadow:0 12px 30px rgba(0,0,0,0.06);
+}
+
+.summary h2{
+    margin-bottom:18px;
+}
+
+.summary p{
+    color:#64748b;
+    line-height:1.9;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+
+<div class="sidebar">
+
+    <div class="logo">
+
+        <div class="logo-box">
+            A
+        </div>
+
+        <h2>
+            AdminHub
+        </h2>
+
+    </div>
+
+    <!-- MENU -->
+
+    <div class="menu">
+
+        <a href="/lms-admin/dashboard/">
+            🏠 Dashboard
+        </a>
+
+        <a href="/lms-admin/students/">
+            👨‍🎓 Students
+        </a>
+
+        <a href="/lms-admin/trainers/">
+            👨‍🏫 Trainers
+        </a>
+
+        <a href="/lms-admin/analytics/">
+            📈 Analytics
+        </a>
+
+        <a href="/logout/">
+            🚪 Logout
+        </a>
+
+    </div>
+
+    <!-- PROFILE -->
+
+    <div class="profile-box">
+
+        <div class="profile-name">
+            {{ request.user.username }}
+        </div>
+
+        <div class="profile-role">
+            System Administrator
+        </div>
+
+    </div>
+
+</div>
+
+<!-- MAIN -->
+
+<div class="main">
+
+    <!-- TOPBAR -->
+
+    <div class="topbar">
+
+        <h2>
+
+            LMS Analytics
+            <span>Overview</span>
+
+        </h2>
+
+        <div>
+            📈 System Statistics
+        </div>
+
+    </div>
+
+    <!-- HERO -->
+
+    <div class="hero">
+
+        <div class="hero-card">
+
+            <h1>
+                Analytics Dashboard 🚀
+            </h1>
+
+            <p>
+                Monitor LMS performance, student engagement,
+                course growth, trainer activities, and platform statistics.
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- STATS -->
+
+    <div class="container">
+
+        <div class="grid">
+
+            <!-- STUDENTS -->
+
+            <div class="card">
+
+                <div class="icon students">
+                    👨‍🎓
+                </div>
+
+                <h2>
+                    {{ total_students }}
+                </h2>
+
+                <p>
+                    Total Students
+                </p>
+
+                <div class="watermark">
+                    S
+                </div>
+
+            </div>
+
+            <!-- TRAINERS -->
+
+            <div class="card">
+
+                <div class="icon trainers">
+                    👨‍🏫
+                </div>
+
+                <h2>
+                    {{ total_trainers }}
+                </h2>
+
+                <p>
+                    Total Trainers
+                </p>
+
+                <div class="watermark">
+                    T
+                </div>
+
+            </div>
+
+            <!-- COURSES -->
+
+            <div class="card">
+
+                <div class="icon courses">
+                    📚
+                </div>
+
+                <h2>
+                    {{ total_courses }}
+                </h2>
+
+                <p>
+                    Total Courses
+                </p>
+
+                <div class="watermark">
+                    C
+                </div>
+
+            </div>
+
+            <!-- ENROLLMENTS -->
+
+            <div class="card">
+
+                <div class="icon enrollments">
+                    📈
+                </div>
+
+                <h2>
+                    {{ total_enrollments }}
+                </h2>
+
+                <p>
+                    Total Enrollments
+                </p>
+
+                <div class="watermark">
+                    E
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- SUMMARY -->
+
+        <div class="summary">
+
+            <h2>
+                Platform Summary
+            </h2>
+
+            <p>
+                The LMS platform is actively managing educational operations
+                with students, trainers, premium learning courses, enrollments,
+                lesson management, and secure video delivery systems.
+                Analytics provide a complete overview of overall LMS performance.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

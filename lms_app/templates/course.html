@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Add Course</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+body {
+    margin:0;
+    font-family:'Poppins', sans-serif;
+    background: linear-gradient(135deg,#0f172a,#1e3a8a);
+}
+
+/* NAVBAR */
+.navbar {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    padding:15px 30px;
+    color:white;
+    display:flex;
+    justify-content:space-between;
+}
+
+.navbar a {
+    color:white;
+    text-decoration:none;
+    margin-left:15px;
+}
+
+/* CARD */
+.container {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:90vh;
+}
+
+.card {
+    background:white;
+    padding:30px;
+    width:420px;
+    border-radius:16px;
+    box-shadow:0 15px 40px rgba(0,0,0,0.3);
+    animation:fade 0.5s ease;
+}
+
+h2 {
+    text-align:center;
+    margin-bottom:20px;
+}
+
+/* INPUT */
+input, textarea {
+    width:100%;
+    padding:12px;
+    margin:10px 0;
+    border-radius:10px;
+    border:1px solid #ddd;
+    outline:none;
+    transition:0.3s;
+}
+
+input:focus, textarea:focus {
+    border-color:#3b82f6;
+    box-shadow:0 0 6px rgba(59,130,246,0.3);
+}
+
+/* BUTTON */
+button {
+    width:100%;
+    padding:12px;
+    background:linear-gradient(90deg,#06b6d4,#3b82f6);
+    color:white;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+}
+
+button:hover {
+    opacity:0.9;
+}
+
+/* THUMBNAIL PREVIEW */
+.preview {
+    margin-top:10px;
+    text-align:center;
+}
+
+.preview img {
+    width:100%;
+    border-radius:10px;
+    display:none;
+}
+
+/* ANIMATION */
+@keyframes fade {
+    from {opacity:0; transform:translateY(20px);}
+    to {opacity:1;}
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar">
+    <div>🎓 LMS Admin</div>
+    <div>
+        <a href="/admin-dashboard/">Dashboard</a>
+        <a href="/logout/">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+
+<div class="card">
+<h2>Add New Course</h2>
+
+<form method="POST">
+{% csrf_token %}
+
+<input type="text" name="title" placeholder="Course Title" required>
+
+<textarea name="description" placeholder="Course Description" required></textarea>
+
+<!-- YOUTUBE LINK -->
+<input type="url" id="video" name="video" placeholder="Paste YouTube Link" required oninput="showThumbnail()">
+
+<!-- THUMBNAIL PREVIEW -->
+<div class="preview">
+    <img id="thumb">
+</div>
+
+<button type="submit">Add Course</button>
+
+</form>
+
+</div>
+
+</div>
+
+<script>
+// 🔥 Extract YouTube ID
+function getVideoId(url) {
+    let regExp = /(?:youtube\.com.*(?:\?|&)v=|youtu\.be\/)([^&#]+)/;
+    let match = url.match(regExp);
+    return match ? match[1] : null;
+}
+
+// 🔥 Show Thumbnail
+function showThumbnail() {
+    let url = document.getElementById("video").value;
+    let id = getVideoId(url);
+
+    if(id){
+        let thumb = document.getElementById("thumb");
+        thumb.src = "https://img.youtube.com/vi/" + id + "/0.jpg";
+        thumb.style.display = "block";
+    }
+}
+</script>
+
+</body>
+</html>

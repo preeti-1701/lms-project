@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Student Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Poppins',sans-serif;
+    background:#f1f5f9;
+    display:flex;
+    min-height:100vh;
+}
+
+/* ================= SIDEBAR ================= */
+
+.sidebar{
+    width:260px;
+    background:#0f172a;
+    color:white;
+    padding:25px 20px;
+    position:fixed;
+    height:100vh;
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:40px;
+}
+
+.logo-box{
+    width:45px;
+    height:45px;
+    border-radius:12px;
+    background:linear-gradient(135deg,#06b6d4,#3b82f6);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    font-size:20px;
+}
+
+.logo h2{
+    font-size:22px;
+}
+
+.menu a{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    color:#cbd5e1;
+    text-decoration:none;
+    padding:14px;
+    border-radius:12px;
+    margin-bottom:10px;
+    transition:0.3s;
+    font-size:15px;
+}
+
+.menu a:hover{
+    background:#1e293b;
+    color:white;
+}
+
+/* PROFILE CARD */
+
+.profile-card{
+    position:absolute;
+    bottom:25px;
+    left:20px;
+    right:20px;
+    background:#1e293b;
+    border-radius:14px;
+    padding:15px;
+}
+
+.profile-name{
+    font-size:15px;
+    font-weight:600;
+}
+
+.profile-role{
+    font-size:12px;
+    color:#94a3b8;
+}
+
+/* ================= MAIN ================= */
+
+.main{
+    margin-left:260px;
+    flex:1;
+}
+
+/* ================= TOPBAR ================= */
+
+.topbar{
+    background:white;
+    padding:18px 35px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 4px 20px rgba(0,0,0,0.05);
+}
+
+.topbar h3{
+    font-size:20px;
+}
+
+.topbar span{
+    color:#3b82f6;
+}
+
+/* ================= HERO ================= */
+
+.hero{
+    padding:35px;
+}
+
+.hero-card{
+    background:linear-gradient(135deg,#1e3a8a,#3b82f6);
+    color:white;
+    padding:35px;
+    border-radius:24px;
+}
+
+.hero-card h1{
+    font-size:36px;
+    margin-bottom:10px;
+}
+
+.hero-card p{
+    color:#dbeafe;
+    width:60%;
+}
+
+/* ================= SEARCH ================= */
+
+.search-box{
+    margin-top:25px;
+}
+
+.search-box input{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:14px;
+    background:white;
+    font-size:14px;
+    box-shadow:0 5px 20px rgba(0,0,0,0.05);
+}
+
+/* ================= GRID ================= */
+
+.container{
+    padding:0 35px 35px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+    gap:28px;
+}
+
+/* ================= CARD ================= */
+
+.card{
+    background:white;
+    border-radius:22px;
+    overflow:hidden;
+    box-shadow:0 10px 30px rgba(0,0,0,0.07);
+    transition:0.3s;
+}
+
+.card:hover{
+    transform:translateY(-8px);
+}
+
+.thumb{
+    position:relative;
+}
+
+.thumb img{
+    width:100%;
+    height:200px;
+    object-fit:cover;
+}
+
+.watermark{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    color:white;
+    opacity:0.12;
+    font-size:28px;
+    font-weight:700;
+}
+
+.content{
+    padding:22px;
+}
+
+.content h3{
+    font-size:20px;
+    margin-bottom:10px;
+}
+
+.desc{
+    color:#64748b;
+    font-size:14px;
+    line-height:1.6;
+    margin-bottom:18px;
+}
+
+/* BUTTONS */
+
+.btn-group{
+    display:flex;
+    gap:12px;
+}
+
+.btn{
+    flex:1;
+    text-align:center;
+    padding:11px;
+    border-radius:12px;
+    text-decoration:none;
+    color:white;
+    font-size:14px;
+    font-weight:500;
+}
+
+.enroll{
+    background:linear-gradient(135deg,#06b6d4,#3b82f6);
+}
+
+.play{
+    background:linear-gradient(135deg,#6366f1,#8b5cf6);
+}
+
+/* PROGRESS */
+
+.progress-section{
+    margin-top:18px;
+}
+
+.progress-head{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:8px;
+    font-size:13px;
+}
+
+.progress-wrapper{
+    width:100%;
+    height:10px;
+    background:#e2e8f0;
+    border-radius:20px;
+    overflow:hidden;
+}
+
+.progress-bar{
+    height:100%;
+    background:linear-gradient(90deg,#06b6d4,#3b82f6);
+}
+
+.badge{
+    display:inline-block;
+    margin-top:12px;
+    background:#22c55e;
+    color:white;
+    padding:6px 12px;
+    border-radius:30px;
+    font-size:12px;
+    font-weight:600;
+}
+
+.certificate-btn{
+    display:inline-block;
+    margin-top:12px;
+    text-decoration:none;
+    background:#0f172a;
+    color:white;
+    padding:10px 15px;
+    border-radius:10px;
+    font-size:13px;
+}
+
+.empty{
+    font-size:18px;
+    color:#64748b;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+    <div class="logo">
+
+        <div class="logo-box">
+            L
+        </div>
+
+        <h2>
+            LearnSpace
+        </h2>
+
+    </div>
+
+    <div class="menu">
+
+        <a href="{% url 'dashboard' %}">
+            🏠 Dashboard
+        </a>
+
+        <a href="{% url 'my_courses' %}">
+            📚 My Courses
+        </a>
+
+        <a href="{% url 'profile' %}">
+            👤 Profile
+        </a>
+
+        <a href="{% url 'logout' %}">
+            🚪 Logout
+        </a>
+
+    </div>
+
+    <div class="profile-card">
+
+        <div class="profile-name">
+            {{ request.user.username }}
+        </div>
+
+        <div class="profile-role">
+            Student
+        </div>
+
+    </div>
+
+</div>
+
+<div class="main">
+
+    <div class="topbar">
+
+        <h3>
+            Welcome back,
+            <span>{{ request.user.username }}</span>
+        </h3>
+
+        <div>
+            🎓 LMS Portal
+        </div>
+
+    </div>
+
+    <div class="hero">
+
+        <div class="hero-card">
+
+            <h1>
+                Continue Learning 🚀
+            </h1>
+
+            <p>
+                Access your enrolled courses,
+                track progress,
+                complete lessons,
+                and download certificates.
+            </p>
+
+        </div>
+
+        <div class="search-box">
+
+            <input type="text"
+            placeholder="Search courses...">
+
+        </div>
+
+    </div>
+
+    <div class="container">
+
+        <div class="grid">
+
+            {% for course in courses %}
+
+            <div class="card">
+
+                <div class="thumb">
+
+                    {% if course.image %}
+
+                    <img src="{{ course.image.url }}">
+
+                    {% else %}
+
+                    <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg">
+
+                    {% endif %}
+
+                    <div class="watermark">
+                        {{ request.user.username }}
+                    </div>
+
+                </div>
+
+                <div class="content">
+
+                    <h3>
+                        {{ course.title }}
+                    </h3>
+
+                    <p class="desc">
+                        {{ course.description }}
+                    </p>
+
+                    <div class="btn-group">
+
+                        <a href="{% url 'enroll' course.id %}"
+                        class="btn enroll">
+
+                            Enroll
+
+                        </a>
+
+                        <a href="{% url 'open_video' course.id %}"
+                        class="btn play">
+
+                            ▶ Play
+
+                        </a>
+
+                    </div>
+
+                    {% for enroll in enrolled_courses %}
+
+                        {% if enroll.course.id == course.id %}
+
+                        <div class="progress-section">
+
+                            <div class="progress-head">
+
+                                <span>
+                                    Course Progress
+                                </span>
+
+                                <span>
+                                    {{ enroll.progress }}%
+                                </span>
+
+                            </div>
+
+                            <div class="progress-wrapper">
+
+                                <div class="progress-bar"
+                                style="width:{{ enroll.progress }}%;">
+
+                                </div>
+
+                            </div>
+
+                            {% if enroll.progress == 100 %}
+
+                            <div class="badge">
+
+                                ✅ Completed
+
+                            </div>
+
+                            <br>
+
+                            <a href="{% url 'certificate' course.id %}"
+                            class="certificate-btn">
+
+                                🏆 Download Certificate
+
+                            </a>
+
+                            {% endif %}
+
+                        </div>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+            {% empty %}
+
+            <p class="empty">
+
+                No courses available
+
+            </p>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>My Courses</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+    margin:0;
+    font-family:'Poppins';
+    background:#f1f5f9;
+}
+
+/* NAVBAR */
+
+.navbar{
+    background:white;
+    padding:20px 40px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 5px 20px rgba(0,0,0,0.05);
+}
+
+.logo{
+    font-size:24px;
+    font-weight:700;
+    color:#2563eb;
+}
+
+.nav-links a{
+    margin-left:20px;
+    text-decoration:none;
+    color:#333;
+}
+
+/* HERO */
+
+.hero{
+    padding:40px;
+}
+
+.hero-card{
+    background:linear-gradient(135deg,#1e3a8a,#3b82f6);
+    padding:40px;
+    border-radius:24px;
+    color:white;
+}
+
+/* GRID */
+
+.container{
+    padding:0 40px 40px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+    gap:30px;
+}
+
+/* CARD */
+
+.card{
+    background:white;
+    border-radius:22px;
+    overflow:hidden;
+    box-shadow:0 10px 25px rgba(0,0,0,0.06);
+}
+
+/* THUMB */
+
+.thumb img{
+    width:100%;
+    height:200px;
+    object-fit:cover;
+}
+
+/* CONTENT */
+
+.content{
+    padding:20px;
+}
+
+.content h3{
+    margin-bottom:10px;
+}
+
+.desc{
+    color:#64748b;
+    line-height:1.6;
+}
+
+/* BUTTON */
+
+.btn{
+    display:block;
+    text-align:center;
+    text-decoration:none;
+    color:white;
+    padding:12px;
+    border-radius:12px;
+    margin-top:15px;
+    background:#6366f1;
+}
+
+/* PROGRESS */
+
+.progress-box{
+    margin-top:15px;
+    width:100%;
+    height:10px;
+    background:#e2e8f0;
+    border-radius:20px;
+}
+
+.progress{
+    height:100%;
+    background:#3b82f6;
+}
+
+/* BADGE */
+
+.badge{
+    display:inline-block;
+    margin-top:12px;
+    background:#22c55e;
+    color:white;
+    padding:5px 12px;
+    border-radius:20px;
+    font-size:12px;
+}
+
+.empty{
+    text-align:center;
+    color:#666;
+    margin-top:50px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+
+<div class="navbar">
+
+<div class="logo">
+🎓 LearnSpace
+</div>
+
+<div class="nav-links">
+
+<a href="{% url 'dashboard' %}">
+All Courses
+</a>
+
+<a href="{% url 'profile' %}">
+Profile
+</a>
+
+<a href="{% url 'logout' %}">
+Logout
+</a>
+
+</div>
+
+</div>
+
+<!-- HERO -->
+
+<div class="hero">
+
+<div class="hero-card">
+
+<h1>
+📚 My Learning
+</h1>
+
+<p>
+Continue your enrolled courses
+</p>
+
+</div>
+
+</div>
+
+<!-- COURSES -->
+
+<div class="container">
+
+<div class="grid">
+
+{% for enroll in enrolled_courses %}
+
+<div class="card">
+
+<div class="thumb">
+
+{% if enroll.course.image %}
+
+<img src="{{ enroll.course.image.url }}">
+
+{% else %}
+
+<img src="https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg">
+
+{% endif %}
+
+</div>
+
+<div class="content">
+
+<h3>
+{{ enroll.course.title }}
+</h3>
+
+<p class="desc">
+
+{{ enroll.course.description }}
+
+</p>
+
+<!-- PROGRESS -->
+
+<div class="progress-box">
+
+<div class="progress"
+style="width:{{ enroll.progress }}%;">
+
+</div>
+
+</div>
+
+<p>
+{{ enroll.progress }}% Completed
+</p>
+
+<!-- PLAY -->
+
+<a href="{% url 'open_video' enroll.course.id %}"
+class="btn">
+
+▶ Continue Learning
+
+</a>
+
+<!-- CERTIFICATE -->
+
+{% if enroll.progress == 100 %}
+
+<a href="{% url 'certificate' enroll.course.id %}"
+class="btn"
+style="background:#16a34a;">
+
+🏆 Get Certificate
+
+</a>
+
+{% endif %}
+
+</div>
+
+</div>
+
+{% empty %}
+
+<div class="empty">
+
+<h2>
+No enrolled courses yet
+</h2>
+
+<p>
+Enroll in courses from dashboard
+</p>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>LMS Signup</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+body {
+    margin:0;
+    font-family:'Poppins', sans-serif;
+    height:100vh;
+    display:flex;
+}
+
+/* LEFT PANEL */
+.left {
+    flex:1;
+    background: linear-gradient(135deg,#0f172a,#2563eb);
+    color:white;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    padding:40px;
+}
+
+.left h1 {
+    font-size:32px;
+    margin-bottom:10px;
+}
+
+.left p {
+    opacity:0.85;
+    font-size:14px;
+}
+
+/* RIGHT PANEL */
+.right {
+    flex:1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#f5f7fb;
+}
+
+/* CARD */
+.card {
+    width:360px;
+    background:white;
+    padding:35px;
+    border-radius:16px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.1);
+    animation:fade 0.5s ease;
+}
+
+.card h2 {
+    margin-bottom:20px;
+}
+
+/* INPUT */
+input, select {
+    width:100%;
+    padding:12px;
+    margin:10px 0;
+    border-radius:10px;
+    border:1px solid #ddd;
+    outline:none;
+}
+
+/* PASSWORD TOGGLE */
+.input-box {
+    position:relative;
+}
+
+.toggle {
+    position:absolute;
+    right:10px;
+    top:50%;
+    transform:translateY(-50%);
+    cursor:pointer;
+    font-size:12px;
+}
+
+/* BUTTON */
+button {
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    border:none;
+    border-radius:10px;
+    background: linear-gradient(90deg,#06b6d4,#3b82f6);
+    color:white;
+    font-weight:600;
+    cursor:pointer;
+}
+
+button:hover {
+    opacity:0.9;
+}
+
+/* MESSAGE */
+.msg {
+    background:#fee2e2;
+    color:#b91c1c;
+    padding:8px;
+    border-radius:6px;
+    font-size:13px;
+    margin-bottom:10px;
+}
+
+/* LINK */
+.link {
+    margin-top:12px;
+    text-align:center;
+}
+
+.link a {
+    color:#3b82f6;
+    text-decoration:none;
+}
+
+/* ANIMATION */
+@keyframes fade {
+    from {opacity:0; transform:translateY(20px);}
+    to {opacity:1;}
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- LEFT SIDE -->
+<div class="left">
+    <h1>🎓 LMS Pro</h1>
+    <p>Join, learn and grow your skills</p>
+</div>
+
+<!-- RIGHT SIDE -->
+<div class="right">
+
+<div class="card">
+<h2>Create Account</h2>
+
+<!-- MESSAGES -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="msg">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+
+<form method="POST">
+{% csrf_token %}
+
+<input type="text" name="username" placeholder="Username" required>
+
+<input type="email" name="email" placeholder="Email" required>
+
+<div class="input-box">
+    <input id="password" type="password" name="password" placeholder="Password" required>
+    <span class="toggle" onclick="togglePassword()">👁</span>
+</div>
+
+<!-- ROLE SELECTION -->
+<select name="role">
+    <option value="student">Student</option>
+    <option value="trainer">Trainer</option>
+</select>
+
+<button type="submit">Signup</button>
+
+</form>
+
+<div class="link">
+    <p>Already have an account? <a href="/login/">Login</a></p>
+</div>
+
+</div>
+
+</div>
+
+<script>
+function togglePassword() {
+    const pass = document.getElementById("password");
+    pass.type = pass.type === "password" ? "text" : "password";
+}
+</script>
+
+</body>
+</html>
