@@ -162,7 +162,7 @@ function StudentPanel({ onLogin }) {
 
   return (
     <div className="form-view active">
-      <div className="form-header"><h2>Create Account 🎓</h2><p>Join thousands of learners today</p></div>
+      <div className="form-header"><h2>Create Account 🎓</h2><p>Join today</p></div>
       <form onSubmit={handleRegister} noValidate>
         <div className="form-row-2">
           <div className="field-group"><label htmlFor="sRegName">Full Name</label><div className="input-wrap"><IconUser /><input type="text" id="sRegName" placeholder="John Doe" value={rName} onChange={e => setRName(e.target.value)} /></div></div>
@@ -571,11 +571,7 @@ export default function AuthPage() {
           <div className="brand-content">
             <h1 className="brand-headline">Empower Your<br/><span className="highlight">Learning Journey</span></h1>
             <p className="brand-subtext">A unified platform for students, educators, and administrators to collaborate, grow, and succeed.</p>
-            <div className="brand-stats">
-              <div className="stat-item"><span className="stat-num">50K+</span><span className="stat-label">Students</span></div>
-              <div className="stat-item"><span className="stat-num">2K+</span><span className="stat-label">Courses</span></div>
-              <div className="stat-item"><span className="stat-num">98%</span><span className="stat-label">Satisfaction</span></div>
-            </div>
+           
             <div className="brand-illustration">
               <IllStudent active={role === 'student'} />
               <IllTeacher active={role === 'teacher'} />
