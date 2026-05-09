@@ -36,7 +36,19 @@ def login_view(request):
     email = serializer.validated_data['email']
     password = serializer.validated_data['password']
 
-    user = authenticate(request, username=email, password=password)
+    # Debug logging for auth failures
+    try:
+        from django.db.models import QuerySet
+        user_exists = User.objects.filter(email=email).values_list('id', flat=True).first() is not None
+    except Exception:
+        user_exists = None
+
+    print(f"[login_view] incoming email={email} user_exists={user_exists}")
+
+    user = authenticate(request, email=email, password=password)
+    print(f"[login_view] authenticate_result={'FOUND' if user else 'NONE'}")
+
+
 
     if not user:
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)

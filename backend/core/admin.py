@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+
 from .models import User, Course, Video, Enrollment, VideoProgress
 
 
@@ -9,20 +10,25 @@ class UserAdmin(BaseUserAdmin):
     list_filter = ['role', 'is_active']
     search_fields = ['email', 'first_name', 'last_name']
     ordering = ['-date_joined']
-    
+
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'mobile')}),
-        ('Permissions', {'fields': ('role', 'is_active', 'is_staff', 'is_superuser')}),
-        ('Important dates', {'fields': ('last_login',)}),
+        ('Permissions', {'fields': ('role', 'is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
         ('Session info', {'fields': ('session_token', 'last_ip', 'last_device')}),
     )
+
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
             'fields': ('email', 'password1', 'password2', 'role', 'is_staff', 'is_superuser'),
         }),
     )
+
+    # Ensure Django admin knows how to render custom username field
+    model = User
+    ordering = ('-date_joined',)
 
 
 @admin.register(Course)
@@ -48,3 +54,4 @@ class EnrollmentAdmin(admin.ModelAdmin):
 @admin.register(VideoProgress)
 class VideoProgressAdmin(admin.ModelAdmin):
     list_display = ['student', 'video', 'watched', 'updated_at']
+

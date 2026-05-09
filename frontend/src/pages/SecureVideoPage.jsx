@@ -98,6 +98,7 @@ export default function SecureVideoPage() {
     // Best-effort DevTools heuristics based on viewport vs outer dimensions
     // (keyboard events can be unreliable when the YouTube iframe has focus)
     const devtoolsOpen = () => {
+
       try {
         return (window.outerWidth - window.innerWidth > 160) ||
                (window.outerHeight - window.innerHeight > 160);

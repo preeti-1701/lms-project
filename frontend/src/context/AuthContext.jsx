@@ -114,6 +114,10 @@ export function AuthProvider({ children }) {
       if (!e?.key || e.key !== 'force_logout') return
       // Another tab requested force logout: clear local auth immediately
       clearAuth()
+      // Prevent repeated force-logout redirects on subsequent reloads
+      try {
+        localStorage.removeItem('force_logout')
+      } catch (_) {}
       navigate('/login?expired=true')
     }
 

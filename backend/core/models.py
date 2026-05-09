@@ -1,9 +1,12 @@
-from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
+from django.utils import timezone
 
 
 # ================= USER MANAGER =================
 class UserManager(BaseUserManager):
+    use_in_migrations = True
+
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError('Email is required')
@@ -28,20 +31,24 @@ class UserManager(BaseUserManager):
 
 
 # ================= USER MODEL =================
-class User(AbstractUser):
+class User(AbstractBaseUser, PermissionsMixin):
     ROLE_CHOICES = (
         ('admin', 'Admin'),
         ('trainer', 'Trainer'),
         ('student', 'Student'),
     )
 
-    username = None  # ❌ disable username
     email = models.EmailField(unique=True)
 
+    first_name = models.CharField(max_length=150, blank=True, default='')
+    last_name = models.CharField(max_length=150, blank=True, default='')
     mobile = models.CharField(max_length=15, blank=True, null=True)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
 
     is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+
+    date_joined = models.DateTimeField(default=timezone.now)
 
     # Security tracking
     session_token = models.CharField(max_length=255, blank=True, null=True)
@@ -52,11 +59,12 @@ class User(AbstractUser):
 
     objects = UserManager()
 
-    USERNAME_FIELD = 'email'   # 🔥 IMPORTANT for login
+    USERNAME_FIELD = 'email'  # 🔥 email-only login
     REQUIRED_FIELDS = []
 
     def __str__(self):
         return self.email
+
 
 
 # ================= COURSE =================
