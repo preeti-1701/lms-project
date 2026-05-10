@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block title %}{{ lesson.title }} — {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="lesson-layout">
+    <aside class="lesson-sidebar">
+        <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line)">
+            <div style="font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mist); margin-bottom: 0.3rem">Course</div>
+            <a href="{% url 'course_detail' course.slug %}" style="font-weight: 600; font-size: 0.95rem">{{ course.title }}</a>
+            {% if enrollment %}
+                <div class="progress-bar" style="margin-top: 0.75rem">
+                    <div class="progress-fill" style="width: {{ enrollment.progress_percent }}%"></div>
+                </div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--mist); font-family: var(--font-mono)">{{ enrollment.progress_percent }}% complete</div>
+            {% endif %}
+        </div>
+
+        <h3>Lessons</h3>
+        <nav class="lesson-nav">
+            {% for l in all_lessons %}
+                <a href="{% url 'lesson' course.slug l.id %}" class="{% if l.id == lesson.id %}active{% endif %}">
+                    <span class="check {% for p in enrollment.lesson_progress.all %}{% if p.lesson_id == l.id and p.is_completed %}done{% endif %}{% endfor %}">
+                        {% for p in enrollment.lesson_progress.all %}{% if p.lesson_id == l.id and p.is_completed %}✓{% endif %}{% endfor %}
+                    </span>
+                    <span>{{ forloop.counter|stringformat:"02d" }}. {{ l.title }}</span>
+                </a>
+            {% endfor %}
+        </nav>
+    </aside>
+
+    <div class="lesson-content" oncontextmenu="return false;" onselectstart="return false;">
+        <div class="breadcrumb">◆ {{ course.title }} / Lesson {{ lesson.order }}</div>
+        <h1>{{ lesson.title }}</h1>
+
+        {% if lesson.video_url %}
+            <div class="video-wrapper">
+                <div class="video-embed">
+                    <iframe
+                        src="{{ lesson.video_url }}"
+                        title="{{ lesson.title }}"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen>
+                    </iframe>
+                    <div class="watermark">{{ user.username }} · {{ user.email }}</div>
+                    <div class="watermark watermark-2">CoursifyLMS · {{ user.username }}</div>
+                </div>
+                <div class="video-notice">
+                    🔒 This video is licensed to <strong>{{ user.username }}</strong>. Unauthorized sharing or recording is prohibited.
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="lesson-body">{{ lesson.content }}</div>
+
+        <div class="lesson-actions">
+            <div>
+                {% if prev_lesson %}
+                    <a href="{% url 'lesson' course.slug prev_lesson.id %}" class="btn btn-ghost">← Previous</a>
+                {% endif %}
+            </div>
+            <div style="display: flex; gap: 1rem">
+                {% if progress and not progress.is_completed %}
+                    <button id="mark-complete" class="btn btn-primary" data-url="{% url 'mark_complete' course.slug lesson.id %}">
+                        ✓ Mark complete
+                    </button>
+                {% elif progress %}
+                    <span class="btn btn-ghost" style="color: var(--success); border-color: var(--success); cursor: default">✓ Completed</span>
+                {% endif %}
+                {% if next_lesson %}
+                    <a href="{% url 'lesson' course.slug next_lesson.id %}" class="btn btn-secondary">Next →</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// =========== CONTENT PROTECTION (SRS Section 4) ===========
+// Disable right-click
+document.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    showProtectionNotice('Right-click is disabled to protect course content.');
+    return false;
+});
+
+// Disable key shortcuts: F12, Ctrl+Shift+I, Ctrl+U, Ctrl+S, PrintScreen
+document.addEventListener('keydown', e => {
+    if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+        (e.ctrlKey && e.shiftKey && e.key === 'J') ||
+        (e.ctrlKey && e.key === 'u') ||
+        (e.ctrlKey && e.key === 's') ||
+        (e.metaKey && e.altKey && e.key === 'i') ||
+        e.key === 'PrintScreen'
+    ) {
+        e.preventDefault();
+        showProtectionNotice('This action is blocked on protected content.');
+        return false;
+    }
+});
+
+// Detect PrintScreen release
+document.addEventListener('keyup', e => {
+    if (e.key === 'PrintScreen') {
+        navigator.clipboard.writeText('').catch(() => {});
+        showProtectionNotice('Screenshot detected. This has been logged.');
+    }
+});
+
+function showProtectionNotice(msg) {
+    const notice = document.createElement('div');
+    notice.className = 'protection-notice';
+    notice.textContent = msg;
+    document.body.appendChild(notice);
+    setTimeout(() => notice.remove(), 3000);
+}
+
+// =========== MARK LESSON COMPLETE ===========
+document.getElementById('mark-complete')?.addEventListener('click', async function() {
+    const btn = this;
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    try {
+        const response = await fetch(btn.dataset.url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.cookie.split('csrftoken=')[1]?.split(';')[0],
+                'Content-Type': 'application/json',
+            },
+        });
+        const data = await response.json();
+        if (data.success) {
+            btn.outerHTML = '<span class="btn btn-ghost" style="color: var(--success); border-color: var(--success); cursor: default">✓ Completed</span>';
+            document.querySelectorAll('.progress-fill').forEach(el => el.style.width = data.progress_percent + '%');
+            if (data.completed) {
+                alert('🎉 Course completed! Congratulations!');
+            }
+        }
+    } catch (err) {
+        btn.disabled = false;
+        btn.textContent = '✓ Mark complete';
+    }
+});
+</script>
+{% endblock %}

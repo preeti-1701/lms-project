@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Catalog — Coursify{% endblock %}
+
+{% block content %}
+<div class="dash">
+    <div class="dash-head fade-up">
+        <div class="kicker">◆ Course catalog</div>
+        <h1>Browse <em>all</em> courses</h1>
+    </div>
+
+    <form method="get" class="filter-bar">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search courses...">
+        <select name="level">
+            <option value="">All levels</option>
+            <option value="beginner" {% if selected_level == 'beginner' %}selected{% endif %}>Beginner</option>
+            <option value="intermediate" {% if selected_level == 'intermediate' %}selected{% endif %}>Intermediate</option>
+            <option value="advanced" {% if selected_level == 'advanced' %}selected{% endif %}>Advanced</option>
+        </select>
+        <select name="category">
+            <option value="">All categories</option>
+            {% for cat in categories %}
+                <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Filter</button>
+    </form>
+
+    <div class="course-grid">
+        {% for course in courses %}
+            <a href="{% url 'course_detail' course.slug %}" class="course-card fade-up" style="--accent-color: {{ course.accent_color }}">
+                <span class="course-emoji">{{ course.thumbnail_emoji }}</span>
+                <div class="course-meta">
+                    <span class="tag">{{ course.level|title }}</span>
+                    <span class="tag">{{ course.category }}</span>
+                </div>
+                <h3 class="course-title">{{ course.title }}</h3>
+                <p class="course-desc">{{ course.description }}</p>
+                <div class="course-foot">
+                    <div class="course-instructor">
+                        <span class="instructor-avatar" style="background: {{ course.instructor.avatar_color }}">
+                            {{ course.instructor.initials }}
+                        </span>
+                        <span>{{ course.instructor.first_name }}</span>
+                    </div>
+                    <span>{{ course.lesson_total }} lessons · {{ course.student_total }} students</span>
+                </div>
+            </a>
+        {% empty %}
+            <div class="empty" style="grid-column: 1/-1;">
+                <div class="icon">🔍</div>
+                <p>No courses match your filters.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

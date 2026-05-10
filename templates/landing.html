@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}Coursify — Learn without limits{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-mark">est. 2026 · building in public</div>
+    <div class="hero-kicker">◆ Coursify · Learning Platform</div>
+    <h1 class="fade-up">
+        Learn the things <em>you actually</em> want to learn.
+    </h1>
+    <p class="hero-sub fade-up">
+        A full-stack Learning Management System built for students and instructors.
+        Browse courses, track progress, take quizzes, and actually remember what you learn.
+    </p>
+    <div class="hero-cta fade-up">
+        {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="btn btn-primary">Go to Dashboard →</a>
+            <a href="{% url 'catalog' %}" class="btn btn-secondary">Browse Catalog</a>
+        {% else %}
+            <a href="{% url 'signup' %}" class="btn btn-primary">Start learning free →</a>
+            <a href="{% url 'catalog' %}" class="btn btn-secondary">Browse catalog</a>
+        {% endif %}
+    </div>
+</section>
+
+<section class="stats-strip">
+    <div class="stats-inner">
+        <div class="stat">
+            <div class="stat-value">{{ stats.courses }}</div>
+            <div class="stat-label">Courses</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">{{ stats.lessons }}</div>
+            <div class="stat-label">Lessons</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">{{ stats.students }}</div>
+            <div class="stat-label">Students</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">{{ stats.instructors }}</div>
+            <div class="stat-label">Instructors</div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="section-head">
+        <div>
+            <h2 class="section-title">Featured <em>courses</em></h2>
+            <p class="section-sub">Hand-picked from instructors on the platform</p>
+        </div>
+        <a href="{% url 'catalog' %}" class="btn btn-ghost">View all →</a>
+    </div>
+
+    <div class="course-grid">
+        {% for course in featured_courses %}
+            <a href="{% url 'course_detail' course.slug %}" class="course-card fade-up" style="--accent-color: {{ course.accent_color }}">
+                <span class="course-emoji">{{ course.thumbnail_emoji }}</span>
+                <div class="course-meta">
+                    <span class="tag">{{ course.level|title }}</span>
+                    <span class="tag">{{ course.category }}</span>
+                </div>
+                <h3 class="course-title">{{ course.title }}</h3>
+                <p class="course-desc">{{ course.description }}</p>
+                <div class="course-foot">
+                    <div class="course-instructor">
+                        <span class="instructor-avatar" style="background: {{ course.instructor.avatar_color }}">
+                            {{ course.instructor.initials }}
+                        </span>
+                        <span>{{ course.instructor.first_name }} {{ course.instructor.last_name }}</span>
+                    </div>
+                    <span>{{ course.lesson_count }} lessons</span>
+                </div>
+            </a>
+        {% empty %}
+            <div class="empty" style="grid-column: 1/-1;">
+                <div class="icon">📚</div>
+                <p>No courses published yet. Check back soon.</p>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section">
+    <div class="section-head">
+        <div>
+            <h2 class="section-title">Why <em>Coursify</em>LMS?</h2>
+        </div>
+    </div>
+    <div class="course-grid">
+        <div class="course-card fade-up">
+            <span class="course-emoji">🎯</span>
+            <h3 class="course-title">Progress you can see</h3>
+            <p class="course-desc">Track every lesson. Every quiz. Completion isn't a vibe — it's a percentage.</p>
+        </div>
+        <div class="course-card fade-up">
+            <span class="course-emoji">🧠</span>
+            <h3 class="course-title">Quizzes that actually grade</h3>
+            <p class="course-desc">Auto-scored multiple choice with pass/fail thresholds set by your instructor.</p>
+        </div>
+        <div class="course-card fade-up">
+            <span class="course-emoji">🏗️</span>
+            <h3 class="course-title">Built on Django + DRF</h3>
+            <p class="course-desc">REST API endpoints for everything. Browse /api/courses/ to see them all.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

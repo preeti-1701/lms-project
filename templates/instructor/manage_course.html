@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}Manage {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="instructor-panel">
+    <div class="dash-head fade-up">
+        <div class="kicker">◆ Managing course</div>
+        <h1>{{ course.thumbnail_emoji }} {{ course.title }}</h1>
+    </div>
+
+    <div class="dash-stats">
+        <div class="dash-stat accent">
+            <div class="label">Lessons</div>
+            <div class="value">{{ lessons|length }}</div>
+        </div>
+        <div class="dash-stat">
+            <div class="label">Students</div>
+            <div class="value">{{ enrollments|length }}</div>
+        </div>
+        <div class="dash-stat">
+            <div class="label">Quizzes</div>
+            <div class="value">{{ quizzes|length }}</div>
+        </div>
+    </div>
+
+    <div class="panel-split">
+        <div class="panel-box">
+            <h3>
+                Lessons
+                <a href="{% url 'add_lesson' course.slug %}" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem">+ Add</a>
+            </h3>
+            {% for lesson in lessons %}
+                <div class="panel-list-item">
+                    <div>
+                        <div class="name">{{ forloop.counter|stringformat:"02d" }}. {{ lesson.title }}</div>
+                        <div class="meta">{{ lesson.duration_minutes }} min</div>
+                    </div>
+                </div>
+            {% empty %}
+                <p style="color: var(--mist); padding: 1rem 0">No lessons yet. Add your first lesson.</p>
+            {% endfor %}
+        </div>
+
+        <div class="panel-box">
+            <h3>
+                Quizzes
+                <a href="{% url 'add_quiz' course.slug %}" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem">+ Add</a>
+            </h3>
+            {% for quiz in quizzes %}
+                <a href="{% url 'manage_quiz' quiz.id %}" style="display:block">
+                    <div class="panel-list-item">
+                        <div>
+                            <div class="name">{{ quiz.title }}</div>
+                            <div class="meta">{{ quiz.question_count }} question{{ quiz.question_count|pluralize }} · Pass at {{ quiz.pass_score }}%</div>
+                        </div>
+                        <span style="color: var(--lime)">→</span>
+                    </div>
+                </a>
+            {% empty %}
+                <p style="color: var(--mist); padding: 1rem 0">No quizzes yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="panel-box" style="margin-top: 2rem">
+        <h3>Enrolled students</h3>
+        {% for enrollment in enrollments %}
+            <div class="panel-list-item">
+                <div style="display: flex; align-items: center; gap: 0.75rem">
+                    <span class="instructor-avatar" style="background: {{ enrollment.student.avatar_color }}; width: 32px; height: 32px">
+                        {{ enrollment.student.initials }}
+                    </span>
+                    <div>
+                        <div class="name">{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}</div>
+                        <div class="meta">@{{ enrollment.student.username }} · Enrolled {{ enrollment.enrolled_at|date:"M d" }}</div>
+                    </div>
+                </div>
+                <div style="color: var(--lime); font-weight: 700; font-family: var(--font-mono)">
+                    {{ enrollment.progress_percent }}%
+                </div>
+            </div>
+        {% empty %}
+            <p style="color: var(--mist); padding: 1rem 0">No enrollments yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

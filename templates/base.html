@@ -1,0 +1,66 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Coursify LMS{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700;9..144,900&family=JetBrains+Mono:wght@400;500;700&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    <div class="grain-overlay"></div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{% url 'landing' %}" class="brand">
+                <span class="brand-mark">◆</span>
+                <span class="brand-name">Coursify<span class="brand-accent">LMS</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="{% url 'catalog' %}">Catalog</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}">Dashboard</a>
+                    {% if user.is_instructor %}
+                        <a href="{% url 'create_course' %}" class="nav-cta">+ New Course</a>
+                    {% endif %}
+                    <div class="user-chip" style="background: {{ user.avatar_color }}">
+                        {{ user.initials }}
+                    </div>
+                    <a href="{% url 'logout' %}" class="nav-logout">Log out</a>
+                {% else %}
+                    <a href="{% url 'login' %}">Log in</a>
+                    <a href="{% url 'signup' %}" class="nav-cta">Get Started</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="message message-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <div>
+                <span class="brand-mark">◆</span>
+                Coursify<span class="brand-accent">LMS</span>
+            </div>
+            <div class="footer-meta">Built with Django · Python Backend Internship Project</div>
+        </div>
+    </footer>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

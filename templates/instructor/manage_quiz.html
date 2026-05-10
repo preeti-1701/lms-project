@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Manage {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="instructor-panel">
+    <div class="dash-head fade-up">
+        <div class="kicker">◆ Managing quiz · {{ quiz.course.title }}</div>
+        <h1>{{ quiz.title }}</h1>
+        <p style="color: var(--mist); margin-top: 0.5rem">{{ quiz.question_count }} question{{ quiz.question_count|pluralize }} · Pass at {{ quiz.pass_score }}%</p>
+    </div>
+
+    <div class="panel-split">
+        <div class="panel-box">
+            <h3>Questions</h3>
+            {% for q in quiz.questions.all %}
+                <div class="panel-list-item" style="flex-direction: column; align-items: flex-start; gap: 0.5rem">
+                    <div class="name" style="width:100%">Q{{ forloop.counter }}. {{ q.text }}</div>
+                    <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--mist)">
+                        A) {{ q.choice_a }} · B) {{ q.choice_b }} · C) {{ q.choice_c }} · D) {{ q.choice_d }}
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--success)">✓ Correct: {{ q.correct_answer }}</div>
+                </div>
+            {% empty %}
+                <p style="color: var(--mist); padding: 1rem 0">No questions yet. Add one on the right.</p>
+            {% endfor %}
+        </div>
+
+        <div class="panel-box">
+            <h3>Add a question</h3>
+            <form method="post">
+                {% csrf_token %}
+                {% for field in form %}
+                    <div class="form-field">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {{ field.errors }}
+                    </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary" style="margin-top: 1rem">+ Add question</button>
+            </form>
+        </div>
+    </div>
+
+    <div style="margin-top: 2rem">
+        <a href="{% url 'manage_course' quiz.course.slug %}" class="btn btn-ghost">← Back to course</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,5 @@
+Django>=6.0
+djangorestframework>=3.14
+django-cors-headers>=4.3
+reportlab>=4.0
+python-dotenv>=1.0

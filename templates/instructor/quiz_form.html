@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Add Quiz — {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="instructor-panel">
+    <div class="dash-head fade-up">
+        <div class="kicker">◆ {{ course.title }}</div>
+        <h1>Create <em>quiz</em></h1>
+    </div>
+
+    <div class="panel-box" style="max-width: 700px">
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-field">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                    {{ field.errors }}
+                </div>
+            {% endfor %}
+            <div style="display: flex; gap: 1rem; margin-top: 2rem">
+                <button type="submit" class="btn btn-primary">Create & add questions →</button>
+                <a href="{% url 'manage_course' course.slug %}" class="btn btn-ghost">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
