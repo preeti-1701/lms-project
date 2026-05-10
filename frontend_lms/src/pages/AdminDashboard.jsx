@@ -41,6 +41,7 @@ const AdminDashboard = () => {
             await api.patch(`/users/${userId}/deactivate/`);
             setUsers(users.map(u => u.id === userId ? { ...u, status: 'INACTIVE', is_active: false } : u));
         } catch (err) {
+            console.error("Failed to deactivate user", err);
             alert("Failed to deactivate user");
         }
     };
@@ -51,7 +52,7 @@ const AdminDashboard = () => {
                 Enterprise LMS
             </h1>
             <nav className="flex-1 space-y-2">
-                {['overview', 'users', 'courses', 'tickets'].map(tab => (
+                {['overview', 'users', 'trainers', 'courses', 'tickets'].map(tab => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
@@ -146,6 +147,69 @@ const AdminDashboard = () => {
         </div>
     );
 
+    const renderTrainers = () => {
+        const trainers = users.filter(u => u.role === 'TRAINER');
+        
+        return (
+            <div className="glass-panel animate-fade-in-up overflow-hidden">
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white/40">
+                    <h2 className="text-xl font-bold text-gray-800">Trainer Analytics</h2>
+                    <span className="badge badge-outline">Total Trainers: {trainers.length}</span>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead className="bg-gray-50/80 text-gray-500 text-xs uppercase tracking-wider backdrop-blur-sm">
+                            <tr>
+                                <th className="px-6 py-4 font-medium">Trainer</th>
+                                <th className="px-6 py-4 font-medium text-center">Published Courses</th>
+                                <th className="px-6 py-4 font-medium text-center">Total Videos Uploaded</th>
+                                <th className="px-6 py-4 font-medium text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 bg-white/30">
+                            {trainers.map(trainer => {
+                                const trainerCourses = courses.filter(c => c.created_by === trainer.id);
+                                const totalVideos = trainerCourses.reduce((sum, course) => sum + (course.videos?.length || 0), 0);
+                                
+                                return (
+                                    <tr key={trainer.id} className="hover:bg-white/60 transition-colors">
+                                        <td className="px-6 py-4 flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-100 to-indigo-100 border border-sky-200 flex items-center justify-center text-sky-700 font-bold text-sm">
+                                                {trainer.first_name ? trainer.first_name.charAt(0).toUpperCase() : trainer.email.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-gray-900">{trainer.first_name} {trainer.last_name}</p>
+                                                <p className="text-xs text-gray-500">{trainer.email}</p>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
+                                            <span className="inline-block bg-gray-100 text-gray-800 font-bold px-3 py-1 rounded-full text-sm">
+                                                {trainerCourses.length}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
+                                            <span className="inline-block bg-indigo-50 text-indigo-700 font-bold px-3 py-1 rounded-full text-sm border border-indigo-100">
+                                                {totalVideos} Videos
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <span className={`badge ${trainer.is_active ? 'badge-active' : 'badge-inactive'}`}>
+                                                {trainer.status || (trainer.is_active ? 'ACTIVE' : 'INACTIVE')}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                            {trainers.length === 0 && (
+                                <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">No trainers registered yet.</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        );
+    };
+
     const renderCourses = () => (
         <div className="glass-panel animate-fade-in-up p-6">
             <h2 className="text-xl font-bold text-gray-800 mb-6">Course Directory</h2>
@@ -221,6 +285,7 @@ const AdminDashboard = () => {
                     <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
                         {activeTab === 'overview' ? 'Dashboard Overview' : 
                          activeTab === 'users' ? 'User Directory' :
+                         activeTab === 'trainers' ? 'Trainer Analytics' :
                          activeTab === 'courses' ? 'Course Management' : 'Support Tickets'}
                     </h2>
                     <p className="text-gray-500 mt-1">Manage your enterprise learning platform.</p>
@@ -234,6 +299,7 @@ const AdminDashboard = () => {
                     <div className="transition-all duration-500">
                         {activeTab === 'overview' && renderOverview()}
                         {activeTab === 'users' && renderUsers()}
+                        {activeTab === 'trainers' && renderTrainers()}
                         {activeTab === 'courses' && renderCourses()}
                         {activeTab === 'tickets' && renderTickets()}
                     </div>

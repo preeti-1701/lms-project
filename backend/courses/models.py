@@ -19,6 +19,9 @@ class Course(models.Model):
 
     # Many to many relationship for assignments with through table
     assigned_users = models.ManyToManyField(User, related_name='assigned_courses', blank=True, through='Enrollment')
+    
+    # Track which trainer authored the course
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_courses')
 
     def __str__(self):
         return self.title

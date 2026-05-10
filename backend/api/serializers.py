@@ -55,10 +55,16 @@ class CourseVideoSerializer(serializers.ModelSerializer):
 class CourseSerializer(serializers.ModelSerializer):
     videos = CourseVideoSerializer(many=True, read_only=True)
     assigned_users = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
+    created_by_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
-        fields = ['id', 'title', 'description', 'status', 'max_capacity', 'enrollment_deadline', 'created_at', 'updated_at', 'videos', 'assigned_users']
+        fields = ['id', 'title', 'description', 'status', 'max_capacity', 'enrollment_deadline', 'created_at', 'updated_at', 'videos', 'assigned_users', 'created_by', 'created_by_name']
+        
+    def get_created_by_name(self, obj):
+        if obj.created_by:
+            return f"{obj.created_by.first_name or ''} {obj.created_by.last_name or ''}".strip() or obj.created_by.username
+        return "Unknown Trainer"
 
     def _sync_enrollments(self, course, users):
         from courses.models import Enrollment

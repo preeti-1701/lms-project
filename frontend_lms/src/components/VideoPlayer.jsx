@@ -1,17 +1,18 @@
-import React, { useEffect, useState, useRef } from 'react';
-import ReactPlayer from 'react-player/youtube';
+import React, { useEffect, useState } from 'react';
 
 const VideoPlayer = ({ url }) => {
-  const [userInfo, setUserInfo] = useState('');
-  const playerRef = useRef(null);
-  
-  useEffect(() => {
+  const [userInfo] = useState(() => {
     const userStr = localStorage.getItem('user');
     if (userStr) {
-      const user = JSON.parse(userStr);
-      setUserInfo(user.email || user.username || `User ID: ${user.id}`);
+      try {
+        const user = JSON.parse(userStr);
+        return user.email || user.username || `User ID: ${user.id}`;
+      } catch { return ''; }
     }
-    
+    return '';
+  });
+  
+  useEffect(() => {
     const handleContextMenu = (e) => {
       e.preventDefault();
     };
@@ -21,6 +22,15 @@ const VideoPlayer = ({ url }) => {
       document.removeEventListener('contextmenu', handleContextMenu);
     };
   }, []);
+
+  const getYouTubeId = (url) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  const videoId = getYouTubeId(url);
 
   return (
     <div className="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl group border border-gray-800">
@@ -35,25 +45,28 @@ const VideoPlayer = ({ url }) => {
         </div>
       </div>
       
-      <ReactPlayer
-        ref={playerRef}
-        url={url}
-        width="100%"
-        height="100%"
-        controls={true}
-        config={{
-          youtube: {
-            playerVars: { 
-              modestbranding: 1,
-              rel: 0,
-              fs: 0, // Disable full screen to keep watermark active within browser constraints
-            }
-          }
-        }}
-        style={{ pointerEvents: 'auto' }}
-      />
+      {videoId ? (
+        <iframe
+          width="100%"
+          height="100%"
+          src={`https://www.youtube.com/embed/${videoId}?modestbranding=1&rel=0&fs=0`}
+          title="Course Video"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen={false}
+          className="w-full h-full"
+          style={{ pointerEvents: 'auto' }}
+        ></iframe>
+      ) : (
+        <video 
+          src={url} 
+          controls 
+          className="w-full h-full"
+          style={{ pointerEvents: 'auto' }}
+        />
+      )}
       
-      {/* Invisible overlay over the player to intercept certain clicks but allow play/pause, usually YouTube iframe absorbs clicks though, contextmenu event blocks it on the wrapper level */}
+      {/* Invisible overlay over the player to intercept certain clicks */}
       <div className="absolute inset-0 z-0 pointer-events-none"></div>
     </div>
   );

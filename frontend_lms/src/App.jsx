@@ -15,15 +15,22 @@ const PrivateRoute = ({ children, allowedRoles }) => {
     return <Navigate to="/login" replace />;
   }
 
+  let user = null;
   try {
-    const user = JSON.parse(userStr);
-    if (allowedRoles && !allowedRoles.includes(user.role)) {
-      return <Navigate to="/login" replace />;
-    }
-    return children;
-  } catch (e) {
+    user = JSON.parse(userStr);
+  } catch {
+    // Ignore invalid JSON
+  }
+
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return children;
 };
 
 function App() {
@@ -37,7 +44,7 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             
             <Route path="/admin/*" element={
-              <PrivateRoute allowedRoles={['ADMIN']}>
+              <PrivateRoute allowedRoles={['ADMIN', 'SUPERADMIN']}>
                 <AdminDashboard />
               </PrivateRoute>
             } />

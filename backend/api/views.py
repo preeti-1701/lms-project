@@ -160,12 +160,40 @@ class SessionViewSet(viewsets.ReadOnlyModelViewSet):
 class CourseViewSet(AuditLogMixin, viewsets.ModelViewSet):
     serializer_class = CourseSerializer
     
+    def perform_create(self, serializer):
+        super().perform_create(serializer)
+        serializer.instance.created_by = self.request.user
+        serializer.instance.save()
+    
     def get_queryset(self):
         user = self.request.user
         if user.role in ['ADMIN', 'TRAINER']:
             return Course.objects.all()
-        # Student, only assigned courses
+            
+        if self.action in ['published', 'enroll', 'retrieve']:
+            return Course.objects.filter(status='PUBLISHED')
+            
+        # Student, only assigned courses (for default list view)
         return Course.objects.filter(assigned_users=user)
+
+    @action(detail=False, methods=['get'])
+    def published(self, request):
+        courses = Course.objects.filter(status='PUBLISHED')
+        serializer = self.get_serializer(courses, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def enroll(self, request, pk=None):
+        course = self.get_object()
+        from courses.models import Enrollment
+        # Check capacity
+        if course.max_capacity and course.assigned_users.count() >= course.max_capacity:
+            return Response({"detail": "Course is full."}, status=status.HTTP_400_BAD_REQUEST)
+            
+        enrollment, created = Enrollment.objects.get_or_create(user=request.user, course=course)
+        if created:
+            return Response({"detail": "Successfully enrolled!"}, status=status.HTTP_201_CREATED)
+        return Response({"detail": "Already enrolled."}, status=status.HTTP_200_OK)
 
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
