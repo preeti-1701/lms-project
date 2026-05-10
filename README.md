@@ -1,46 +1,50 @@
 # Coursify — Learning Management System
 
-Full-stack LMS built for the Python Backend internship at Coursify.
-Django + DRF backend with both a **server-rendered template frontend** (v1) and a **React + Vite frontend** (v2) consuming the same REST API.
+Full-stack LMS built for the Python Backend internship at Newgen Softech. Django + DRF backend with a React + Vite frontend, role-based access (student / instructor / admin), real email OTP verification, single-session enforcement, content protection, and PDF certificate generation.
 
 ## 🏗 Architecture
 
 ```
                   ┌─────────────────────────────┐
-                  │    Django Backend (:8000)   │
-                  │  ├── Models (8)             │
+                  │   Django Backend (:8000)    │
+                  │  ├── 10+ Models             │
                   │  ├── REST API (/api/)       │
                   │  ├── Admin (/admin/)        │
-                  │  └── Django Templates (HTML)│
+                  │  ├── Gmail SMTP (OTP)       │
+                  │  └── PDF Generator          │
                   └──────────────┬──────────────┘
-                                 │ Token Auth
-                                 │ JSON over CORS
+                                 │ Token Auth + CORS
+                                 │
                   ┌──────────────▼──────────────┐
-                  │  React + Vite (:5173)       │
-                  │  ├── Login                  │
-                  │  ├── Dashboard              │
-                  │  ├── Course Detail          │
-                  │  ├── Lesson + Video Player  │
-                  │  └── Quiz                   │
+                  │   React + Vite (:5173)      │
+                  │  ├── Landing / Login        │
+                  │  ├── Signup + OTP Verify    │
+                  │  ├── Student Dashboard      │
+                  │  ├── Catalog + Enroll       │
+                  │  ├── Lesson + Watermark     │
+                  │  ├── Quiz (auto-graded)     │
+                  │  ├── Sessions (active list) │
+                  │  ├── Instructor Console     │
+                  │  └── PDF Certificate DL     │
                   └─────────────────────────────┘
 ```
 
 ## 🚀 Setup
 
-### 1. Django backend (port 8000)
+### 1. Backend (port 8000)
 
 ```bash
 pip install -r requirements.txt
+cp .env.example .env
+# Edit .env with your Gmail + app password (for sending OTPs)
 python manage.py migrate
-python seed_data.py   # optional re-seed
+python seed_data.py
 python manage.py runserver
 ```
 
-Runs at **http://127.0.0.1:8000/** — HTML templates + REST API.
+### 2. Frontend (port 5173)
 
-### 2. React frontend (port 5173)
-
-**Open a SECOND terminal window** (keep the Django one running):
+In a second terminal:
 
 ```bash
 cd react-frontend
@@ -48,46 +52,104 @@ npm install
 npm run dev
 ```
 
-Runs at **http://localhost:5173/**
+Open `http://localhost:5173/`
 
 ## 🔑 Demo Accounts (password: `demo1234`)
 
-- **Student:** `student_demo` (= Jyotsna, has enrollments + progress)
-- **Instructor:** `priya_sharma`
-- **Admin:** `admin` / `admin` for `/admin/`
+| Role | Login | Notes |
+|---|---|---|
+| Student | `student@demo.com` | Has enrollments + completed Git course (for certificate demo) |
+| Student | `sara_mehta` | Just starting out |
+| Instructor | `priya@newgen.com` | Owns 2 courses, can manage lessons + quizzes |
+| Instructor | `rahul_verma` | Owns 2 courses |
+| Instructor | `anita_iyer` | Owns 1 course |
+| Admin | `admin` / `admin` | Full Django admin at `/admin/` |
 
-## 📡 REST API
+## ✨ Features
 
-**Auth**
-- `POST /api/login/` → `{token, user}`
-- `GET /api/me/` → current user + enrollments
+### For Students
 
-**Content**
-- `GET /api/courses/` — list
-- `GET /api/courses/<slug>/` — detail with lessons + quizzes
-- `GET /api/quizzes/<id>/` — quiz (correct answers hidden)
+- **Email OTP signup** — real Gmail SMTP, 6-digit code with 10-min expiry
+- **Catalog browsing** with search, level filter, category filter
+- **Self-enrollment** in any published course
+- **Lesson viewer** with sidebar nav, progress checkmarks, video URL link, watermark
+- **Auto-graded quizzes** with score ring and pass/fail
+- **Progress tracking** per lesson, persisted to localStorage + backend
+- **PDF certificate** download when course is 100% complete
+- **Active sessions page** showing devices + IPs + "this device" pill
 
-**Actions**
-- `POST /api/courses/<slug>/enroll/`
-- `POST /api/lesson/<id>/complete/`
-- `POST /api/quiz/<id>/submit/` with `{answers: {question_id: "A"}}`
+### For Instructors
+
+- **Auto-redirect** to `/instructor` console on login (role-based routing)
+- **Stats dashboard** — courses, lessons, quizzes, enrolled students
+- **Read-only course details** (admin manages courses)
+- **Full CRUD on lessons & quizzes** within assigned courses
+- **Quiz question editor** with green-pill correct answer marking
+- **Cannot create courses** — only admin can (matches SRS workflow)
+
+### For Admins
+
+- **Clean admin** with proxy models — Students and Teachers as separate sections (filtered by role)
+- **Assign courses** to students via Enrollment
+- **Force-logout** any active user session (SRS 3.5)
+- **Hidden tables** (EmailOTP, LessonProgress, QuizAttempt, Question) — only essential models surface
 
 ## 🔒 Security Features (SRS Section 4)
 
-On both Django and React lesson pages:
-- Right-click disabled, dev tools shortcuts blocked (F12, Ctrl+Shift+I, Ctrl+U, Ctrl+S, Cmd+Alt+I)
-- PrintScreen detection → clears clipboard, shows red toast
-- Animated watermark on video with student's username + email (moves around so it can't be cropped)
-- "Licensed to X" notice bar below video
-- Text selection disabled
-- Token-based API auth
+- **Email OTP verification** before account is activated
+- **Token-based API auth** — DRF tokens in `Authorization: Token <key>` header
+- **Single active session** — login deletes all old tokens, force-logged-out devices see toast
+- **Admin force-logout** — tick session in admin → "Force-logout selected sessions" action
+- **Per-user watermark** — username + email repeated diagonally across every lesson page
+- **Right-click disabled** on lesson and quiz pages
+- **Dev tools blocking** — F12, Cmd+Shift+I/J/C, Cmd+Alt+I/J/C, Ctrl+U, Ctrl+S
+- **Copy/paste blocking** — Cmd/Ctrl+C, Cmd/Ctrl+A, Cmd/Ctrl+P, Cmd/Ctrl+S
+- **Session tracking** — IP address, device label, user agent stored per session
+- **Quiz answer protection** — correct answers excluded from API serializer
+- **Course assignment by admin** — instructors can't self-assign courses
+
+> Note on screenshot blocking: macOS captures Cmd+Shift+3/4/5/6 at the OS level before any browser can intercept the keypress — a known web platform limitation that affects Netflix, Disney+, and every web-based video service. Coursify mitigates this with deterrence (per-user watermark identifies the leaker) rather than prevention.
+
+## 📡 REST API
+
+### Auth
+- `POST /api/signup/` — create unverified account, send OTP email
+- `POST /api/verify-otp/` — verify OTP, activate account
+- `POST /api/resend-otp/` — resend code
+- `POST /api/login/` — email or username login → `{token, user}`
+- `POST /api/logout/` — invalidate token
+- `GET /api/me/` — current user + enrollments
+
+### Content
+- `GET /api/courses/` — list published courses
+- `GET /api/courses/<slug>/` — detail with lessons + quizzes
+- `POST /api/courses/<slug>/enroll/` — self-enroll
+- `GET /api/quizzes/<id>/` — quiz (correct answers hidden)
+- `POST /api/lesson/<id>/complete/` — mark lesson done
+- `POST /api/quiz/<id>/submit/` — submit answers, returns score
+
+### Sessions
+- `GET /api/my-sessions/` — list active + recent sessions
+
+### Certificate
+- `GET /api/certificate/<course_slug>/` — download PDF (only if 100% complete)
+
+### Instructor
+- `GET /api/instructor/stats/` — course/lesson/quiz/student counts
+- `GET /api/instructor/courses/` — assigned courses
+- `GET|POST /api/instructor/courses/<slug>/lessons/` — list/create lessons
+- `GET|PATCH|DELETE /api/instructor/lessons/<id>/`
+- `GET|POST /api/instructor/courses/<slug>/quizzes/` — list/create quizzes
+- `GET|PATCH|DELETE /api/instructor/quizzes/<id>/`
 
 ## 🛠 Tech Stack
 
-**Backend:** Python 3.12, Django 6.0, DRF 3.17, SQLite (dev), django-cors-headers
-**Frontend v1:** Django templates + vanilla JS
-**Frontend v2:** React 18 + Vite 5 + React Router 6
-**Fonts:** Fraunces + Inter (Django), Instrument Serif + Geist (React)
+- **Backend:** Python 3.12, Django 6.0, Django REST Framework 3.17, SQLite (dev / PostgreSQL-ready)
+- **Email:** Gmail SMTP via app password
+- **PDF:** reportlab 4 (landscape A4, custom layout)
+- **Frontend:** React 18, Vite 5, React Router 6, vanilla CSS
+- **Auth:** DRF Token + custom email-or-username auth backend
+- **Fonts:** Instrument Serif (display) + Geist (body) + Geist Mono
 
 ## 📁 Project Structure
 
@@ -97,28 +159,57 @@ lms_project/
 ├── db.sqlite3
 ├── seed_data.py
 ├── requirements.txt
-├── DEMO_SCRIPT.md
+├── .env.example          # template — copy to .env, never commit
 ├── README.md
-├── lms_core/               Django config
-├── core/                   main Django app (models, views, serializers, urls)
-├── templates/              Django templates (v1)
-├── static/css/             CSS for Django (v1)
-└── react-frontend/         React + Vite (v2)
+├── DEMO_SCRIPT.md        # demo walkthrough
+├── PROJECT_STATUS.md     # SRS coverage breakdown
+├── lms_core/             # Django settings + root URLs
+├── core/                 # main app
+│   ├── models.py         # 10+ models incl. UserSession, EmailOTP
+│   ├── views.py          # all API endpoints + cert generator
+│   ├── serializers.py
+│   ├── admin.py          # proxy models for Students/Teachers
+│   ├── auth_backends.py  # email-or-username auth
+│   ├── forms.py
+│   ├── urls.py
+│   └── migrations/
+├── templates/            # Django HTML templates (v1, deprecated)
+├── static/css/
+└── react-frontend/       # React app (v2, primary)
     ├── package.json
     ├── vite.config.js
     └── src/
-        ├── App.jsx
+        ├── App.jsx           # role-based routing, force-logout listener
         ├── main.jsx
         ├── styles.css
-        ├── api/client.js
-        └── pages/{Login,Dashboard,CourseDetail,Lesson,Quiz}.jsx
+        ├── api/client.js     # API wrapper, token handling
+        ├── hooks/
+        │   └── useProtection.js   # right-click/dev-tools/copy block
+        └── pages/
+            ├── Landing.jsx
+            ├── Login.jsx
+            ├── Signup.jsx
+            ├── Dashboard.jsx
+            ├── Catalog.jsx
+            ├── CourseDetail.jsx
+            ├── Lesson.jsx              # with watermark
+            ├── Quiz.jsx
+            ├── Sessions.jsx
+            ├── InstructorDashboard.jsx
+            └── InstructorCourseEditor.jsx
 ```
 
 ## 🧠 Key Design Decisions
 
-- **Custom User model** with `role` field for student/instructor.
-- **Token auth on API** — React stores token in localStorage, sends as `Authorization: Token <key>`.
-- **`CourseDetailSerializer`** separate from list — only detail includes full lessons/quizzes (saves bandwidth).
-- **Correct answers excluded** from Question serializer — prevents cheating via API inspection.
-- **CORS allowlist** — only localhost:5173 allowed in dev.
-- **`progress_percent` as property** — computed from LessonProgress, never stale.
+- **Custom User model** with `role` field — Django docs strongly recommend defining this from day one
+- **Proxy models for admin** — `Student` and `Teacher` filter the User table by role for clean UX
+- **Email OR username login** via custom auth backend — better UX than forcing usernames
+- **Email OTP via Gmail SMTP** — real verification, no fake "verified" flag
+- **Single-session enforcement** — login deletes all prior tokens for the user, listener in App.jsx detects 401/403 and shows toast
+- **Token auth** — React stores in localStorage, sends as `Authorization: Token <key>`
+- **CourseDetailSerializer separate from list** — only detail includes full lessons (saves bandwidth)
+- **Correct answers excluded from QuizSerializer** — prevents cheating via API inspection
+- **CORS allowlist** — only `localhost:5173` in dev
+- **`progress_percent` as model property** — computed from LessonProgress, never stale
+- **PDF certificate** — generated on-demand with reportlab, unique cert ID via SHA256 hash, only available at 100% completion
+- **Per-lesson localStorage caching** — completion state survives refresh, stays consistent across navigation
