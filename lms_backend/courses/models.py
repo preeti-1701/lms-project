@@ -7,6 +7,7 @@ User = settings.AUTH_USER_MODEL
 class Course(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
+    image_url = models.URLField(blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -23,8 +24,14 @@ class Video(models.Model):
 
 
 class Enrollment(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    )
     student = models.ForeignKey(User, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
 
     def __str__(self):
-        return f"{self.student} - {self.course}"
+        return f"{self.student} - {self.course} ({self.status})"
