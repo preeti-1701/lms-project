@@ -359,3 +359,20 @@ class AdminUserDetailView(APIView):
 			status=status.HTTP_200_OK,
 		)
 
+	def delete(self, request, user_id: int):
+		User = get_user_model()
+		u = User.objects.filter(id=user_id).first()
+		if u is None:
+			return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+		if u.id == request.user.id:
+			return Response({'detail': 'You cannot delete your own account.'}, status=status.HTTP_400_BAD_REQUEST)
+		if u.is_superuser:
+			return Response({'detail': 'Superusers cannot be deleted from this panel.'}, status=status.HTTP_400_BAD_REQUEST)
+
+		role = _effective_role(u)
+		if role not in (Profile.ROLE_TRAINER, Profile.ROLE_STUDENT):
+			return Response({'detail': 'Only students and trainers can be deleted.'}, status=status.HTTP_400_BAD_REQUEST)
+
+		u.delete()
+		return Response(status=status.HTTP_204_NO_CONTENT)
+

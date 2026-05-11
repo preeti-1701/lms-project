@@ -7,6 +7,7 @@ from .views import (
     AdminRejectCourseView,
     CourseDetailView,
     CourseEnrollView,
+    CourseEnrollmentsView,
     CourseItemsView,
     CourseListCreateView,
     MyEnrollmentsView,
@@ -17,6 +18,7 @@ urlpatterns = [
     path('courses/', CourseListCreateView.as_view(), name='courses-list-create'),
     path('courses/<int:course_id>/', CourseDetailView.as_view(), name='courses-detail'),
     path('courses/<int:course_id>/items/', CourseItemsView.as_view(), name='courses-items'),
+    path('courses/<int:course_id>/enrollments/', CourseEnrollmentsView.as_view(), name='courses-enrollments'),
     path('courses/<int:course_id>/enroll/', CourseEnrollView.as_view(), name='courses-enroll'),
     path('me/enrollments/', MyEnrollmentsView.as_view(), name='me-enrollments'),
 

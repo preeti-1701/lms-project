@@ -32,6 +32,10 @@ export function getCourseItems(courseId) {
   return apiFetchWithAuth(`/api/courses/${courseId}/items/`, { method: "GET" });
 }
 
+export function getCourseEnrollments(courseId) {
+  return apiFetchWithAuth(`/api/courses/${courseId}/enrollments/`, { method: "GET" });
+}
+
 export function enroll(courseId) {
   return apiFetchWithAuth(`/api/courses/${courseId}/enroll/`, { method: "POST" });
 }

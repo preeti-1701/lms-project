@@ -45,6 +45,10 @@ export function getUserDetail(userId) {
   return apiFetchWithAuth(`/api/admin/users/${Number(userId)}/`, { method: "GET" });
 }
 
+export function deleteUser(userId) {
+  return apiFetchWithAuth(`/api/admin/users/${Number(userId)}/`, { method: "DELETE" });
+}
+
 export function promoteAdmin(userId) {
   return apiFetchWithAuth("/api/admin/users/promote-admin/", {
     method: "POST",

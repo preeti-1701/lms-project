@@ -166,6 +166,41 @@ class CourseItemsView(APIView):
         return Response(serialize_course(course, include_items=True)['items'], status=status.HTTP_200_OK)
 
 
+class CourseEnrollmentsView(APIView):
+    """Returns enrolled students for a trainer-owned course."""
+
+    def get(self, request, course_id: int):
+        course = Course.objects.filter(id=course_id).select_related('trainer').first()
+        if course is None:
+            return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        role = _role(request.user)
+        if role != Profile.ROLE_ADMIN and not (role == Profile.ROLE_TRAINER and course.trainer_id == request.user.id):
+            return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        enrollments = (
+            Enrollment.objects.filter(course=course)
+            .select_related('student')
+            .order_by('-enrolled_at')
+        )
+        return Response(
+            [
+                {
+                    'id': e.id,
+                    'enrolled_at': e.enrolled_at.isoformat() if e.enrolled_at else None,
+                    'student': {
+                        'id': e.student_id,
+                        'username': e.student.get_username(),
+                        'name': (e.student.get_full_name() or '').strip() or None,
+                        'email': e.student.email,
+                    },
+                }
+                for e in enrollments
+            ],
+            status=status.HTTP_200_OK,
+        )
+
+
 class CourseEnrollView(APIView):
     permission_classes = [IsStudent]
 

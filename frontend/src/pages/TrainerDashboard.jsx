@@ -13,6 +13,9 @@ export default function TrainerDashboard() {
   const user = ctx.auth.user;
 
   const [courses, setCourses] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [enrolledStudents, setEnrolledStudents] = useState([]);
+  const [enrollmentsLoading, setEnrollmentsLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -28,6 +31,10 @@ export default function TrainerDashboard() {
     setMessage("");
     const data = await ctx.api.courses.list();
     setCourses(data);
+    if (selectedCourse && !data.some((course) => course.id === selectedCourse.id)) {
+      setSelectedCourse(null);
+      setEnrolledStudents([]);
+    }
   }
 
   useEffect(() => {
@@ -83,6 +90,21 @@ export default function TrainerDashboard() {
     newItems[idx] = { ...newItems[idx], [field]: value };
     setItems(newItems);
   };
+
+  async function handleSelectCourse(course) {
+    setSelectedCourse(course);
+    setEnrollmentsLoading(true);
+    setMessage("");
+    try {
+      const data = await ctx.api.courses.enrollments(course.id);
+      setEnrolledStudents(data);
+    } catch (e) {
+      setEnrolledStudents([]);
+      setMessage(e?.message || "Failed to load enrolled students");
+    } finally {
+      setEnrollmentsLoading(false);
+    }
+  }
 
   if (!user) {
     return (
@@ -276,14 +298,57 @@ export default function TrainerDashboard() {
                 ) : (
                   <div className="space-y-3">
                     {courses.map((course) => (
-                      <div key={course.id} className="p-3 bg-gray-50 rounded-lg">
+                      <button
+                        key={course.id}
+                        type="button"
+                        onClick={() => handleSelectCourse(course)}
+                        className={
+                          selectedCourse?.id === course.id
+                            ? "w-full rounded-lg border border-primary bg-primary/5 p-3 text-left"
+                            : "w-full rounded-lg border border-transparent bg-gray-50 p-3 text-left hover:border-gray-300"
+                        }>
                         <p className="font-medium text-sm text-secondary line-clamp-2">{course.title}</p>
                         <p className="text-xs text-gray-500 mt-1">{course.total_hours} hours</p>
                         <span className="inline-block mt-2 badge badge-primary text-xs">
                           {course.status || "pending"}
                         </span>
-                      </div>
+                      </button>
                     ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="card mt-6 p-6">
+                <h3 className="font-bold text-secondary mb-4">Enrolled Students</h3>
+                {!selectedCourse ? (
+                  <p className="text-gray-500 text-sm">Select one of your courses to view enrolled students.</p>
+                ) : enrollmentsLoading ? (
+                  <p className="text-gray-500 text-sm">Loading enrolled students...</p>
+                ) : enrolledStudents.length === 0 ? (
+                  <div>
+                    <p className="font-medium text-sm text-secondary">{selectedCourse.title}</p>
+                    <p className="mt-2 text-gray-500 text-sm">No students are enrolled yet.</p>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="font-medium text-sm text-secondary">{selectedCourse.title}</p>
+                    <div className="mt-4 space-y-3">
+                      {enrolledStudents.map((enrollment) => (
+                        <div key={enrollment.id} className="rounded-lg border border-gray-200 p-3">
+                          <p className="text-sm font-medium text-secondary">
+                            {enrollment.student?.name ||
+                              enrollment.student?.username ||
+                              enrollment.student?.email ||
+                              `Student ${enrollment.student?.id}`}
+                          </p>
+                          <p className="mt-1 text-xs text-gray-500">{enrollment.student?.email || "-"}</p>
+                          <p className="mt-1 text-xs text-gray-500">
+                            Enrolled:{" "}
+                            {enrollment.enrolled_at ? new Date(enrollment.enrolled_at).toLocaleString() : "-"}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>

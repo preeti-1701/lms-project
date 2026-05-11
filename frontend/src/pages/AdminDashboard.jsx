@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Trash2, X } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { AppContext } from "../context/AppContext";
@@ -100,6 +101,19 @@ export default function AdminDashboard() {
     if (!ok) return;
     setMessage("");
     await ctx.api.admin.promoteAdmin(userId);
+    await load();
+  }
+
+  async function deleteUser(userToDelete) {
+    const label = userToDelete.name || userToDelete.username || userToDelete.email || `User ${userToDelete.id}`;
+    const ok = window.confirm(`Delete ${label}? This cannot be undone.`);
+    if (!ok) return;
+    setMessage("");
+    await ctx.api.admin.deleteUser(userToDelete.id);
+    if (selectedUserId === userToDelete.id) {
+      setSelectedUserId(null);
+      setSelectedUser(null);
+    }
     await load();
   }
 
@@ -254,20 +268,16 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <div className="mt-4 grid gap-3">
               <div className="grid gap-3">
                 {users.map((u) => {
                   const isSelected = selectedUserId === u.id;
                   return (
-                    <button
+                    <div
                       key={u.id}
-                      type="button"
                       className={
-                        isSelected ? "card p-4 text-left border-gray-900" : "card p-4 text-left hover:border-gray-400"
-                      }
-                      onClick={() => {
-                        setSelectedUserId(u.id);
-                      }}>
+                        isSelected ? "card p-4 border-gray-900" : "card p-4 hover:border-gray-400"
+                      }>
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <div className="font-semibold text-secondary">
@@ -280,61 +290,106 @@ export default function AdminDashboard() {
                       <div className="mt-2 text-sm text-gray-600">
                         Approved: {String(!!u.approved)} | Active: {String(!!u.is_active)}
                       </div>
-                    </button>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          className="btn btn-outline"
+                          onClick={() => {
+                            setSelectedUser(null);
+                            setSelectedUserId(u.id);
+                          }}>
+                          View Details
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-outline flex items-center gap-2 border-red-200 text-red-700 hover:border-red-300 hover:bg-red-50"
+                          onClick={() => deleteUser(u)}>
+                          <Trash2 className="h-4 w-4" />
+                          Delete
+                        </button>
+                      </div>
+                    </div>
                   );
                 })}
                 {users.length === 0 ? <div className="card p-5 text-gray-600">No users found.</div> : null}
-              </div>
-
-              <div className="card p-5">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-lg font-bold text-secondary">User Details</div>
-                    <div className="mt-1 text-sm text-gray-600">Click a user to view details.</div>
-                  </div>
-                  {selectedUser && selectedUser.role === "trainer" ? (
-                    <button className="btn btn-outline" onClick={() => promoteAdmin(selectedUser.id)}>
-                      Make Admin
-                    </button>
-                  ) : null}
-                </div>
-
-                {selectedUser ? (
-                  <div className="mt-4 grid gap-2 text-sm">
-                    <div>
-                      <span className="font-medium text-secondary">Name:</span> {selectedUser.name || "-"}
-                    </div>
-                    <div>
-                      <span className="font-medium text-secondary">Email:</span> {selectedUser.email || "-"}
-                    </div>
-                    <div>
-                      <span className="font-medium text-secondary">Role:</span> {selectedUser.role}
-                    </div>
-                    <div>
-                      <span className="font-medium text-secondary">Approved:</span> {String(!!selectedUser.approved)}
-                    </div>
-                    <div>
-                      <span className="font-medium text-secondary">Active:</span> {String(!!selectedUser.is_active)}
-                    </div>
-                    <div>
-                      <span className="font-medium text-secondary">Last login:</span>{" "}
-                      {selectedUser.last_login_at ? new Date(selectedUser.last_login_at).toLocaleString() : "-"}
-                    </div>
-                    <div>
-                      <span className="font-medium text-secondary">IP:</span> {selectedUser.ip || "-"}
-                    </div>
-                    <div>
-                      <span className="font-medium text-secondary">Device:</span> {selectedUser.device_name || "-"}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mt-4 text-sm text-gray-600">No user selected.</div>
-                )}
               </div>
             </div>
           </section>
         </div>
       </main>
+
+      {selectedUserId ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 px-4 py-6">
+          <div className="w-full max-w-lg rounded-lg bg-white shadow-xl">
+            <div className="flex items-start justify-between gap-4 border-b border-gray-200 p-5">
+              <div>
+                <div className="text-lg font-bold text-secondary">User Details</div>
+                <div className="mt-1 text-sm text-gray-600">
+                  {selectedUser ? selectedUser.email || selectedUser.username : "Loading user details..."}
+                </div>
+              </div>
+              <button
+                type="button"
+                className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                aria-label="Close user details"
+                onClick={() => {
+                  setSelectedUserId(null);
+                  setSelectedUser(null);
+                }}>
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {selectedUser ? (
+              <div className="p-5">
+                <div className="grid gap-2 text-sm">
+                  <div>
+                    <span className="font-medium text-secondary">Name:</span> {selectedUser.name || "-"}
+                  </div>
+                  <div>
+                    <span className="font-medium text-secondary">Email:</span> {selectedUser.email || "-"}
+                  </div>
+                  <div>
+                    <span className="font-medium text-secondary">Role:</span> {selectedUser.role}
+                  </div>
+                  <div>
+                    <span className="font-medium text-secondary">Approved:</span> {String(!!selectedUser.approved)}
+                  </div>
+                  <div>
+                    <span className="font-medium text-secondary">Active:</span> {String(!!selectedUser.is_active)}
+                  </div>
+                  <div>
+                    <span className="font-medium text-secondary">Last login:</span>{" "}
+                    {selectedUser.last_login_at ? new Date(selectedUser.last_login_at).toLocaleString() : "-"}
+                  </div>
+                  <div>
+                    <span className="font-medium text-secondary">IP:</span> {selectedUser.ip || "-"}
+                  </div>
+                  <div>
+                    <span className="font-medium text-secondary">Device:</span> {selectedUser.device_name || "-"}
+                  </div>
+                </div>
+
+                <div className="mt-6 flex flex-wrap justify-end gap-2">
+                  {selectedUser.role === "trainer" ? (
+                    <button className="btn btn-outline" onClick={() => promoteAdmin(selectedUser.id)}>
+                      Make Admin
+                    </button>
+                  ) : null}
+                  <button
+                    className="btn btn-outline flex items-center gap-2 border-red-200 text-red-700 hover:border-red-300 hover:bg-red-50"
+                    onClick={() => deleteUser(selectedUser)}>
+                    <Trash2 className="h-4 w-4" />
+                    Delete User
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="p-5 text-sm text-gray-600">Loading...</div>
+            )}
+          </div>
+        </div>
+      ) : null}
 
       <Footer />
     </div>
