@@ -81,7 +81,25 @@ function useStudentData() {
 export function StudentCoursesPage() {
   const { ctx, courses, enrollments, message, load } = useStudentData();
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
   const enrolledCourseIds = useMemo(() => new Set(enrollments.map((x) => String(x.course?.id))), [enrollments]);
+  const filteredCourses = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    if (!query) return courses;
+
+    return courses.filter((course) => {
+      const searchableText = [
+        course.title,
+        course.description,
+        course.status,
+        formatHoursMinutes(course.total_hours),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return searchableText.includes(query);
+    });
+  }, [courses, searchTerm]);
 
   async function handleEnroll(courseId) {
     await ctx.api.courses.enroll(courseId);
@@ -92,15 +110,34 @@ export function StudentCoursesPage() {
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
       <section className="lg:col-span-2">
-        <h2 className="mb-6 text-2xl font-bold text-secondary">Available Courses</h2>
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-secondary">Available Courses</h2>
+            <p className="mt-1 text-sm text-gray-600">Search by course title, description, status, or duration.</p>
+          </div>
+          <label className="w-full sm:max-w-sm">
+            <span className="mb-2 block text-sm font-medium text-gray-700">Search courses</span>
+            <input
+              className="input"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search courses..."
+              type="search"
+            />
+          </label>
+        </div>
         {message ? <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-600">{message}</div> : null}
         {courses.length === 0 ? (
           <div className="rounded-lg bg-white py-12 text-center">
             <p className="text-lg text-gray-500">No courses available yet</p>
           </div>
+        ) : filteredCourses.length === 0 ? (
+          <div className="rounded-lg bg-white py-12 text-center">
+            <p className="text-lg text-gray-500">No courses match your search.</p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {courses.map((course) => {
+            {filteredCourses.map((course) => {
               const enrolled = enrolledCourseIds.has(String(course.id));
               return (
                 <CourseCard
