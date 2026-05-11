@@ -23,7 +23,7 @@ export default function LoginPage() {
 
     if (role === "admin") navigate("/adminDashboard");
     else if (role === "trainer") navigate("/trainerDashboard", { state: { approved } });
-    else navigate("/sudentDashboard");
+    else navigate("/studentDashboard");
   }
 
   return (

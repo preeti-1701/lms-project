@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
-import { Plus, Trash2, AlertCircle, Pencil } from "lucide-react";
+import { Link, Outlet, useNavigate, useParams } from "react-router-dom";
+import { AlertCircle, Pencil, Plus, Trash2 } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { AppContext } from "../context/AppContext";
@@ -9,61 +10,264 @@ function emptyItem() {
   return { title: "", description: "", youtube_url: "", hours: "0.00", order: 0 };
 }
 
+function AccessMessage({ title, message, to = "/" }) {
+  return (
+    <div className="flex min-h-screen flex-col bg-gray-50">
+      <Header />
+      <main className="flex flex-1 items-center justify-center px-4 py-16">
+        <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+          <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+          <p className="mt-2 text-gray-600">{message}</p>
+          <Link to={to} className="btn btn-primary mt-6">
+            Go Back
+          </Link>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
 export default function TrainerDashboard() {
   const ctx = useContext(AppContext);
   const user = ctx.auth.user;
 
-  const [courses, setCourses] = useState([]);
-  const [selectedCourse, setSelectedCourse] = useState(null);
-  const [enrolledStudents, setEnrolledStudents] = useState([]);
-  const [enrollmentsLoading, setEnrollmentsLoading] = useState(false);
-  const [showCourseForm, setShowCourseForm] = useState(false);
-  const [editingCourseId, setEditingCourseId] = useState(null);
-  const [message, setMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  if (!user) return <AccessMessage title="Access Denied" message="Please login to continue." to="/login" />;
+  if (user.role !== "trainer") {
+    return <AccessMessage title="Access Denied" message="This dashboard is for trainers only." />;
+  }
 
+  return (
+    <div className="flex min-h-screen flex-col bg-gray-50">
+      <Header />
+      <main className="flex-grow px-4 py-12">
+        <div className="mx-auto max-w-6xl">
+          <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-secondary">Trainer Dashboard</h1>
+              <p className="mt-2 text-gray-600">Manage your uploaded courses and enrolled students</p>
+            </div>
+            <Link to="/trainerDashboard/add-course" className="btn btn-primary flex items-center justify-center gap-2">
+              <Plus className="h-4 w-4" />
+              Add Course
+            </Link>
+          </header>
+
+          {!user.approved ? (
+            <div className="mb-8 flex items-start gap-3 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+              <AlertCircle className="mt-0.5 h-6 w-6 flex-shrink-0 text-yellow-600" />
+              <div>
+                <p className="font-semibold text-yellow-800">Pending Approval</p>
+                <p className="text-sm text-yellow-700">
+                  Your trainer account is awaiting admin approval. Once approved, you can upload and manage courses.
+                </p>
+              </div>
+            </div>
+          ) : null}
+
+          <Outlet />
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+export function TrainerCoursesPage() {
+  const ctx = useContext(AppContext);
+  const [courses, setCourses] = useState([]);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    ctx.api.courses
+      .list()
+      .then((data) => {
+        if (!cancelled) setCourses(data);
+      })
+      .catch((e) => {
+        if (!cancelled) setMessage(e?.message || "Failed to load courses");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [ctx.api.courses]);
+
+  if (message) return <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">{message}</div>;
+
+  if (courses.length === 0) {
+    return (
+      <div className="flex min-h-96 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center">
+        <div className="max-w-md">
+          <h2 className="text-2xl font-bold text-secondary">Start now</h2>
+          <p className="mt-2 text-gray-600">Upload your first course and begin building your learner list.</p>
+          <Link to="/trainerDashboard/add-course" className="btn btn-primary mt-6 inline-flex items-center gap-2 px-8 py-4 text-lg">
+            <Plus className="h-5 w-5" />
+            Add Your First Course
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <section>
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <h2 className="text-2xl font-bold text-secondary">Uploaded Courses</h2>
+        <span className="text-sm text-gray-500">{courses.length} total</span>
+      </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {courses.map((course) => (
+          <Link key={course.id} to={`/trainerDashboard/courses/${course.id}`} className="card p-5 hover:border-gray-400">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="font-bold text-secondary line-clamp-2">{course.title}</h3>
+                <p className="mt-2 text-sm text-gray-600 line-clamp-3">{course.description}</p>
+              </div>
+              <span className="badge badge-primary text-xs">{course.status || "pending"}</span>
+            </div>
+            <p className="mt-4 text-sm text-gray-500">Duration: {formatHoursMinutes(course.total_hours)}</p>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export function TrainerCourseDetailPage() {
+  const ctx = useContext(AppContext);
+  const { courseId } = useParams();
+  const [course, setCourse] = useState(null);
+  const [enrolledStudents, setEnrolledStudents] = useState([]);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([ctx.api.courses.get(courseId), ctx.api.courses.enrollments(courseId)])
+      .then(([courseData, enrollmentData]) => {
+        if (cancelled) return;
+        setCourse(courseData);
+        setEnrolledStudents(enrollmentData);
+      })
+      .catch((e) => {
+        if (!cancelled) setMessage(e?.message || "Failed to load course");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [ctx.api.courses, courseId]);
+
+  if (message) return <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">{message}</div>;
+  if (!course) return <div className="rounded-lg border border-gray-200 bg-white p-6 text-gray-600">Loading course...</div>;
+
+  return (
+    <section className="grid gap-8 lg:grid-cols-3">
+      <div className="lg:col-span-2">
+        <div className="card p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-secondary">{course.title}</h2>
+              <p className="mt-2 text-gray-600">{course.description}</p>
+              <p className="mt-3 text-sm text-gray-500">
+                {formatHoursMinutes(course.total_hours)} | {course.status || "pending"}
+              </p>
+            </div>
+            <Link to={`/trainerDashboard/courses/${course.id}/edit`} className="btn btn-outline flex items-center justify-center gap-2">
+              <Pencil className="h-4 w-4" />
+              View or Modify
+            </Link>
+          </div>
+        </div>
+
+        <div className="card mt-6 p-6">
+          <h3 className="font-bold text-secondary">Lessons</h3>
+          {course.items?.length ? (
+            <div className="mt-4 grid gap-3">
+              {course.items.map((item, index) => (
+                <div key={item.id} className="rounded-lg border border-gray-200 p-4">
+                  <div className="flex justify-between gap-4">
+                    <div>
+                      <p className="font-medium text-secondary">
+                        {index + 1}. {item.title}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-600">{item.description || "-"}</p>
+                    </div>
+                    <span className="badge badge-primary text-xs">{formatHoursMinutes(item.hours)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-3 text-sm text-gray-500">No lessons added yet.</p>
+          )}
+        </div>
+      </div>
+
+      <aside className="card p-6">
+        <h3 className="font-bold text-secondary">Enrolled Students</h3>
+        {enrolledStudents.length === 0 ? (
+          <p className="mt-3 text-sm text-gray-500">No students are enrolled yet.</p>
+        ) : (
+          <div className="mt-4 grid gap-3">
+            {enrolledStudents.map((enrollment) => (
+              <div key={enrollment.id} className="rounded-lg border border-gray-200 p-3">
+                <p className="text-sm font-medium text-secondary">
+                  {enrollment.student?.name ||
+                    enrollment.student?.username ||
+                    enrollment.student?.email ||
+                    `Student ${enrollment.student?.id}`}
+                </p>
+                <p className="mt-1 text-xs text-gray-500">{enrollment.student?.email || "-"}</p>
+                <p className="mt-1 text-xs text-gray-500">
+                  Enrolled: {enrollment.enrolled_at ? new Date(enrollment.enrolled_at).toLocaleString() : "-"}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </aside>
+    </section>
+  );
+}
+
+export function TrainerCourseFormPage() {
+  const ctx = useContext(AppContext);
+  const navigate = useNavigate();
+  const { courseId } = useParams();
+  const isEditing = !!courseId;
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [totalHours, setTotalHours] = useState("0.00");
   const [items, setItems] = useState([emptyItem()]);
-
-  const isTrainer = user?.role === "trainer";
-  const isApproved = !!user?.approved;
-
-  async function load() {
-    setMessage("");
-    const data = await ctx.api.courses.list();
-    setCourses(data);
-    if (selectedCourse) {
-      const currentCourse = data.find((course) => course.id === selectedCourse.id);
-      if (currentCourse) {
-        setSelectedCourse(currentCourse);
-      } else {
-        setSelectedCourse(null);
-        setEnrolledStudents([]);
-      }
-    }
-  }
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
-    if (!user) return;
+    if (!isEditing) return;
     let cancelled = false;
-
-    (async () => {
-      try {
-        await load();
-      } catch (e) {
-        if (!cancelled) setMessage(e?.message || "Failed to load");
-      }
-    })();
-
+    ctx.api.courses
+      .get(courseId)
+      .then((detail) => {
+        if (cancelled) return;
+        setTitle(detail.title || "");
+        setDescription(detail.description || "");
+        setTotalHours(detail.total_hours || "0.00");
+        setItems(detail.items?.length ? detail.items : [emptyItem()]);
+      })
+      .catch((e) => {
+        if (!cancelled) setMessage(e?.message || "Failed to load course details");
+      });
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [ctx.api.courses, courseId, isEditing]);
 
-  async function handleCreate(e) {
+  const updateItem = (idx, field, value) => {
+    const next = [...items];
+    next[idx] = { ...next[idx], [field]: value };
+    setItems(next);
+  };
+
+  async function handleSubmit(e) {
     e.preventDefault();
     setMessage("");
     const payload = {
@@ -81,385 +285,75 @@ export default function TrainerDashboard() {
         })),
     };
 
-    const wasEditing = !!editingCourseId;
-    if (editingCourseId) {
-      await ctx.api.courses.update(editingCourseId, payload);
-    } else {
-      await ctx.api.courses.create(payload);
-    }
-    resetForm();
-    await load();
-    setSuccessMessage(wasEditing ? "Course updated and submitted for admin approval." : "Course submitted for admin approval.");
-    setTimeout(() => setSuccessMessage(""), 3000);
-  }
-
-  function resetForm() {
-    setTitle("");
-    setDescription("");
-    setTotalHours("0.00");
-    setItems([emptyItem()]);
-    setEditingCourseId(null);
-    setShowCourseForm(false);
-  }
-
-  function openCreateForm() {
-    setMessage("");
-    setTitle("");
-    setDescription("");
-    setTotalHours("0.00");
-    setItems([emptyItem()]);
-    setEditingCourseId(null);
-    setShowCourseForm(true);
-  }
-
-  const handleAddItem = () => {
-    setItems([...items, emptyItem()]);
-  };
-
-  const handleRemoveItem = (idx) => {
-    setItems(items.filter((_, i) => i !== idx));
-  };
-
-  const handleUpdateItem = (idx, field, value) => {
-    const newItems = [...items];
-    newItems[idx] = { ...newItems[idx], [field]: value };
-    setItems(newItems);
-  };
-
-  async function handleSelectCourse(course) {
-    setSelectedCourse(course);
-    setEnrollmentsLoading(true);
-    setMessage("");
     try {
-      const data = await ctx.api.courses.enrollments(course.id);
-      setEnrolledStudents(data);
-    } catch (e) {
-      setEnrolledStudents([]);
-      setMessage(e?.message || "Failed to load enrolled students");
-    } finally {
-      setEnrollmentsLoading(false);
+      if (isEditing) await ctx.api.courses.update(courseId, payload);
+      else await ctx.api.courses.create(payload);
+      navigate(isEditing ? `/trainerDashboard/courses/${courseId}` : "/trainerDashboard");
+    } catch (err) {
+      setMessage(err?.message || "Failed to save course");
     }
-  }
-
-  async function handleModifyCourse(course) {
-    setMessage("");
-    try {
-      const detail = await ctx.api.courses.get(course.id);
-      setTitle(detail.title || "");
-      setDescription(detail.description || "");
-      setTotalHours(detail.total_hours || "0.00");
-      setItems(detail.items?.length ? detail.items : [emptyItem()]);
-      setEditingCourseId(detail.id);
-      setShowCourseForm(true);
-    } catch (e) {
-      setMessage(e?.message || "Failed to load course details");
-    }
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Access Denied</h2>
-          <p className="text-gray-600">Please login to continue.</p>
-          <a href="/login" className="btn btn-primary mt-4">Go to Login</a>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isTrainer) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Access Denied</h2>
-          <p className="text-gray-600">This dashboard is for trainers only.</p>
-          <a href="/" className="btn btn-primary mt-4">Go to Home</a>
-        </div>
-      </div>
-    );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <Header />
+    <section className="mx-auto max-w-3xl">
+      <div className="card p-6">
+        <h2 className="text-2xl font-bold text-secondary">{isEditing ? "Modify Course" : "Create New Course"}</h2>
+        {message ? <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-red-700">{message}</div> : null}
+        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-gray-700">Course Title</span>
+            <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} required />
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-gray-700">Description</span>
+            <textarea className="input min-h-20" value={description} onChange={(e) => setDescription(e.target.value)} required />
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-gray-700">Duration in decimal hours</span>
+            <input className="input" type="number" step="0.5" min="0" value={totalHours} onChange={(e) => setTotalHours(e.target.value)} />
+            <span className="mt-1 block text-xs text-gray-500">Displays as {formatHoursMinutes(totalHours)}.</span>
+          </label>
 
-      <main className="flex-grow py-12 px-4">
-        <div className="max-w-6xl mx-auto">
-          <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-secondary mb-2">Trainer Dashboard</h1>
-              <p className="text-gray-600">Manage your uploaded courses and enrolled students</p>
+          <div>
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="font-semibold text-secondary">Course Lessons</h3>
+              <button type="button" className="btn btn-secondary flex items-center gap-2 text-sm" onClick={() => setItems([...items, emptyItem()])}>
+                <Plus className="h-4 w-4" />
+                Add Lesson
+              </button>
             </div>
-            <button
-              type="button"
-              className="btn btn-primary flex items-center justify-center gap-2"
-              onClick={openCreateForm}
-              disabled={!isApproved}>
-              <Plus className="h-4 w-4" />
-              Add Course
-            </button>
-          </header>
-
-          {!isApproved && (
-            <div className="mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-3">
-              <AlertCircle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold text-yellow-800">Pending Approval</p>
-                <p className="text-sm text-yellow-700">Your trainer account is awaiting admin approval. Once approved, you'll be able to upload and manage courses.</p>
-              </div>
-            </div>
-          )}
-
-          {message && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">
-              {message}
-            </div>
-          )}
-
-          {successMessage && (
-            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-600">
-              {successMessage}
-            </div>
-          )}
-
-          {courses.length === 0 && !showCourseForm ? (
-            <div className="flex min-h-96 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center">
-              <div className="max-w-md">
-                <h2 className="text-2xl font-bold text-secondary">Start now</h2>
-                <p className="mt-2 text-gray-600">Upload your first course and begin building your learner list.</p>
-                <button
-                  type="button"
-                  className="btn btn-primary mt-6 inline-flex items-center gap-2 px-8 py-4 text-lg"
-                  onClick={openCreateForm}
-                  disabled={!isApproved}>
-                  <Plus className="h-5 w-5" />
-                  Add Your First Course
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-              <section className="lg:col-span-2">
-                <div className="mb-4 flex items-center justify-between gap-4">
-                  <h2 className="text-2xl font-bold text-secondary">Uploaded Courses</h2>
-                  <span className="text-sm text-gray-500">{courses.length} total</span>
+            <div className="space-y-4">
+              {items.map((item, idx) => (
+                <div key={idx} className="rounded-lg border border-gray-200 p-4">
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-600">Lesson {idx + 1}</span>
+                    {items.length > 1 ? (
+                      <button type="button" className="text-red-600 hover:text-red-800" onClick={() => setItems(items.filter((_, i) => i !== idx))}>
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    ) : null}
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <input className="input" placeholder="Lesson title" value={item.title} onChange={(e) => updateItem(idx, "title", e.target.value)} />
+                    <input className="input" type="number" step="0.5" min="0" placeholder="Hours" value={item.hours} onChange={(e) => updateItem(idx, "hours", e.target.value)} />
+                  </div>
+                  <input className="input mt-3" placeholder="Lesson description" value={item.description} onChange={(e) => updateItem(idx, "description", e.target.value)} />
+                  <input className="input mt-3" type="url" placeholder="YouTube URL" value={item.youtube_url} onChange={(e) => updateItem(idx, "youtube_url", e.target.value)} />
                 </div>
-
-                {courses.length === 0 ? null : (
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    {courses.map((course) => (
-                      <button
-                        key={course.id}
-                        type="button"
-                        onClick={() => handleSelectCourse(course)}
-                        className={
-                          selectedCourse?.id === course.id
-                            ? "card border-primary p-5 text-left"
-                            : "card p-5 text-left hover:border-gray-400"
-                        }>
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <h3 className="font-bold text-secondary line-clamp-2">{course.title}</h3>
-                            <p className="mt-2 text-sm text-gray-600 line-clamp-3">{course.description}</p>
-                          </div>
-                          <span className="badge badge-primary text-xs">{course.status || "pending"}</span>
-                        </div>
-                        <p className="mt-4 text-sm text-gray-500">Duration: {formatHoursMinutes(course.total_hours)}</p>
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {selectedCourse ? (
-                  <div className="card mt-8 p-6">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <h3 className="text-xl font-bold text-secondary">{selectedCourse.title}</h3>
-                        <p className="mt-1 text-sm text-gray-600">
-                          {formatHoursMinutes(selectedCourse.total_hours)} | {selectedCourse.status || "pending"}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        className="btn btn-outline flex items-center justify-center gap-2"
-                        onClick={() => handleModifyCourse(selectedCourse)}>
-                        <Pencil className="h-4 w-4" />
-                        View or Modify
-                      </button>
-                    </div>
-
-                    <div className="mt-6">
-                      <h4 className="font-bold text-secondary">Enrolled Students</h4>
-                      {enrollmentsLoading ? (
-                        <p className="mt-3 text-sm text-gray-500">Loading enrolled students...</p>
-                      ) : enrolledStudents.length === 0 ? (
-                        <p className="mt-3 text-sm text-gray-500">No students are enrolled yet.</p>
-                      ) : (
-                        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                          {enrolledStudents.map((enrollment) => (
-                            <div key={enrollment.id} className="rounded-lg border border-gray-200 p-3">
-                              <p className="text-sm font-medium text-secondary">
-                                {enrollment.student?.name ||
-                                  enrollment.student?.username ||
-                                  enrollment.student?.email ||
-                                  `Student ${enrollment.student?.id}`}
-                              </p>
-                              <p className="mt-1 text-xs text-gray-500">{enrollment.student?.email || "-"}</p>
-                              <p className="mt-1 text-xs text-gray-500">
-                                Enrolled:{" "}
-                                {enrollment.enrolled_at ? new Date(enrollment.enrolled_at).toLocaleString() : "-"}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mt-8 rounded-lg border border-gray-200 bg-white p-6 text-sm text-gray-600">
-                    Select a course to view enrolled students and course actions.
-                  </div>
-                )}
-              </section>
-
-              {showCourseForm ? (
-                <aside className="lg:col-span-1">
-                  <div className="card p-6">
-                    <div className="mb-6 flex items-center justify-between gap-3">
-                      <h2 className="text-xl font-bold text-secondary">
-                        {editingCourseId ? "Modify Course" : "Create New Course"}
-                      </h2>
-                      <button type="button" className="btn btn-outline text-sm" onClick={resetForm}>
-                        Cancel
-                      </button>
-                    </div>
-                    <form onSubmit={handleCreate} className="space-y-5">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Course Title</label>
-                        <input
-                          type="text"
-                          value={title}
-                          onChange={(e) => setTitle(e.target.value)}
-                          placeholder="Enter course title"
-                          className="input"
-                          required
-                          disabled={!isApproved}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                        <textarea
-                          value={description}
-                          onChange={(e) => setDescription(e.target.value)}
-                          placeholder="Describe your course"
-                          className="input min-h-20"
-                          required
-                          disabled={!isApproved}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Duration in decimal hours
-                        </label>
-                        <input
-                          type="number"
-                          value={totalHours}
-                          onChange={(e) => setTotalHours(e.target.value)}
-                          placeholder="0.00"
-                          className="input"
-                          step="0.5"
-                          min="0"
-                          disabled={!isApproved}
-                        />
-                        <p className="mt-1 text-xs text-gray-500">Displays as {formatHoursMinutes(totalHours)}.</p>
-                      </div>
-
-                      <div>
-                        <div className="flex justify-between items-center mb-4">
-                          <h3 className="font-semibold text-secondary">Course Lessons</h3>
-                          <button
-                            type="button"
-                            onClick={handleAddItem}
-                            className="btn btn-secondary text-sm flex items-center gap-2"
-                            disabled={!isApproved}>
-                            <Plus className="w-4 h-4" />
-                            Add Lesson
-                          </button>
-                        </div>
-
-                        <div className="space-y-4">
-                          {items.map((item, idx) => (
-                            <div key={idx} className="border border-gray-200 rounded-lg p-4">
-                              <div className="flex justify-between items-center mb-3">
-                                <span className="text-sm font-medium text-gray-600">Lesson {idx + 1}</span>
-                                {items.length > 1 && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveItem(idx)}
-                                    className="text-red-600 hover:text-red-800 transition"
-                                    disabled={!isApproved}>
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                )}
-                              </div>
-                              <div className="grid grid-cols-1 gap-3 mb-3">
-                                <input
-                                  type="text"
-                                  placeholder="Lesson title"
-                                  value={item.title}
-                                  onChange={(e) => handleUpdateItem(idx, "title", e.target.value)}
-                                  className="input"
-                                  disabled={!isApproved}
-                                />
-                                <input
-                                  type="number"
-                                  placeholder="Hours"
-                                  value={item.hours}
-                                  onChange={(e) => handleUpdateItem(idx, "hours", e.target.value)}
-                                  className="input"
-                                  step="0.5"
-                                  min="0"
-                                  disabled={!isApproved}
-                                />
-                              </div>
-                              <input
-                                type="text"
-                                placeholder="Lesson description"
-                                value={item.description}
-                                onChange={(e) => handleUpdateItem(idx, "description", e.target.value)}
-                                className="input mb-3"
-                                disabled={!isApproved}
-                              />
-                              <input
-                                type="url"
-                                placeholder="YouTube URL (https://www.youtube.com/watch?v=...)"
-                                value={item.youtube_url}
-                                onChange={(e) => handleUpdateItem(idx, "youtube_url", e.target.value)}
-                                className="input"
-                                disabled={!isApproved}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <button type="submit" disabled={!isApproved} className="w-full btn btn-primary">
-                        {editingCourseId ? "Update Course" : "Submit Course for Approval"}
-                      </button>
-                    </form>
-                  </div>
-                </aside>
-              ) : null}
+              ))}
             </div>
-          )}
-        </div>
-      </main>
+          </div>
 
-      <Footer />
-    </div>
+          <div className="flex flex-wrap justify-end gap-3">
+            <Link to={isEditing ? `/trainerDashboard/courses/${courseId}` : "/trainerDashboard"} className="btn btn-outline">
+              Cancel
+            </Link>
+            <button className="btn btn-primary" type="submit">
+              {isEditing ? "Update Course" : "Submit Course for Approval"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
   );
 }
-

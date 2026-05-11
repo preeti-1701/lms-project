@@ -19,7 +19,7 @@ export default function Header() {
   const getDashboardLink = () => {
     if (user?.role === "admin") return "/adminDashboard";
     if (user?.role === "trainer") return "/trainerDashboard";
-    return "/sudentDashboard";
+    return "/studentDashboard";
   };
 
   return (

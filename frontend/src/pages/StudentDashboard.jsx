@@ -1,4 +1,5 @@
 import { useContext, useEffect, useMemo, useState } from "react";
+import { Link, Outlet, useNavigate, useParams } from "react-router-dom";
 import { PlayCircle } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -6,244 +7,227 @@ import CourseCard from "../components/CourseCard";
 import { AppContext } from "../context/AppContext";
 import { formatHoursMinutes } from "../utils/duration";
 
+function AccessMessage({ title, message, to = "/" }) {
+  return (
+    <div className="flex min-h-screen flex-col bg-gray-50">
+      <Header />
+      <main className="flex flex-1 items-center justify-center px-4 py-16">
+        <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+          <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+          <p className="mt-2 text-gray-600">{message}</p>
+          <Link to={to} className="btn btn-primary mt-6">
+            Go Back
+          </Link>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
 export default function StudentDashboard() {
   const ctx = useContext(AppContext);
   const user = ctx.auth.user;
 
+  if (!user) return <AccessMessage title="Access Denied" message="Please login to access your dashboard." to="/login" />;
+  if (user.role !== "student") {
+    return <AccessMessage title="Access Denied" message={`This dashboard is for students only. Your role: ${user.role}`} />;
+  }
+
+  return (
+    <div className="flex min-h-screen flex-col bg-gray-50">
+      <Header />
+      <main className="flex-grow px-4 py-12">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-10">
+            <h1 className="text-4xl font-bold text-secondary">Welcome back, {user.email || user.username}!</h1>
+            <p className="mt-2 text-gray-600">Continue your learning journey and explore new courses</p>
+          </div>
+          <Outlet />
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+function useStudentData() {
+  const ctx = useContext(AppContext);
   const [courses, setCourses] = useState([]);
   const [enrollments, setEnrollments] = useState([]);
-  const [selectedCourseId, setSelectedCourseId] = useState("");
-  const [selectedCourse, setSelectedCourse] = useState(null);
-  const [items, setItems] = useState([]);
   const [message, setMessage] = useState("");
-
-  const isStudent = user?.role === "student";
 
   async function load() {
     setMessage("");
-    const [c, e] = await Promise.all([ctx.api.courses.list(), ctx.api.courses.myEnrollments()]);
-    setCourses(c);
-    setEnrollments(e);
+    const [courseData, enrollmentData] = await Promise.all([ctx.api.courses.list(), ctx.api.courses.myEnrollments()]);
+    setCourses(courseData);
+    setEnrollments(enrollmentData);
   }
 
   useEffect(() => {
-    if (!user) return;
     let cancelled = false;
-
-    (async () => {
-      try {
-        await load();
-      } catch (e) {
-        if (!cancelled) setMessage(e?.message || "Failed to load");
-      }
-    })();
-
+    load().catch((e) => {
+      if (!cancelled) setMessage(e?.message || "Failed to load");
+    });
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [ctx.auth.user?.id]);
 
+  return { ctx, courses, enrollments, message, load };
+}
+
+export function StudentCoursesPage() {
+  const { ctx, courses, enrollments, message, load } = useStudentData();
+  const navigate = useNavigate();
   const enrolledCourseIds = useMemo(() => new Set(enrollments.map((x) => String(x.course?.id))), [enrollments]);
 
   async function handleEnroll(courseId) {
-    setMessage("");
     await ctx.api.courses.enroll(courseId);
     await load();
-  }
-
-  async function handleViewItems(courseId) {
-    setMessage("");
-    setSelectedCourseId(String(courseId));
-    const course = courses.find((c) => String(c.id) === String(courseId));
-    setSelectedCourse(course);
-    try {
-      const data = await ctx.api.courses.items(courseId);
-      setItems(data);
-    } catch (e) {
-      setItems([]);
-      setMessage(e?.message || "Unable to load items");
-    }
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Access Denied</h2>
-          <p className="text-gray-600 mb-6">Please login to access your dashboard.</p>
-          <a href="/login" className="btn btn-primary">
-            Go to Login
-          </a>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isStudent) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Access Denied</h2>
-          <p className="text-gray-600 mb-6">
-            This dashboard is for students only. Your role: <span className="font-semibold">{user.role}</span>
-          </p>
-          <a href="/" className="btn btn-primary">
-            Go to Home
-          </a>
-        </div>
-      </div>
-    );
+    navigate(`/studentDashboard/courses/${courseId}`);
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <Header />
-
-      {/* Main Content */}
-      <main className="flex-grow py-12 px-4">
-        <div className="max-w-7xl mx-auto">
-          {/* Welcome Section */}
-          <div className="mb-12">
-            <h1 className="text-4xl font-bold text-secondary mb-2">Welcome back, {user.email || user.username}!</h1>
-            <p className="text-gray-600">Continue your learning journey and explore new courses</p>
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <section className="lg:col-span-2">
+        <h2 className="mb-6 text-2xl font-bold text-secondary">Available Courses</h2>
+        {message ? <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-600">{message}</div> : null}
+        {courses.length === 0 ? (
+          <div className="rounded-lg bg-white py-12 text-center">
+            <p className="text-lg text-gray-500">No courses available yet</p>
           </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {courses.map((course) => {
+              const enrolled = enrolledCourseIds.has(String(course.id));
+              return (
+                <CourseCard
+                  key={course.id}
+                  course={course}
+                  isEnrolled={enrolled}
+                  onEnroll={handleEnroll}
+                  onView={(courseId) => navigate(`/studentDashboard/courses/${courseId}`)}
+                  disabled={false}
+                />
+              );
+            })}
+          </div>
+        )}
+      </section>
 
-          {message && <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">{message}</div>}
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Courses Section */}
-            <div className="lg:col-span-2">
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-secondary mb-6">Available Courses</h2>
-                {courses.length === 0 ? (
-                  <div className="text-center py-12 bg-white rounded-lg">
-                    <p className="text-gray-500 text-lg">No courses available yet</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {courses.map((c) => {
-                      const enrolled = enrolledCourseIds.has(String(c.id));
-                      return (
-                        <CourseCard
-                          key={c.id}
-                          course={c}
-                          isEnrolled={enrolled}
-                          onEnroll={handleEnroll}
-                          onView={handleViewItems}
-                          disabled={false}
-                        />
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Course Content Section */}
-              {selectedCourse && (
-                <div className="card p-8">
-                  <h2 className="text-2xl font-bold text-secondary mb-2">{selectedCourse.title}</h2>
-                  <p className="text-gray-600 mb-6">{selectedCourse.description}</p>
-
-                  {items.length === 0 ? (
-                    <p className="text-gray-500">No lessons available in this course yet.</p>
-                  ) : (
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold text-secondary mb-4">Course Lessons</h3>
-                      {items.map((item, idx) => (
-                        <div
-                          key={item.id}
-                          className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
-                          <div className="flex items-start gap-4">
-                            <div
-                              className="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full"
-                              style={{ background: "rgba(79,70,229,0.1)" }}
-                            >
-                              <PlayCircle className="w-6 h-6 text-primary" />
-                            </div>
-                            <div className="flex-grow">
-                              <div className="flex justify-between items-start gap-4">
-                                <div>
-                                  <h4 className="font-semibold text-secondary">
-                                    {idx + 1}. {item.title}
-                                  </h4>
-                                  <p className="text-sm text-gray-600 mt-1">{item.description}</p>
-                                </div>
-                                <span className="badge badge-primary text-xs whitespace-nowrap">
-                                  {formatHoursMinutes(item.hours)}
-                                </span>
-                              </div>
-
-                              <a
-                                href={item.youtube_url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="mt-3 inline-flex items-center gap-2 text-primary hover:underline font-medium">
-                                <PlayCircle className="w-4 h-4" />
-                                Watch Lesson
-                              </a>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Sidebar */}
-            <div className="lg:col-span-1">
-              {/* Quick Stats */}
-              <div className="card p-6 mb-6">
-                <h3 className="font-bold text-secondary mb-4">Your Progress</h3>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-gray-600">Enrolled Courses</span>
-                      <span className="font-bold text-primary">{enrollments.length}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-indigo-600 h-2 rounded-full"
-                        style={{ width: `${(enrollments.length / Math.max(courses.length, 1)) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Recent Enrollments */}
-              <div className="card p-6">
-                <h3 className="font-bold text-secondary mb-4">My Courses</h3>
-                {enrollments.length === 0 ? (
-                  <p className="text-gray-500 text-sm">You haven't enrolled in any courses yet.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {enrollments.map((enrollment) => (
-                      <button
-                        key={enrollment.course?.id}
-                        onClick={() => handleViewItems(enrollment.course?.id)}
-                        className={`w-full text-left p-3 rounded-lg transition ${
-                          String(selectedCourseId) === String(enrollment.course?.id)
-                            ? "border-2 bg-indigo-50"
-                            : "bg-gray-50 border border-gray-200 hover:bg-gray-100"
-                        }`}>
-                        <p className="font-medium text-sm text-secondary">{enrollment.course?.title}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {formatHoursMinutes(enrollment.course?.total_hours)}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+      <aside>
+        <div className="card mb-6 p-6">
+          <h3 className="mb-4 font-bold text-secondary">Your Progress</h3>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Enrolled Courses</span>
+            <span className="font-bold text-primary">{enrollments.length}</span>
+          </div>
+          <div className="mt-2 h-2 w-full rounded-full bg-gray-200">
+            <div className="h-2 rounded-full bg-indigo-600" style={{ width: `${(enrollments.length / Math.max(courses.length, 1)) * 100}%` }} />
           </div>
         </div>
-      </main>
 
-      <Footer />
+        <div className="card p-6">
+          <h3 className="mb-4 font-bold text-secondary">My Courses</h3>
+          {enrollments.length === 0 ? (
+            <p className="text-sm text-gray-500">You haven't enrolled in any courses yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {enrollments.map((enrollment) => (
+                <Link
+                  key={enrollment.course?.id}
+                  to={`/studentDashboard/courses/${enrollment.course?.id}`}
+                  className="block rounded-lg border border-gray-200 bg-gray-50 p-3 hover:bg-gray-100">
+                  <p className="text-sm font-medium text-secondary">{enrollment.course?.title}</p>
+                  <p className="mt-1 text-xs text-gray-500">{formatHoursMinutes(enrollment.course?.total_hours)}</p>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      </aside>
     </div>
+  );
+}
+
+export function StudentCourseDetailPage() {
+  const ctx = useContext(AppContext);
+  const navigate = useNavigate();
+  const { courseId } = useParams();
+  const [course, setCourse] = useState(null);
+  const [items, setItems] = useState([]);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([ctx.api.courses.get(courseId), ctx.api.courses.items(courseId)])
+      .then(([courseData, itemData]) => {
+        if (cancelled) return;
+        setCourse(courseData);
+        setItems(itemData);
+      })
+      .catch((e) => {
+        if (!cancelled) setMessage(e?.message || "Unable to load course");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [ctx.api.courses, courseId]);
+
+  if (message) {
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-600">
+        {message}
+        <button className="btn btn-primary ml-4" onClick={() => navigate("/studentDashboard")}>
+          Browse Courses
+        </button>
+      </div>
+    );
+  }
+  if (!course) return <div className="rounded-lg border border-gray-200 bg-white p-6 text-gray-600">Loading course...</div>;
+
+  return (
+    <section className="card p-8">
+      <Link to="/studentDashboard" className="text-sm font-medium text-primary hover:underline">
+        Back to courses
+      </Link>
+      <h2 className="mt-4 text-2xl font-bold text-secondary">{course.title}</h2>
+      <p className="mt-2 text-gray-600">{course.description}</p>
+      <p className="mt-2 text-sm text-gray-500">{formatHoursMinutes(course.total_hours)}</p>
+
+      <div className="mt-8 space-y-4">
+        <h3 className="text-lg font-semibold text-secondary">Course Lessons</h3>
+        {items.length === 0 ? (
+          <p className="text-gray-500">No lessons available in this course yet.</p>
+        ) : (
+          items.map((item, idx) => (
+            <div key={item.id} className="rounded-lg border border-gray-200 p-4 transition hover:bg-gray-50">
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full" style={{ background: "rgba(79,70,229,0.1)" }}>
+                  <PlayCircle className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-grow">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h4 className="font-semibold text-secondary">
+                        {idx + 1}. {item.title}
+                      </h4>
+                      <p className="mt-1 text-sm text-gray-600">{item.description}</p>
+                    </div>
+                    <span className="badge badge-primary text-xs whitespace-nowrap">{formatHoursMinutes(item.hours)}</span>
+                  </div>
+                  <a href={item.youtube_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 font-medium text-primary hover:underline">
+                    <PlayCircle className="h-4 w-4" />
+                    Watch Lesson
+                  </a>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </section>
   );
 }

@@ -2,13 +2,23 @@ import { lazy, Suspense, useContext, useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { AppContext } from "./context/AppContext";
+import AdminDashboard, {
+  AdminEnrollmentsPage,
+  AdminPendingCoursesPage,
+  AdminPendingTrainersPage,
+  AdminUserDetailModal,
+  AdminUsersPage,
+} from "./pages/AdminDashboard.jsx";
+import StudentDashboard, { StudentCourseDetailPage, StudentCoursesPage } from "./pages/StudentDashboard.jsx";
+import TrainerDashboard, {
+  TrainerCourseDetailPage,
+  TrainerCourseFormPage,
+  TrainerCoursesPage,
+} from "./pages/TrainerDashboard.jsx";
 
 const LandingPage = lazy(() => import("./pages/LandingPage.jsx"));
 const LoginPage = lazy(() => import("./pages/LoginPage.jsx"));
 const SignupPage = lazy(() => import("./pages/SignupPage.jsx"));
-const StudentDashboard = lazy(() => import("./pages/StudentDashboard.jsx"));
-const TrainerDashboard = lazy(() => import("./pages/TrainerDashboard.jsx"));
-const AdminDashboard = lazy(() => import("./pages/AdminDashboard.jsx"));
 
 function Loader() {
   return <div style={{ padding: 16 }}>Loading...</div>;
@@ -37,30 +47,44 @@ export default function AppRouter() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/sudentDashboard" element={<Navigate to="/studentDashboard" replace />} />
           <Route
-            path="/sudentDashboard"
+            path="/studentDashboard"
             element={
               <RequireAuth>
                 <StudentDashboard />
               </RequireAuth>
-            }
-          />
+            }>
+            <Route index element={<StudentCoursesPage />} />
+            <Route path="courses/:courseId" element={<StudentCourseDetailPage />} />
+          </Route>
           <Route
             path="/trainerDashboard"
             element={
               <RequireAuth>
                 <TrainerDashboard />
               </RequireAuth>
-            }
-          />
+            }>
+            <Route index element={<TrainerCoursesPage />} />
+            <Route path="add-course" element={<TrainerCourseFormPage />} />
+            <Route path="courses/:courseId" element={<TrainerCourseDetailPage />} />
+            <Route path="courses/:courseId/edit" element={<TrainerCourseFormPage />} />
+          </Route>
           <Route
             path="/adminDashboard"
             element={
               <RequireAuth>
                 <AdminDashboard />
               </RequireAuth>
-            }
-          />
+            }>
+            <Route index element={<Navigate to="pending-courses" replace />} />
+            <Route path="pending-courses" element={<AdminPendingCoursesPage />} />
+            <Route path="pending-trainers" element={<AdminPendingTrainersPage />} />
+            <Route path="enrollments" element={<AdminEnrollmentsPage />} />
+            <Route path="users/:role" element={<AdminUsersPage />}>
+              <Route path=":userId" element={<AdminUserDetailModal />} />
+            </Route>
+          </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>

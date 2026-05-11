@@ -1,174 +1,46 @@
 import { useContext, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink, Outlet, useNavigate, useParams } from "react-router-dom";
 import { Trash2, X } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { AppContext } from "../context/AppContext";
 import { formatHoursMinutes } from "../utils/duration";
 
+function AccessMessage({ title, message, to = "/" }) {
+  return (
+    <div className="flex min-h-screen flex-col bg-gray-50">
+      <Header />
+      <main className="flex flex-1 items-center justify-center px-4 py-16">
+        <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+          <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+          <p className="mt-2 text-gray-600">{message}</p>
+          <Link to={to} className="btn btn-primary mt-6">
+            Go Back
+          </Link>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+function tabClass({ isActive }) {
+  return isActive ? "btn btn-primary" : "btn btn-outline";
+}
+
 export default function AdminDashboard() {
   const ctx = useContext(AppContext);
   const user = ctx.auth.user;
 
-  const [pendingCourses, setPendingCourses] = useState([]);
-  const [pendingTrainers, setPendingTrainers] = useState([]);
-  const [enrollments, setEnrollments] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [usersTab, setUsersTab] = useState("trainer");
-  const [selectedUserId, setSelectedUserId] = useState(null);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [message, setMessage] = useState("");
-
-  const isAdmin = user?.role === "admin";
-
-  async function load() {
-    setMessage("");
-    const [courses, trainers, allEnrollments, allUsers] = await Promise.all([
-      ctx.api.admin.pendingCourses(),
-      ctx.api.admin.pendingTrainers(),
-      ctx.api.admin.enrollments(),
-      ctx.api.admin.usersByRole(usersTab),
-    ]);
-    setPendingCourses(courses);
-    setPendingTrainers(trainers);
-    setEnrollments(allEnrollments);
-    setUsers(allUsers);
-
-    // Reset selection if the currently selected user isn't in the new tab.
-    if (selectedUserId && !allUsers.some((u) => u.id === selectedUserId)) {
-      setSelectedUserId(null);
-      setSelectedUser(null);
-    }
-  }
-
-  useEffect(() => {
-    if (!user) return;
-    let cancelled = false;
-
-    (async () => {
-      try {
-        await load();
-      } catch (e) {
-        if (!cancelled) setMessage(e?.message || "Failed to load");
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, usersTab]);
-
-  useEffect(() => {
-    if (!selectedUserId) return;
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const detail = await ctx.api.admin.userDetail(selectedUserId);
-        if (!cancelled) setSelectedUser(detail);
-      } catch (e) {
-        if (!cancelled) setMessage(e?.message || "Failed to load user detail");
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedUserId]);
-
-  async function approve(courseId) {
-    setMessage("");
-    await ctx.api.admin.approveCourse(courseId);
-    await load();
-  }
-
-  async function reject(courseId) {
-    const reason = window.prompt("Reject reason (optional):") || "";
-    setMessage("");
-    await ctx.api.admin.rejectCourse(courseId, reason);
-    await load();
-  }
-
-  async function approveTrainer(userId) {
-    setMessage("");
-    await ctx.api.admin.approveTrainer(userId);
-    await load();
-  }
-
-  async function promoteAdmin(userId) {
-    const ok = window.confirm("Make this trainer an admin?");
-    if (!ok) return;
-    setMessage("");
-    await ctx.api.admin.promoteAdmin(userId);
-    await load();
-  }
-
-  async function deleteUser(userToDelete) {
-    const label = userToDelete.name || userToDelete.username || userToDelete.email || `User ${userToDelete.id}`;
-    const ok = window.confirm(`Delete ${label}? This cannot be undone.`);
-    if (!ok) return;
-    setMessage("");
-    await ctx.api.admin.deleteUser(userToDelete.id);
-    if (selectedUserId === userToDelete.id) {
-      setSelectedUserId(null);
-      setSelectedUser(null);
-    }
-    await load();
-  }
-
-  if (!user) {
-    return (
-      <div className="flex min-h-screen flex-col bg-gray-50">
-        <Header />
-        <main className="flex flex-1 items-center justify-center px-4 py-16">
-          <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-900">Admin Dashboard</h2>
-            <p className="mt-2 text-gray-600">
-              Please{" "}
-              <Link to="/login" className="font-medium text-primary hover:underline">
-                login
-              </Link>
-              .
-            </p>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className="flex min-h-screen flex-col bg-gray-50">
-        <Header />
-        <main className="flex flex-1 items-center justify-center px-4 py-16">
-          <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-900">Access Denied</h2>
-            <p className="mt-2 text-gray-600">This dashboard is for admins only.</p>
-            <p className="mt-2 text-gray-600">
-              Your role: <span className="font-semibold">{user.role}</span>
-            </p>
-            <div className="mt-6">
-              <Link to="/" className="btn btn-primary">
-                Go to Home
-              </Link>
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+  if (!user) return <AccessMessage title="Admin Dashboard" message="Please login." to="/login" />;
+  if (user.role !== "admin") return <AccessMessage title="Access Denied" message={`This dashboard is for admins only. Your role: ${user.role}`} />;
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       <Header />
-
-      <main className="flex-1 py-12 px-4">
-        <div className="max-w-7xl mx-auto">
-          <header className="flex items-center justify-between gap-4">
+      <main className="flex-1 px-4 py-12">
+        <div className="mx-auto max-w-7xl">
+          <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-3xl font-bold text-secondary">Admin Dashboard</h1>
               <p className="mt-1 text-gray-600">Manage courses, trainers, and users.</p>
@@ -178,221 +50,316 @@ export default function AdminDashboard() {
             </button>
           </header>
 
-          {message ? (
-            <div className="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">{message}</div>
-          ) : null}
+          <nav className="mt-8 flex flex-wrap gap-2">
+            <NavLink to="/adminDashboard/pending-courses" className={tabClass}>
+              Pending Courses
+            </NavLink>
+            <NavLink to="/adminDashboard/pending-trainers" className={tabClass}>
+              Pending Trainers
+            </NavLink>
+            <NavLink to="/adminDashboard/enrollments" className={tabClass}>
+              Enrollments
+            </NavLink>
+            <NavLink to="/adminDashboard/users/trainer" className={tabClass}>
+              Trainers
+            </NavLink>
+            <NavLink to="/adminDashboard/users/student" className={tabClass}>
+              Students
+            </NavLink>
+          </nav>
 
-          <section className="mt-10">
-            <h2 className="text-xl font-bold text-secondary">Pending Courses</h2>
-            <div className="mt-4 grid gap-4">
-              {pendingCourses.map((c) => (
-                <div key={c.id} className="card p-5">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <div className="font-semibold text-secondary">{c.title}</div>
-                      <div className="mt-1 text-gray-600">{c.description}</div>
-                      <div className="mt-1 text-gray-600">Duration: {formatHoursMinutes(c.total_hours)}</div>
-                    </div>
-                    <div className="flex gap-2">
-                      <button className="btn btn-primary" onClick={() => approve(c.id)}>
-                        Approve
-                      </button>
-                      <button className="btn btn-outline" onClick={() => reject(c.id)}>
-                        Reject
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {pendingCourses.length === 0 ? <div className="card p-5 text-gray-600">No pending courses.</div> : null}
-            </div>
-          </section>
-
-          <section className="mt-10">
-            <h2 className="text-xl font-bold text-secondary">Pending Trainers</h2>
-            <div className="mt-4 grid gap-4">
-              {pendingTrainers.map((t) => (
-                <div key={t.user_id} className="card p-5">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <div className="font-semibold text-secondary">{t.username || t.email || `User ${t.user_id}`}</div>
-                      <div className="mt-1 text-gray-600">Email: {t.email || "-"}</div>
-                    </div>
-                    <button className="btn btn-primary" onClick={() => approveTrainer(t.user_id)}>
-                      Approve Trainer
-                    </button>
-                  </div>
-                </div>
-              ))}
-              {pendingTrainers.length === 0 ? <div className="card p-5 text-gray-600">No pending trainers.</div> : null}
-            </div>
-          </section>
-
-          <section className="mt-10">
-            <h2 className="text-xl font-bold text-secondary">All Enrollments</h2>
-            <div className="mt-4 grid gap-4">
-              {enrollments.map((e) => (
-                <div key={e.id} className="card p-5">
-                  <div className="font-semibold text-secondary">{e.course?.title || `Course ${e.course?.id}`}</div>
-                  <div className="mt-1 text-gray-600">
-                    Student: {e.student?.username || e.student?.email || `User ${e.student?.id}`}
-                  </div>
-                  <div className="mt-1 text-gray-600">
-                    Enrolled: {e.enrolled_at ? new Date(e.enrolled_at).toLocaleString() : "-"}
-                  </div>
-                </div>
-              ))}
-              {enrollments.length === 0 ? <div className="card p-5 text-gray-600">No enrollments yet.</div> : null}
-            </div>
-          </section>
-
-          <section className="mt-10">
-            <div className="flex items-center justify-between gap-4">
-              <h2 className="text-xl font-bold text-secondary">Users</h2>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  className={usersTab === "trainer" ? "btn btn-primary" : "btn btn-outline"}
-                  onClick={() => {
-                    setUsersTab("trainer");
-                  }}>
-                  Trainers
-                </button>
-                <button
-                  type="button"
-                  className={usersTab === "student" ? "btn btn-primary" : "btn btn-outline"}
-                  onClick={() => {
-                    setUsersTab("student");
-                  }}>
-                  Students
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-4 grid gap-3">
-              <div className="grid gap-3">
-                {users.map((u) => {
-                  const isSelected = selectedUserId === u.id;
-                  return (
-                    <div
-                      key={u.id}
-                      className={
-                        isSelected ? "card p-4 border-gray-900" : "card p-4 hover:border-gray-400"
-                      }>
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <div className="font-semibold text-secondary">
-                            {u.name || u.username || u.email || `User ${u.id}`}
-                          </div>
-                          <div className="mt-1 text-sm text-gray-600">Email: {u.email || "-"}</div>
-                        </div>
-                        <span className="badge badge-primary">{u.role}</span>
-                      </div>
-                      <div className="mt-2 text-sm text-gray-600">
-                        Approved: {String(!!u.approved)} | Active: {String(!!u.is_active)}
-                      </div>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          className="btn btn-outline"
-                          onClick={() => {
-                            setSelectedUser(null);
-                            setSelectedUserId(u.id);
-                          }}>
-                          View Details
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-outline flex items-center gap-2 border-red-200 text-red-700 hover:border-red-300 hover:bg-red-50"
-                          onClick={() => deleteUser(u)}>
-                          <Trash2 className="h-4 w-4" />
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-                {users.length === 0 ? <div className="card p-5 text-gray-600">No users found.</div> : null}
-              </div>
-            </div>
-          </section>
-        </div>
-      </main>
-
-      {selectedUserId ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 px-4 py-6">
-          <div className="w-full max-w-lg rounded-lg bg-white shadow-xl">
-            <div className="flex items-start justify-between gap-4 border-b border-gray-200 p-5">
-              <div>
-                <div className="text-lg font-bold text-secondary">User Details</div>
-                <div className="mt-1 text-sm text-gray-600">
-                  {selectedUser ? selectedUser.email || selectedUser.username : "Loading user details..."}
-                </div>
-              </div>
-              <button
-                type="button"
-                className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
-                aria-label="Close user details"
-                onClick={() => {
-                  setSelectedUserId(null);
-                  setSelectedUser(null);
-                }}>
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {selectedUser ? (
-              <div className="p-5">
-                <div className="grid gap-2 text-sm">
-                  <div>
-                    <span className="font-medium text-secondary">Name:</span> {selectedUser.name || "-"}
-                  </div>
-                  <div>
-                    <span className="font-medium text-secondary">Email:</span> {selectedUser.email || "-"}
-                  </div>
-                  <div>
-                    <span className="font-medium text-secondary">Role:</span> {selectedUser.role}
-                  </div>
-                  <div>
-                    <span className="font-medium text-secondary">Approved:</span> {String(!!selectedUser.approved)}
-                  </div>
-                  <div>
-                    <span className="font-medium text-secondary">Active:</span> {String(!!selectedUser.is_active)}
-                  </div>
-                  <div>
-                    <span className="font-medium text-secondary">Last login:</span>{" "}
-                    {selectedUser.last_login_at ? new Date(selectedUser.last_login_at).toLocaleString() : "-"}
-                  </div>
-                  <div>
-                    <span className="font-medium text-secondary">IP:</span> {selectedUser.ip || "-"}
-                  </div>
-                  <div>
-                    <span className="font-medium text-secondary">Device:</span> {selectedUser.device_name || "-"}
-                  </div>
-                </div>
-
-                <div className="mt-6 flex flex-wrap justify-end gap-2">
-                  {selectedUser.role === "trainer" ? (
-                    <button className="btn btn-outline" onClick={() => promoteAdmin(selectedUser.id)}>
-                      Make Admin
-                    </button>
-                  ) : null}
-                  <button
-                    className="btn btn-outline flex items-center gap-2 border-red-200 text-red-700 hover:border-red-300 hover:bg-red-50"
-                    onClick={() => deleteUser(selectedUser)}>
-                    <Trash2 className="h-4 w-4" />
-                    Delete User
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="p-5 text-sm text-gray-600">Loading...</div>
-            )}
+          <div className="mt-8">
+            <Outlet />
           </div>
         </div>
-      ) : null}
-
+      </main>
       <Footer />
+    </div>
+  );
+}
+
+export function AdminPendingCoursesPage() {
+  const ctx = useContext(AppContext);
+  const [courses, setCourses] = useState([]);
+  const [message, setMessage] = useState("");
+
+  async function load() {
+    setMessage("");
+    setCourses(await ctx.api.admin.pendingCourses());
+  }
+
+  useEffect(() => {
+    load().catch((e) => setMessage(e?.message || "Failed to load pending courses"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function approve(courseId) {
+    await ctx.api.admin.approveCourse(courseId);
+    await load();
+  }
+
+  async function reject(courseId) {
+    const reason = window.prompt("Reject reason (optional):") || "";
+    await ctx.api.admin.rejectCourse(courseId, reason);
+    await load();
+  }
+
+  return (
+    <section>
+      <h2 className="text-xl font-bold text-secondary">Pending Courses</h2>
+      {message ? <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">{message}</div> : null}
+      <div className="mt-4 grid gap-4">
+        {courses.map((course) => (
+          <div key={course.id} className="card p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="font-semibold text-secondary">{course.title}</div>
+                <div className="mt-1 text-gray-600">{course.description}</div>
+                <div className="mt-1 text-gray-600">Duration: {formatHoursMinutes(course.total_hours)}</div>
+              </div>
+              <div className="flex gap-2">
+                <button className="btn btn-primary" onClick={() => approve(course.id)}>
+                  Approve
+                </button>
+                <button className="btn btn-outline" onClick={() => reject(course.id)}>
+                  Reject
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+        {courses.length === 0 ? <div className="card p-5 text-gray-600">No pending courses.</div> : null}
+      </div>
+    </section>
+  );
+}
+
+export function AdminPendingTrainersPage() {
+  const ctx = useContext(AppContext);
+  const [trainers, setTrainers] = useState([]);
+  const [message, setMessage] = useState("");
+
+  async function load() {
+    setMessage("");
+    setTrainers(await ctx.api.admin.pendingTrainers());
+  }
+
+  useEffect(() => {
+    load().catch((e) => setMessage(e?.message || "Failed to load pending trainers"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function approveTrainer(userId) {
+    await ctx.api.admin.approveTrainer(userId);
+    await load();
+  }
+
+  return (
+    <section>
+      <h2 className="text-xl font-bold text-secondary">Pending Trainers</h2>
+      {message ? <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">{message}</div> : null}
+      <div className="mt-4 grid gap-4">
+        {trainers.map((trainer) => (
+          <div key={trainer.user_id} className="card p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="font-semibold text-secondary">{trainer.username || trainer.email || `User ${trainer.user_id}`}</div>
+                <div className="mt-1 text-gray-600">Email: {trainer.email || "-"}</div>
+              </div>
+              <button className="btn btn-primary" onClick={() => approveTrainer(trainer.user_id)}>
+                Approve Trainer
+              </button>
+            </div>
+          </div>
+        ))}
+        {trainers.length === 0 ? <div className="card p-5 text-gray-600">No pending trainers.</div> : null}
+      </div>
+    </section>
+  );
+}
+
+export function AdminEnrollmentsPage() {
+  const ctx = useContext(AppContext);
+  const [enrollments, setEnrollments] = useState([]);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    ctx.api.admin
+      .enrollments()
+      .then(setEnrollments)
+      .catch((e) => setMessage(e?.message || "Failed to load enrollments"));
+  }, [ctx.api.admin]);
+
+  return (
+    <section>
+      <h2 className="text-xl font-bold text-secondary">All Enrollments</h2>
+      {message ? <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">{message}</div> : null}
+      <div className="mt-4 grid gap-4">
+        {enrollments.map((enrollment) => (
+          <div key={enrollment.id} className="card p-5">
+            <div className="font-semibold text-secondary">{enrollment.course?.title || `Course ${enrollment.course?.id}`}</div>
+            <div className="mt-1 text-gray-600">
+              Student: {enrollment.student?.username || enrollment.student?.email || `User ${enrollment.student?.id}`}
+            </div>
+            <div className="mt-1 text-gray-600">
+              Enrolled: {enrollment.enrolled_at ? new Date(enrollment.enrolled_at).toLocaleString() : "-"}
+            </div>
+          </div>
+        ))}
+        {enrollments.length === 0 ? <div className="card p-5 text-gray-600">No enrollments yet.</div> : null}
+      </div>
+    </section>
+  );
+}
+
+export function AdminUsersPage() {
+  const ctx = useContext(AppContext);
+  const { role = "trainer" } = useParams();
+  const [users, setUsers] = useState([]);
+  const [message, setMessage] = useState("");
+
+  async function load() {
+    setMessage("");
+    setUsers(await ctx.api.admin.usersByRole(role));
+  }
+
+  useEffect(() => {
+    load().catch((e) => setMessage(e?.message || "Failed to load users"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [role]);
+
+  async function deleteUser(userToDelete) {
+    const label = userToDelete.name || userToDelete.username || userToDelete.email || `User ${userToDelete.id}`;
+    if (!window.confirm(`Delete ${label}? This cannot be undone.`)) return;
+    await ctx.api.admin.deleteUser(userToDelete.id);
+    await load();
+  }
+
+  return (
+    <section>
+      <div className="flex items-center justify-between gap-4">
+        <h2 className="text-xl font-bold capitalize text-secondary">{role}s</h2>
+      </div>
+      {message ? <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">{message}</div> : null}
+      <div className="mt-4 grid gap-3">
+        {users.map((user) => (
+          <div key={user.id} className="card p-4 hover:border-gray-400">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="font-semibold text-secondary">{user.name || user.username || user.email || `User ${user.id}`}</div>
+                <div className="mt-1 text-sm text-gray-600">Email: {user.email || "-"}</div>
+              </div>
+              <span className="badge badge-primary">{user.role}</span>
+            </div>
+            <div className="mt-2 text-sm text-gray-600">
+              Approved: {String(!!user.approved)} | Active: {String(!!user.is_active)}
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link className="btn btn-outline" to={`/adminDashboard/users/${role}/${user.id}`}>
+                View Details
+              </Link>
+              <button className="btn btn-outline flex items-center gap-2 border-red-200 text-red-700 hover:border-red-300 hover:bg-red-50" onClick={() => deleteUser(user)}>
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+        {users.length === 0 ? <div className="card p-5 text-gray-600">No users found.</div> : null}
+      </div>
+      <Outlet context={{ reloadUsers: load }} />
+    </section>
+  );
+}
+
+export function AdminUserDetailModal() {
+  const ctx = useContext(AppContext);
+  const navigate = useNavigate();
+  const { role, userId } = useParams();
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    ctx.api.admin
+      .userDetail(userId)
+      .then(setSelectedUser)
+      .catch((e) => setMessage(e?.message || "Failed to load user detail"));
+  }, [ctx.api.admin, userId]);
+
+  async function promoteAdmin(userIdToPromote) {
+    if (!window.confirm("Make this trainer an admin?")) return;
+    await ctx.api.admin.promoteAdmin(userIdToPromote);
+    navigate(`/adminDashboard/users/${role}`);
+  }
+
+  async function deleteUser(userToDelete) {
+    const label = userToDelete.name || userToDelete.username || userToDelete.email || `User ${userToDelete.id}`;
+    if (!window.confirm(`Delete ${label}? This cannot be undone.`)) return;
+    await ctx.api.admin.deleteUser(userToDelete.id);
+    navigate(`/adminDashboard/users/${role}`);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 px-4 py-6">
+      <div className="w-full max-w-lg rounded-lg bg-white shadow-xl">
+        <div className="flex items-start justify-between gap-4 border-b border-gray-200 p-5">
+          <div>
+            <div className="text-lg font-bold text-secondary">User Details</div>
+            <div className="mt-1 text-sm text-gray-600">
+              {selectedUser ? selectedUser.email || selectedUser.username : message || "Loading user details..."}
+            </div>
+          </div>
+          <button type="button" className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900" aria-label="Close user details" onClick={() => navigate(`/adminDashboard/users/${role}`)}>
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {selectedUser ? (
+          <div className="p-5">
+            <div className="grid gap-2 text-sm">
+              <div>
+                <span className="font-medium text-secondary">Name:</span> {selectedUser.name || "-"}
+              </div>
+              <div>
+                <span className="font-medium text-secondary">Email:</span> {selectedUser.email || "-"}
+              </div>
+              <div>
+                <span className="font-medium text-secondary">Role:</span> {selectedUser.role}
+              </div>
+              <div>
+                <span className="font-medium text-secondary">Approved:</span> {String(!!selectedUser.approved)}
+              </div>
+              <div>
+                <span className="font-medium text-secondary">Active:</span> {String(!!selectedUser.is_active)}
+              </div>
+              <div>
+                <span className="font-medium text-secondary">Last login:</span>{" "}
+                {selectedUser.last_login_at ? new Date(selectedUser.last_login_at).toLocaleString() : "-"}
+              </div>
+              <div>
+                <span className="font-medium text-secondary">IP:</span> {selectedUser.ip || "-"}
+              </div>
+              <div>
+                <span className="font-medium text-secondary">Device:</span> {selectedUser.device_name || "-"}
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-wrap justify-end gap-2">
+              {selectedUser.role === "trainer" ? (
+                <button className="btn btn-outline" onClick={() => promoteAdmin(selectedUser.id)}>
+                  Make Admin
+                </button>
+              ) : null}
+              <button className="btn btn-outline flex items-center gap-2 border-red-200 text-red-700 hover:border-red-300 hover:bg-red-50" onClick={() => deleteUser(selectedUser)}>
+                <Trash2 className="h-4 w-4" />
+                Delete User
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="p-5 text-sm text-gray-600">{message || "Loading..."}</div>
+        )}
+      </div>
     </div>
   );
 }

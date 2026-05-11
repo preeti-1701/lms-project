@@ -14,7 +14,7 @@ export default function LandingPage() {
     if (user){
      if (user?.role === "admin")  navigate("/adminDashboard");
     if (user?.role === "trainer") navigate("/trainerDashboard");
-if (user?.role === "student") navigate("/sudentDashboard");
+if (user?.role === "student") navigate("/studentDashboard");
   }
   });
   
