@@ -131,24 +131,60 @@ export function StudentCoursesPage() {
 
         <div className="card p-6">
           <h3 className="mb-4 font-bold text-secondary">My Courses</h3>
-          {enrollments.length === 0 ? (
-            <p className="text-sm text-gray-500">You haven't enrolled in any courses yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {enrollments.map((enrollment) => (
-                <Link
-                  key={enrollment.course?.id}
-                  to={`/studentDashboard/courses/${enrollment.course?.id}`}
-                  className="block rounded-lg border border-gray-200 bg-gray-50 p-3 hover:bg-gray-100">
-                  <p className="text-sm font-medium text-secondary">{enrollment.course?.title}</p>
-                  <p className="mt-1 text-xs text-gray-500">{formatHoursMinutes(enrollment.course?.total_hours)}</p>
-                </Link>
-              ))}
-            </div>
-          )}
+          <p className="text-sm text-gray-500">
+            View your enrolled courses on a dedicated page.
+          </p>
+          <Link to="/studentDashboard/my-courses" className="btn btn-primary mt-5 w-full">
+            Open My Courses
+          </Link>
         </div>
       </aside>
     </div>
+  );
+}
+
+export function StudentMyCoursesPage() {
+  const { enrollments, message } = useStudentData();
+
+  return (
+    <section>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-secondary">My Courses</h2>
+          <p className="mt-1 text-gray-600">Courses you are currently enrolled in.</p>
+        </div>
+        <Link to="/studentDashboard" className="btn btn-outline">
+          Browse Courses
+        </Link>
+      </div>
+
+      {message ? <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-600">{message}</div> : null}
+
+      {enrollments.length === 0 ? (
+        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center">
+          <p className="text-gray-500">You haven't enrolled in any courses yet.</p>
+          <Link to="/studentDashboard" className="btn btn-primary mt-5">
+            Find a Course
+          </Link>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {enrollments.map((enrollment) => (
+            <Link
+              key={enrollment.course?.id}
+              to={`/studentDashboard/courses/${enrollment.course?.id}`}
+              className="card p-5 hover:border-gray-400">
+              <h3 className="font-bold text-secondary line-clamp-2">{enrollment.course?.title}</h3>
+              <p className="mt-2 text-sm text-gray-600 line-clamp-3">{enrollment.course?.description}</p>
+              <p className="mt-4 text-sm text-gray-500">{formatHoursMinutes(enrollment.course?.total_hours)}</p>
+              <p className="mt-2 text-xs text-gray-500">
+                Enrolled: {enrollment.enrolled_at ? new Date(enrollment.enrolled_at).toLocaleString() : "-"}
+              </p>
+            </Link>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 

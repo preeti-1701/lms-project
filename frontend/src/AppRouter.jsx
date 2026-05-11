@@ -4,12 +4,15 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppContext } from "./context/AppContext";
 import AdminDashboard, {
   AdminEnrollmentsPage,
+  AdminEnrollmentsByCoursePage,
+  AdminEnrollmentsByStudentPage,
+  AdminPendingCourseDetailPage,
   AdminPendingCoursesPage,
   AdminPendingTrainersPage,
   AdminUserDetailModal,
   AdminUsersPage,
 } from "./pages/AdminDashboard.jsx";
-import StudentDashboard, { StudentCourseDetailPage, StudentCoursesPage } from "./pages/StudentDashboard.jsx";
+import StudentDashboard, { StudentCourseDetailPage, StudentCoursesPage, StudentMyCoursesPage } from "./pages/StudentDashboard.jsx";
 import TrainerDashboard, {
   TrainerCourseDetailPage,
   TrainerCourseFormPage,
@@ -56,6 +59,7 @@ export default function AppRouter() {
               </RequireAuth>
             }>
             <Route index element={<StudentCoursesPage />} />
+            <Route path="my-courses" element={<StudentMyCoursesPage />} />
             <Route path="courses/:courseId" element={<StudentCourseDetailPage />} />
           </Route>
           <Route
@@ -78,9 +82,15 @@ export default function AppRouter() {
               </RequireAuth>
             }>
             <Route index element={<Navigate to="pending-courses" replace />} />
-            <Route path="pending-courses" element={<AdminPendingCoursesPage />} />
+            <Route path="pending-courses" element={<AdminPendingCoursesPage />}>
+              <Route path=":courseId" element={<AdminPendingCourseDetailPage />} />
+            </Route>
             <Route path="pending-trainers" element={<AdminPendingTrainersPage />} />
-            <Route path="enrollments" element={<AdminEnrollmentsPage />} />
+            <Route path="enrollments" element={<AdminEnrollmentsPage />}>
+              <Route index element={<Navigate to="courses" replace />} />
+              <Route path="courses" element={<AdminEnrollmentsByCoursePage />} />
+              <Route path="students" element={<AdminEnrollmentsByStudentPage />} />
+            </Route>
             <Route path="users/:role" element={<AdminUsersPage />}>
               <Route path=":userId" element={<AdminUserDetailModal />} />
             </Route>

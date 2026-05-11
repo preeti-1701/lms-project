@@ -247,7 +247,7 @@ class AdminPendingCoursesView(APIView):
     permission_classes = [IsAdmin]
 
     def get(self, request):
-        pending = Course.objects.filter(status=Course.STATUS_PENDING).order_by('-created_at')
+        pending = Course.objects.filter(status=Course.STATUS_PENDING).select_related('trainer').order_by('-created_at')
         return Response([serialize_course(c) for c in pending], status=status.HTTP_200_OK)
 
 

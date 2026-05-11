@@ -23,9 +23,13 @@ class CourseUpsertSerializer(serializers.Serializer):
 
 
 def serialize_course(course: Course, *, include_items: bool = False) -> dict:
+    trainer_name = (course.trainer.get_full_name() or '').strip() if course.trainer_id else ''
+    trainer_display = (trainer_name or course.trainer.get_username()) if course.trainer_id else None
     base = {
         'id': course.id,
         'trainer_id': course.trainer_id,
+        'trainer_name': trainer_display,
+        'trainer_email': course.trainer.email if course.trainer_id else None,
         'title': course.title,
         'description': course.description,
         'total_hours': str(course.total_hours),
