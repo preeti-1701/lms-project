@@ -14,15 +14,22 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="navbar-container">
-        <Link to="/" className="navbar-brand">LMS Platform</Link>
+        <Link to="/dashboard" className="navbar-brand">LMS Platform</Link>
         <div className="navbar-links">
-          <Link to="/">Dashboard</Link>
+          <Link to="/dashboard">Dashboard</Link>
+          
           {(user?.role === 'admin' || user?.role === 'trainer') && (
             <Link to="/courses">Manage Courses</Link>
           )}
+          
           {user?.role === 'admin' && (
-            <Link to="/users">Manage Users</Link>
+            <>
+              <Link to="/users">Manage Users</Link>
+              {/* 🔒 Security Link - Add this line */}
+              <Link to="/security">🔒 Security</Link>
+            </>
           )}
+          
           <span>{user?.name} ({user?.role})</span>
           <button onClick={handleLogout} className="logout-btn">Logout</button>
         </div>
