@@ -174,7 +174,7 @@ export function TrainerCourseDetailPage() {
             </div>
             <Link to={`/trainerDashboard/courses/${course.id}/edit`} className="btn btn-outline flex items-center justify-center gap-2">
               <Pencil className="h-4 w-4" />
-              View or Modify
+              Modify
             </Link>
           </div>
         </div>
@@ -317,10 +317,6 @@ export function TrainerCourseFormPage() {
           <div>
             <div className="mb-4 flex items-center justify-between">
               <h3 className="font-semibold text-secondary">Course Lessons</h3>
-              <button type="button" className="btn btn-secondary flex items-center gap-2 text-sm" onClick={() => setItems([...items, emptyItem()])}>
-                <Plus className="h-4 w-4" />
-                Add Lesson
-              </button>
             </div>
             <div className="space-y-4">
               {items.map((item, idx) => (
@@ -332,6 +328,7 @@ export function TrainerCourseFormPage() {
                         <Trash2 className="h-4 w-4" />
                       </button>
                     ) : null}
+                    
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <input className="input" placeholder="Lesson title" value={item.title} onChange={(e) => updateItem(idx, "title", e.target.value)} />
@@ -341,6 +338,12 @@ export function TrainerCourseFormPage() {
                   <input className="input mt-3" type="url" placeholder="YouTube URL" value={item.youtube_url} onChange={(e) => updateItem(idx, "youtube_url", e.target.value)} />
                 </div>
               ))}
+              <div className="w-full flex justify-center">
+              <button type="button" className="flex justify-center items-center gap-2 px-2  py-1 w-2/4 rounded-md text-sm bg-black text-white hover:bg-gray-800" onClick={() => setItems([...items, emptyItem()])}>
+                <Plus className="h-4 w-4" />
+                Add Lesson
+              </button>
+              </div>
             </div>
           </div>
 

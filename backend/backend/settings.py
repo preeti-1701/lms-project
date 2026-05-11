@@ -147,5 +147,7 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
+    'https://symmetrical-winner-w66wqxp5r59hxwp-5173.app.github.dev'
+
 ]
 
