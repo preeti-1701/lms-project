@@ -2,13 +2,15 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, password=None, role='student'):
+    def create_user(self, email, password=None, role='student', name='', mobile=''):
         if not email:
             raise ValueError("Email is required")
 
         user = self.model(
             email=self.normalize_email(email),
-            role=role
+            role=role,
+            name=name,
+            mobile=mobile
         )
         user.set_password(password)
         user.save()
@@ -29,7 +31,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         ('student', 'Student'),
     )
 
+    name = models.CharField(max_length=100, default='', blank=True)
     email = models.EmailField(unique=True)
+    mobile = models.CharField(max_length=15, blank=True, null=True, default='')
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

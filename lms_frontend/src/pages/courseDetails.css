@@ -1,0 +1,75 @@
+.course-details {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.course-hero {
+  margin-bottom: 2rem;
+}
+
+.course-image {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.course-meta {
+  margin-top: 1rem;
+}
+
+.course-meta h2 {
+  margin: 0 0 0.5rem 0;
+}
+
+.course-desc {
+  margin: 0.5rem 0;
+  color: #666;
+}
+
+.course-sub {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #888;
+}
+
+.chapters {
+  margin-top: 2rem;
+}
+
+.chapters h3 {
+  margin-bottom: 1rem;
+}
+
+.chapter-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.chapter-item {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.chapter-url {
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.video-container {
+  margin-top: 1rem;
+}
+
+.status {
+  text-align: center;
+  font-size: 1.2rem;
+  padding: 2rem;
+}
+
+.status.error {
+  color: red;
+}

@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Build outputs
+build/
+dist/
+*.log
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Django
+*.sqlite3
+db.sqlite3
+/static/
+/media/
+
+# React
+lms_frontend/build/
+lms_frontend/.env.local
+lms_frontend/.env.development.local
+lms_frontend/.env.test.local
+lms_frontend/.env.production.local
+lms_frontend/npm-debug.log*
+lms_frontend/yarn-debug.log*
+lms_frontend/yarn-error.log*
