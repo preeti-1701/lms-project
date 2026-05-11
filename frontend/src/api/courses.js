@@ -24,6 +24,10 @@ export function createCourse(course) {
   return apiFetchWithAuth("/api/courses/", { method: "POST", body: course });
 }
 
+export function updateCourse(courseId, course) {
+  return apiFetchWithAuth(`/api/courses/${courseId}/`, { method: "PUT", body: course });
+}
+
 export function getCourse(courseId) {
   return apiFetchWithAuth(`/api/courses/${courseId}/`, { method: "GET" });
 }

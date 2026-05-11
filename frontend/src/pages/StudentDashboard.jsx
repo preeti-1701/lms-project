@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import CourseCard from "../components/CourseCard";
 import { AppContext } from "../context/AppContext";
+import { formatHoursMinutes } from "../utils/duration";
 
 export default function StudentDashboard() {
   const ctx = useContext(AppContext);
@@ -168,7 +169,9 @@ export default function StudentDashboard() {
                                   </h4>
                                   <p className="text-sm text-gray-600 mt-1">{item.description}</p>
                                 </div>
-                                <span className="badge badge-primary text-xs whitespace-nowrap">{item.hours}h</span>
+                                <span className="badge badge-primary text-xs whitespace-nowrap">
+                                  {formatHoursMinutes(item.hours)}
+                                </span>
                               </div>
 
                               <a
@@ -227,7 +230,9 @@ export default function StudentDashboard() {
                             : "bg-gray-50 border border-gray-200 hover:bg-gray-100"
                         }`}>
                         <p className="font-medium text-sm text-secondary">{enrollment.course?.title}</p>
-                        <p className="text-xs text-gray-500 mt-1">{enrollment.course?.total_hours} hours</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {formatHoursMinutes(enrollment.course?.total_hours)}
+                        </p>
                       </button>
                     ))}
                   </div>

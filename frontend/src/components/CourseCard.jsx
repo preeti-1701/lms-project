@@ -1,4 +1,5 @@
-import { Star, Users, Clock } from "lucide-react";
+import { Star, Clock } from "lucide-react";
+import { formatHoursMinutes } from "../utils/duration";
 
 export default function CourseCard({ course, isEnrolled, onEnroll, onView, disabled }) {
   return (
@@ -23,7 +24,7 @@ export default function CourseCard({ course, isEnrolled, onEnroll, onView, disab
         <div className="flex gap-4 text-sm text-gray-600 mb-4">
           <div className="flex items-center gap-1">
             <Clock className="w-4 h-4" />
-            {course.total_hours} hours
+            {formatHoursMinutes(course.total_hours)}
           </div>
           <div className="flex items-center gap-1">
             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />

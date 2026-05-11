@@ -4,6 +4,7 @@ import { Trash2, X } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { AppContext } from "../context/AppContext";
+import { formatHoursMinutes } from "../utils/duration";
 
 export default function AdminDashboard() {
   const ctx = useContext(AppContext);
@@ -190,7 +191,7 @@ export default function AdminDashboard() {
                     <div>
                       <div className="font-semibold text-secondary">{c.title}</div>
                       <div className="mt-1 text-gray-600">{c.description}</div>
-                      <div className="mt-1 text-gray-600">Total hours: {c.total_hours}</div>
+                      <div className="mt-1 text-gray-600">Duration: {formatHoursMinutes(c.total_hours)}</div>
                     </div>
                     <div className="flex gap-2">
                       <button className="btn btn-primary" onClick={() => approve(c.id)}>

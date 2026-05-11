@@ -92,6 +92,7 @@ export function AppProvider({ children }) {
         courses: {
           list: coursesApi.listCourses,
           create: coursesApi.createCourse,
+          update: coursesApi.updateCourse,
           get: coursesApi.getCourse,
           items: coursesApi.getCourseItems,
           enrollments: coursesApi.getCourseEnrollments,
