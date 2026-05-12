@@ -1,0 +1,66 @@
+.app-shell {
+  min-height: 100vh;
+  background: #f4f6fb;
+  color: #1f2937;
+  font-family: Arial, sans-serif;
+  padding: 24px;
+}
+
+.page-card {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+}
+
+.section-title {
+  margin-bottom: 16px;
+  color: #111827;
+}
+
+.grid {
+  display: grid;
+  gap: 16px;
+}
+
+.card {
+  background: #f8fbff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.action-button {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.action-button:hover {
+  background: #1d4ed8;
+}
+
+.input-field,
+.select-field,
+.textarea-field {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.small-text {
+  color: #4b5563;
+  margin-top: 6px;
+}
+
+.error-text {
+  color: #b91c1c;
+}
