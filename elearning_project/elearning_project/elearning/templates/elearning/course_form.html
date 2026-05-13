@@ -1,0 +1,44 @@
+{% extends 'elearning/base.html' %}
+{% block title %}{{ action }} Course – EduLearn{% endblock %}
+{% block content %}
+<div class="form-page">
+    <div class="form-container">
+        <div class="form-header">
+            <a href="{% url 'dashboard' %}" class="back-link">← Dashboard</a>
+            <h1>{{ action }} Course</h1>
+            <p>Fill in the details below to {{ action|lower }} your course.</p>
+        </div>
+        <form method="post" class="styled-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Course Title</label>
+                {{ form.title }}
+                {% if form.title.errors %}<span class="field-error">{{ form.title.errors.0 }}</span>{% endif %}
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                {{ form.description }}
+                {% if form.description.errors %}<span class="field-error">{{ form.description.errors.0 }}</span>{% endif %}
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Category</label>
+                    {{ form.category }}
+                </div>
+                <div class="form-group">
+                    <label>Level</label>
+                    {{ form.level }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Thumbnail Image URL <small>(optional)</small></label>
+                {{ form.thumbnail_url }}
+            </div>
+            <div class="form-actions">
+                <a href="{% url 'dashboard' %}" class="btn-outline">Cancel</a>
+                <button type="submit" class="btn-primary">{{ action }} Course</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

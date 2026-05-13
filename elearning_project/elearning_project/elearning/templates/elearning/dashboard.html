@@ -1,0 +1,133 @@
+{% extends 'elearning/base.html' %}
+{% block title %}Dashboard – EduLearn{% endblock %}
+{% block content %}
+<div class="dashboard-page">
+
+    <!-- Hero -->
+    <div class="dash-hero">
+        <div>
+            <h1>Hello, {{ user.first_name|default:user.username }} 👋</h1>
+            <p>{% if profile.is_instructor %}Instructor Account – Share your knowledge with the world.{% else %}Keep learning. Keep growing.{% endif %}</p>
+        </div>
+        <a href="{% url 'course_list' %}" class="btn-primary">Browse Courses</a>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <span class="stat-num">{{ enrollments.count }}</span>
+            <span class="stat-label">Enrolled Courses</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-num">{% for e in enrollments %}{% if e.progress_percent == 100 %}1{% endif %}{% endfor %}</span>
+            <span class="stat-label">Completed</span>
+        </div>
+        {% if profile.is_instructor %}
+        <div class="stat-card">
+            <span class="stat-num">{{ taught_courses|length }}</span>
+            <span class="stat-label">Courses Created</span>
+        </div>
+        {% endif %}
+        <div class="stat-card">
+            <span class="stat-num">🔥</span>
+            <span class="stat-label">Keep it up!</span>
+        </div>
+    </div>
+
+    <!-- My Courses -->
+    {% if enrollments %}
+    <section class="section">
+        <div class="section-header">
+            <h2>My Learning</h2>
+            <a href="{% url 'course_list' %}" class="link-more">All Courses →</a>
+        </div>
+        <div class="course-grid">
+            {% for enrollment in enrollments %}
+            <div class="course-card">
+                <div class="course-thumb" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    {% if enrollment.course.thumbnail_url %}
+                    <img src="{{ enrollment.course.thumbnail_url }}" alt="{{ enrollment.course.title }}">
+                    {% else %}
+                    <span class="thumb-icon">📚</span>
+                    {% endif %}
+                </div>
+                <div class="course-info">
+                    <span class="course-level {{ enrollment.course.level }}">{{ enrollment.course.get_level_display }}</span>
+                    <h3><a href="{% url 'course_detail' enrollment.course.pk %}">{{ enrollment.course.title }}</a></h3>
+                    <p>by {{ enrollment.course.instructor.get_full_name|default:enrollment.course.instructor.username }}</p>
+                    <div class="progress-bar-wrap">
+                        <div class="progress-bar" style="width: {{ enrollment.progress_percent }}%"></div>
+                    </div>
+                    <small>{{ enrollment.progress_percent }}% complete</small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Instructor Section -->
+    {% if profile.is_instructor %}
+    <section class="section">
+        <div class="section-header">
+            <h2>My Courses (Instructor)</h2>
+            <a href="{% url 'create_course' %}" class="btn-outline">+ New Course</a>
+        </div>
+        {% if taught_courses %}
+        <div class="course-grid">
+            {% for course in taught_courses %}
+            <div class="course-card">
+                <div class="course-thumb instructor-thumb">
+                    <span class="thumb-icon">🎓</span>
+                </div>
+                <div class="course-info">
+                    <h3>{{ course.title }}</h3>
+                    <p>{{ course.total_lessons }} lessons · {{ course.total_enrolled }} students</p>
+                    <div class="course-actions">
+                        <a href="{% url 'manage_course' course.pk %}" class="btn-sm">Manage</a>
+                        <a href="{% url 'edit_course' course.pk %}" class="btn-sm btn-outline-sm">Edit</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>You haven't created any courses yet.</p>
+            <a href="{% url 'create_course' %}" class="btn-primary">Create Your First Course</a>
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    <!-- Explore -->
+    <section class="section">
+        <div class="section-header">
+            <h2>Explore Courses</h2>
+            <a href="{% url 'course_list' %}" class="link-more">View all →</a>
+        </div>
+        <div class="course-grid">
+            {% for course in all_courses %}
+            <div class="course-card">
+                <div class="course-thumb" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    {% if course.thumbnail_url %}
+                    <img src="{{ course.thumbnail_url }}" alt="{{ course.title }}">
+                    {% else %}
+                    <span class="thumb-icon">📖</span>
+                    {% endif %}
+                </div>
+                <div class="course-info">
+                    <span class="course-level {{ course.level }}">{{ course.get_level_display }}</span>
+                    <h3><a href="{% url 'course_detail' course.pk %}">{{ course.title }}</a></h3>
+                    <p>by {{ course.instructor.get_full_name|default:course.instructor.username }}</p>
+                    <small>{{ course.total_lessons }} lessons</small>
+                </div>
+            </div>
+            {% empty %}
+            <p>No courses available yet.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+</div>
+{% endblock %}

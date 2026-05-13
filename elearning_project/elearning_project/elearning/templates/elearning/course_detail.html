@@ -1,0 +1,109 @@
+{% extends 'elearning/base.html' %}
+{% load custom_filters %}
+{% block title %}{{ course.title }} – EduLearn{% endblock %}
+{% block content %}
+<div class="course-detail-page">
+
+    <!-- Hero Banner -->
+    <div class="course-hero">
+        <div class="course-hero-content">
+            <div class="breadcrumb">
+                <a href="{% url 'course_list' %}">Courses</a> / {{ course.title }}
+            </div>
+            <span class="course-level {{ course.level }}">{{ course.get_level_display }}</span>
+            <h1>{{ course.title }}</h1>
+            <p>{{ course.description }}</p>
+            <div class="course-hero-meta">
+                <span>👤 {{ course.instructor.get_full_name|default:course.instructor.username }}</span>
+                <span>📹 {{ course.total_lessons }} lessons</span>
+                <span>⏱ {{ course.duration_minutes }} minutes</span>
+                <span>👥 {{ course.total_enrolled }} enrolled</span>
+            </div>
+        </div>
+        <div class="course-hero-action">
+            {% if user.is_authenticated %}
+                {% if is_enrolled %}
+                    <div class="enrolled-badge">✅ Enrolled</div>
+                    <div class="progress-display">
+                        <div class="progress-bar-wrap large">
+                            <div class="progress-bar" style="width: {{ enrollment.progress_percent }}%"></div>
+                        </div>
+                        <span>{{ enrollment.progress_percent }}% complete</span>
+                    </div>
+                    {% if lessons %}
+                    <a href="{% url 'lesson' course.pk lessons.first.pk %}" class="btn-primary full-width">
+                        {% if enrollment.progress_percent > 0 %}Continue Learning{% else %}Start Learning{% endif %}
+                    </a>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'enroll' course.pk %}" class="btn-primary full-width">Enroll Now – Free</a>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'login' %}?next={% url 'course_detail' course.pk %}" class="btn-primary full-width">Login to Enroll</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="course-body">
+        <!-- Lessons List -->
+        <div class="lessons-panel">
+            <h2>Course Content</h2>
+            <p>{{ course.total_lessons }} lessons · {{ course.duration_minutes }} minutes total</p>
+            <div class="lessons-list">
+                {% for lesson in lessons %}
+                <div class="lesson-item {% if is_enrolled and lesson_progress|get_item:lesson.pk %}completed{% endif %}">
+                    <div class="lesson-num">
+                        {% if is_enrolled and lesson_progress|get_item:lesson.pk %}
+                        ✅
+                        {% else %}
+                        {{ forloop.counter }}
+                        {% endif %}
+                    </div>
+                    <div class="lesson-text">
+                        {% if is_enrolled %}
+                        <a href="{% url 'lesson' course.pk lesson.pk %}">{{ lesson.title }}</a>
+                        {% else %}
+                        <span>{{ lesson.title }}</span>
+                        {% endif %}
+                        {% if lesson.description %}<small>{{ lesson.description }}</small>{% endif %}
+                    </div>
+                    <span class="lesson-duration">{{ lesson.duration_minutes }} min</span>
+                </div>
+                {% empty %}
+                <p class="empty-lessons">No lessons added yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="course-sidebar">
+            {% if course.category %}
+            <div class="sidebar-box">
+                <h3>Category</h3>
+                <p>{{ course.category.icon }} {{ course.category.name }}</p>
+            </div>
+            {% endif %}
+            <div class="sidebar-box">
+                <h3>This course includes</h3>
+                <ul class="includes-list">
+                    <li>📹 {{ course.total_lessons }} video lessons</li>
+                    <li>⏱ {{ course.duration_minutes }} minutes of content</li>
+                    <li>📱 Access on all devices</li>
+                    <li>🏆 Track your progress</li>
+                </ul>
+            </div>
+            <div class="sidebar-box">
+                <h3>Instructor</h3>
+                <div class="instructor-info">
+                    <div class="instructor-avatar">{{ course.instructor.first_name|first|upper }}{{ course.instructor.last_name|first|upper }}</div>
+                    <div>
+                        <strong>{{ course.instructor.get_full_name|default:course.instructor.username }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

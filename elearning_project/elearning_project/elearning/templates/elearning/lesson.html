@@ -1,0 +1,63 @@
+{% extends 'elearning/base.html' %}
+{% load custom_filters %}
+{% block title %}{{ lesson.title }} – EduLearn{% endblock %}
+{% block content %}
+<div class="lesson-page">
+
+    <!-- Sidebar -->
+    <div class="lesson-sidebar">
+        <div class="lesson-sidebar-header">
+            <a href="{% url 'course_detail' course.pk %}" class="back-link">← {{ course.title }}</a>
+            <div class="progress-mini">
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar" style="width: {{ progress_percent }}%"></div>
+                </div>
+                <small>{{ progress_percent }}% complete</small>
+            </div>
+        </div>
+        <div class="lesson-list-scroll">
+            {% for l in lessons %}
+            <a href="{% url 'lesson' course.pk l.pk %}" class="lesson-link {% if l.pk == lesson.pk %}active{% endif %} {% if lesson_progress|get_item:l.pk %}done{% endif %}">
+                <span class="llink-icon">{% if lesson_progress|get_item:l.pk %}✅{% else %}▶{% endif %}</span>
+                <span class="llink-title">{{ l.title }}</span>
+                <span class="llink-dur">{{ l.duration_minutes }}m</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="lesson-main">
+        <div class="video-wrap">
+            {% with embed=lesson.get_embed_url %}
+            {% if embed %}
+            <iframe src="{{ embed }}" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+            {% else %}
+            <div class="no-video">No video available for this lesson.</div>
+            {% endif %}
+            {% endwith %}
+        </div>
+
+        <div class="lesson-content">
+            <h1>{{ lesson.title }}</h1>
+            {% if lesson.description %}
+            <p>{{ lesson.description }}</p>
+            {% endif %}
+
+            <div class="lesson-nav">
+                {% if prev_lesson %}
+                <a href="{% url 'lesson' course.pk prev_lesson.pk %}" class="btn-outline">← Previous</a>
+                {% else %}
+                <span></span>
+                {% endif %}
+                {% if next_lesson %}
+                <a href="{% url 'lesson' course.pk next_lesson.pk %}" class="btn-primary">Next Lesson →</a>
+                {% else %}
+                <a href="{% url 'course_detail' course.pk %}" class="btn-primary">✅ Finish Course</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

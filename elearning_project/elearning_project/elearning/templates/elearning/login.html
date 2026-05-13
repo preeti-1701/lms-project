@@ -1,0 +1,40 @@
+{% extends 'elearning/base.html' %}
+{% block title %}Login – EduLearn{% endblock %}
+{% block content %}
+<div class="auth-page">
+    <div class="auth-left">
+        <div class="auth-brand">
+            <span class="brand-icon-lg">⚡</span>
+            <h1>EduLearn</h1>
+            <p>Your gateway to world-class learning. Thousands of courses, expert instructors, and a community that grows together.</p>
+        </div>
+        <div class="auth-stats">
+            <div class="stat"><span>500+</span><small>Courses</small></div>
+            <div class="stat"><span>10K+</span><small>Students</small></div>
+            <div class="stat"><span>200+</span><small>Instructors</small></div>
+        </div>
+    </div>
+    <div class="auth-right">
+        <div class="auth-card">
+            <h2>Welcome back</h2>
+            <p class="auth-subtitle">Sign in to continue your learning journey</p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Username</label>
+                    {{ form.username }}
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    {{ form.password }}
+                </div>
+                {% if form.errors %}
+                <div class="form-error">Invalid credentials. Please try again.</div>
+                {% endif %}
+                <button type="submit" class="btn-primary full-width">Sign In</button>
+            </form>
+            <p class="auth-switch">Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

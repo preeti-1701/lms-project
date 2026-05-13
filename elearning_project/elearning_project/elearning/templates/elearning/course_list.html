@@ -1,0 +1,69 @@
+{% extends 'elearning/base.html' %}
+{% block title %}Courses – EduLearn{% endblock %}
+{% block content %}
+<div class="courses-page">
+    <div class="page-header">
+        <h1>All Courses</h1>
+        <p>Expand your skills with our expert-led courses</p>
+    </div>
+
+    <!-- Search & Filters -->
+    <form method="get" class="filter-bar">
+        <div class="search-wrap">
+            <input type="text" name="q" value="{{ query }}" placeholder="Search courses..." class="form-input search-input">
+            <button type="submit" class="btn-primary">Search</button>
+        </div>
+        <div class="filter-selects">
+            <select name="category" class="form-input" onchange="this.form.submit()">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                <option value="{{ cat.pk }}" {% if selected_category == cat.pk|stringformat:'s' %}selected{% endif %}>{{ cat.icon }} {{ cat.name }}</option>
+                {% endfor %}
+            </select>
+            <select name="level" class="form-input" onchange="this.form.submit()">
+                <option value="">All Levels</option>
+                <option value="beginner" {% if selected_level == 'beginner' %}selected{% endif %}>Beginner</option>
+                <option value="intermediate" {% if selected_level == 'intermediate' %}selected{% endif %}>Intermediate</option>
+                <option value="advanced" {% if selected_level == 'advanced' %}selected{% endif %}>Advanced</option>
+            </select>
+        </div>
+    </form>
+
+    <!-- Results -->
+    <div class="courses-count">{{ courses|length }} course{{ courses|length|pluralize }} found</div>
+
+    <div class="course-grid-large">
+        {% for course in courses %}
+        <div class="course-card-h">
+            <div class="course-thumb-h" style="background: linear-gradient(135deg, hsl({{ forloop.counter0|add:200 }},70%,55%) 0%, hsl({{ forloop.counter0|add:250 }},70%,40%) 100%);">
+                {% if course.thumbnail_url %}
+                <img src="{{ course.thumbnail_url }}" alt="{{ course.title }}">
+                {% else %}
+                <span class="thumb-icon">📚</span>
+                {% endif %}
+            </div>
+            <div class="course-info-h">
+                <div class="course-meta">
+                    {% if course.category %}<span class="tag">{{ course.category.icon }} {{ course.category.name }}</span>{% endif %}
+                    <span class="course-level {{ course.level }}">{{ course.get_level_display }}</span>
+                </div>
+                <h2><a href="{% url 'course_detail' course.pk %}">{{ course.title }}</a></h2>
+                <p>{{ course.description|truncatewords:20 }}</p>
+                <div class="course-footer">
+                    <span>👤 {{ course.instructor.get_full_name|default:course.instructor.username }}</span>
+                    <span>📹 {{ course.total_lessons }} lessons</span>
+                    <span>⏱ {{ course.duration_minutes }} min</span>
+                    <span>👥 {{ course.total_enrolled }} enrolled</span>
+                </div>
+                <a href="{% url 'course_detail' course.pk %}" class="btn-primary btn-sm-primary">View Course</a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state full-width">
+            <h3>No courses found</h3>
+            <p>Try a different search term or filter.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

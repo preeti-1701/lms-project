@@ -1,0 +1,72 @@
+{% extends 'elearning/base.html' %}
+{% load custom_filters %}
+{% block title %}Profile – EduLearn{% endblock %}
+{% block content %}
+<div class="form-page">
+    <div class="profile-container">
+        <div class="profile-header-card">
+            <div class="profile-avatar-lg">
+                {% if profile.avatar_url %}
+                <img src="{{ profile.avatar_url }}" alt="avatar">
+                {% else %}
+                {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                {% endif %}
+            </div>
+            <div>
+                <h1>{{ user.get_full_name|default:user.username }}</h1>
+                <p>@{{ user.username }} · {{ user.email }}</p>
+                <span class="role-badge {% if profile.is_instructor %}instructor{% endif %}">
+                    {% if profile.is_instructor %}🎓 Instructor{% else %}📚 Student{% endif %}
+                </span>
+            </div>
+        </div>
+
+        <div class="manage-body">
+            <div class="add-lesson-card">
+                <h2>Edit Profile</h2>
+                <form method="post" class="styled-form">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label>Bio</label>
+                        {{ form.bio }}
+                    </div>
+                    <div class="form-group">
+                        <label>Avatar URL</label>
+                        {{ form.avatar_url }}
+                    </div>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </form>
+            </div>
+
+            <div class="lessons-manage-list">
+                <h2>📚 My Enrollments</h2>
+                {% if enrollments %}
+                <div class="lessons-table">
+                    <div class="table-head">
+                        <span>Course</span>
+                        <span>Progress</span>
+                        <span>Enrolled</span>
+                        <span></span>
+                    </div>
+                    {% for enrollment in enrollments %}
+                    <div class="table-row">
+                        <span class="row-title">{{ enrollment.course.title }}</span>
+                        <span>
+                            <div class="progress-bar-wrap small">
+                                <div class="progress-bar" style="width: {{ enrollment.progress_percent }}%"></div>
+                            </div>
+                            <small>{{ enrollment.progress_percent }}%</small>
+                        </span>
+                        <span>{{ enrollment.enrolled_at|date:"M d, Y" }}</span>
+                        <span><a href="{% url 'course_detail' enrollment.course.pk %}" class="link-tag">Go →</a></span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state"><p>No enrollments yet. <a href="{% url 'course_list' %}">Browse courses</a></p></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

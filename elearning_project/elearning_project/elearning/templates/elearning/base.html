@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EduLearn Platform{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+{% if user.is_authenticated %}
+<nav class="navbar">
+    <div class="nav-inner">
+        <a href="{% url 'dashboard' %}" class="nav-brand">
+            <span class="brand-icon">⚡</span>
+            <span>EduLearn</span>
+        </a>
+        <div class="nav-links">
+            <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a>
+            <a href="{% url 'course_list' %}" class="nav-link {% if request.resolver_match.url_name == 'course_list' %}active{% endif %}">Courses</a>
+            {% if user.profile.is_instructor %}
+            <a href="{% url 'create_course' %}" class="nav-link">+ Create Course</a>
+            {% endif %}
+        </div>
+        <div class="nav-actions">
+            <a href="{% url 'profile' %}" class="nav-avatar">
+                {% if user.profile.avatar_url %}
+                    <img src="{{ user.profile.avatar_url }}" alt="avatar">
+                {% else %}
+                    {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                {% endif %}
+            </a>
+            <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
+        </div>
+    </div>
+</nav>
+{% endif %}
+
+<div class="page-wrapper">
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+</div>
+
+<script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

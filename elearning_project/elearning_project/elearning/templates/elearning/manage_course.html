@@ -1,0 +1,92 @@
+{% extends 'elearning/base.html' %}
+{% block title %}Manage {{ course.title }} – EduLearn{% endblock %}
+{% block content %}
+<div class="manage-page">
+
+    <div class="manage-header">
+        <div>
+            <a href="{% url 'dashboard' %}" class="back-link">← Dashboard</a>
+            <h1>{{ course.title }}</h1>
+            <p>{{ course.total_lessons }} lessons · {{ course.total_enrolled }} students enrolled</p>
+        </div>
+        <div class="manage-header-actions">
+            <a href="{% url 'course_detail' course.pk %}" class="btn-outline">Preview</a>
+            <a href="{% url 'edit_course' course.pk %}" class="btn-primary">Edit Course</a>
+        </div>
+    </div>
+
+    <div class="manage-body">
+
+        <!-- Add Lesson Form -->
+        <div class="add-lesson-card">
+            <h2>➕ Add New Lesson</h2>
+            <form method="post" class="styled-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Lesson Title</label>
+                    {{ lesson_form.title }}
+                    {% if lesson_form.title.errors %}<span class="field-error">{{ lesson_form.title.errors.0 }}</span>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label>Description <small>(optional)</small></label>
+                    {{ lesson_form.description }}
+                </div>
+                <div class="form-group">
+                    <label>Video URL <small>(YouTube link or embed)</small></label>
+                    {{ lesson_form.video_url }}
+                    {% if lesson_form.video_url.errors %}<span class="field-error">{{ lesson_form.video_url.errors.0 }}</span>{% endif %}
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Duration (minutes)</label>
+                        {{ lesson_form.duration_minutes }}
+                    </div>
+                    <div class="form-group">
+                        <label>Order</label>
+                        {{ lesson_form.order }}
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary">Add Lesson</button>
+            </form>
+        </div>
+
+        <!-- Lessons List -->
+        <div class="lessons-manage-list">
+            <h2>📋 Course Lessons</h2>
+            {% if lessons %}
+            <div class="lessons-table">
+                <div class="table-head">
+                    <span>#</span>
+                    <span>Title</span>
+                    <span>Duration</span>
+                    <span>Video</span>
+                    <span>Action</span>
+                </div>
+                {% for lesson in lessons %}
+                <div class="table-row">
+                    <span class="row-num">{{ lesson.order }}</span>
+                    <span class="row-title">{{ lesson.title }}</span>
+                    <span>{{ lesson.duration_minutes }} min</span>
+                    <span>
+                        {% if lesson.video_url %}
+                        <a href="{{ lesson.video_url }}" target="_blank" class="link-tag">▶ Watch</a>
+                        {% else %}
+                        <span class="muted">No video</span>
+                        {% endif %}
+                    </span>
+                    <span>
+                        <a href="{% url 'delete_lesson' lesson.pk %}" class="btn-danger-sm" onclick="return confirm('Delete this lesson?')">Delete</a>
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>No lessons yet. Add your first lesson above!</p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}
