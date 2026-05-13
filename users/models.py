@@ -16,6 +16,7 @@ class CustomUser(AbstractUser):
         default='student'
     )
     phone = models.CharField(max_length=15, blank=True, null=True)
+    last_session_key = models.CharField(max_length=40, blank=True, null=True)   # For single session
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'role']
