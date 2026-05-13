@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trainer Dashboard - LMS</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+        .header { background: #28a745; color: white; padding: 20px; border-radius: 8px; text-align: center; }
+        .card { background: white; padding: 20px; margin: 15px 0; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Welcome, {{ user.email }} (Trainer)</h1>
+        <a href="{% url 'logout' %}" style="color:white;">Logout</a>
+    </div>
+    <div class="card">
+        <h2>Manage Your Courses</h2>
+        <p>Course management coming soon...</p>
+    </div>
+</body>
+</html>
