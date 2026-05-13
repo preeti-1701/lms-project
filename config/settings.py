@@ -1,18 +1,16 @@
 import os
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-@vori&&30d+966v!t!tz4stih=g=u6d%@a!-la=+dp^#ag=-=c'
+# ====================== SECURITY ======================
+SECRET_KEY = 'django-insecure-@vori&&30d+966v!t!tz4stih=g=u6d%@a!-la=+dp^#ag=-=c'  # Change this in production!
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = True   # Change to False when deploying
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
-# Application definition
+# ====================== APPLICATIONS ======================
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -20,12 +18,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
-    # Third Party
+
     'rest_framework',
     'corsheaders',
-    
-    # Local Apps
+    'whitenoise.runserver_nostatic',
+
     'users',
     'courses',
     'enrollment',
@@ -33,21 +30,24 @@ INSTALLED_APPS = [
     'dashboard',
 ]
 
+# ====================== MIDDLEWARE ======================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',   # Must be before custom middleware
-    'users.middleware.SingleSessionMiddleware',                  # After AuthenticationMiddleware
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'users.middleware.SingleSessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-
 ROOT_URLCONF = 'config.urls'
+WSGI_APPLICATION = 'config.wsgi.application'
 
+# ====================== TEMPLATES ======================
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -64,38 +64,79 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'config.wsgi.application'
-
-# Database
+# ====================== DATABASE ======================
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
+        'ENGINE': 'django.db.backends.sqlite3',   # Using SQLite for simplicity
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
-# Custom User Model
+# ====================== AUTH & CUSTOM USER ======================
 AUTH_USER_MODEL = 'users.CustomUser'
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'dashboard:student_dashboard'
+LOGOUT_REDIRECT_URL = 'login'
 
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
+# ====================== SESSION SETTINGS ======================
+SESSION_COOKIE_AGE = 60 * 60 * 2          # 2 hours
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
 
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = False
+
+# ====================== SECURITY ======================
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'SAMEORIGIN'           # Required for YouTube
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+
+# ====================== STATIC & MEDIA ======================
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else []
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# ====================== OTHER SETTINGS ======================
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
 
-# Static & Media Files
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS Settings (for frontend)
-CORS_ALLOW_ALL_ORIGINS = True
+# ====================== CORS ======================
+CORS_ALLOW_ALL_ORIGINS = DEBUG
+
+# ====================== REST FRAMEWORK ======================
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ]
+}
+
+# ====================== EMAIL ======================
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# ====================== LOGGING ======================
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler'},
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}

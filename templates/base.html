@@ -1,0 +1,158 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+
+    <title>{% block title %}LMS - Learning Management System{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="{% static 'images/logo.png' %}" type="image/x-icon">
+    
+    <!-- Bootstrap 5 + Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar {
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+        .card {
+            border: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border-radius: 12px;
+        }
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+        }
+        .main-content {
+            flex: 1;
+        }
+        footer {
+            margin-top: auto;
+            padding: 2rem 0;
+            background-color: #212529;
+            color: white;
+        }
+        .user-role {
+            font-size: 0.85rem;
+            color: #adb5bd;
+        }
+        .watermark {
+            pointer-events: none;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{% if user.is_authenticated %}{% if user.role == 'student' %}{% url 'dashboard:student_dashboard' %}{% elif user.role == 'trainer' %}{% url 'dashboard:trainer_dashboard' %}{% else %}/admin/{% endif %}{% else %}/{% endif %}">
+                <i class="fas fa-graduation-cap"></i> LMS
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                {% if user.is_authenticated %}
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'course_list' %}">
+                                <i class="fas fa-book"></i> Courses
+                            </a>
+                        </li>
+                        {% if user.role == 'student' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'dashboard:student_dashboard' %}">
+                                <i class="fas fa-user-graduate"></i> My Learning
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if user.role == 'trainer' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'dashboard:trainer_dashboard' %}">
+                                <i class="fas fa-chalkboard-teacher"></i> My Courses
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+
+                    <div class="d-flex align-items-center">
+                        <div class="text-end me-3">
+                            <div class="text-light fw-semibold">{{ user.email }}</div>
+                            <div class="user-role">{{ user.role|title }}</div>
+                        </div>
+                        <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="ms-auto">
+                        <a href="{% url 'login' %}" class="btn btn-outline-light btn-sm me-2">Login</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mt-4 main-content">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-4">
+        <div class="container">
+            <p class="mb-1">&copy; 2026 LMS Project</p>
+            <small>Secure &bull; Simple &bull; Scalable</small>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {% block extra_js %}{% endblock %}
+
+    <!-- Global Security Script -->
+    <script>
+        // Prevent right-click globally (can be overridden per page)
+        document.addEventListener('contextmenu', function(e) {
+            if (e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

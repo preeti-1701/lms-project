@@ -1,29 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Add Video - LMS</title>
-    <style>
-        body { font-family: Arial; background: #f4f4f4; padding: 20px; }
-        .form-container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; }
-        button { padding: 12px 30px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; }
-    </style>
-</head>
-<body>
-    <div class="form-container">
-        <h2>Add Video to: {{ course.title }}</h2>
-        <form method="POST">
-            {% csrf_token %}
-            <label>Video Title</label>
-            <input type="text" name="title" required>
-            
-            <label>YouTube Link (full URL)</label>
-            <input type="url" name="youtube_link" placeholder="https://youtube.com/watch?v=..." required>
-            
-            <button type="submit">Add Video</button>
-        </form>
-        <a href="{% url 'course_detail' course.id %}">← Back to Course</a>
+{% extends 'base.html' %}
+{% block title %}Add Video - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-video"></i> Add Video to "{{ course.title }}"
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Video Title</label>
+                        <input type="text" 
+                               name="title" 
+                               class="form-control" 
+                               placeholder="e.g. Module 1 - Introduction"
+                               required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">YouTube Video Link</label>
+                        <input type="url" 
+                               name="youtube_link" 
+                               class="form-control" 
+                               placeholder="https://www.youtube.com/watch?v=..."
+                               required>
+                        <small class="text-muted">Full YouTube URL</small>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plus"></i> Add Video
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="{% url 'course_detail' course.pk %}" class="text-muted">
+                ← Back to Course
+            </a>
+        </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

@@ -1,31 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ course.title }} - LMS</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        iframe { width: 100%; height: 500px; border: none; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h1>{{ course.title }}</h1>
-        <p><strong>Trainer:</strong> {{ course.trainer.email }}</p>
-        <p>{{ course.description }}</p>
-        
-        {% if user.role == 'student' and not enrollment %}
-            <a href="{% url 'enroll_course' course.id %}" style="background:#28a745;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;">Enroll Now</a>
-        {% endif %}
+{% extends 'base.html' %}
+{% block title %}All Courses{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">Available Courses</h2>
     </div>
 
-    <h2>📹 Course Videos</h2>
-    {% for video in videos %}
-        <div class="card">
-            <h3>{{ video.order }}. {{ video.title }}</h3>
-            <a href="{% url 'play_video' video.id %}" target="_blank" style="color:blue;">▶ Watch Video</a>
+    {% for course in courses %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ course.title }}</h5>
+                <p class="card-text text-muted">
+                    By: {{ course.trainer.email }}
+                </p>
+                <p class="card-text">{{ course.description|truncatewords:30 }}</p>
+                
+                {% if user.role == 'student' %}
+                    {% if course.enrollments.filter(student=user).exists %}
+                        <a href="{% url 'course_detail' course.pk %}" class="btn btn-success btn-sm">
+                            Continue Learning →
+                        </a>
+                    {% else %}
+                        <a href="{% url 'enroll_course' course.pk %}" class="btn btn-primary btn-sm">
+                            Enroll Now
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'course_detail' course.pk %}" class="btn btn-primary btn-sm">
+                        View Course
+                    </a>
+                {% endif %}
+            </div>
         </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">No courses available yet.</div>
+    </div>
     {% endfor %}
-</body>
-</html>
+</div>
+{% endblock %}

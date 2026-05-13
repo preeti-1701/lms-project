@@ -1,31 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - LMS</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
-        button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>Register New Account</h2>
-        {% if messages %}
-            {% for message in messages %}
-                <p style="color: green;">{{ message }}</p>
-            {% endfor %}
-        {% endif %}
+{% extends 'base.html' %}
+{% block title %}Register - LMS{% endblock %}
 
-        <form method="POST">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit">Register</button>
-        </form>
-        <p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-5 col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white text-center">
+                <h4 class="mb-0">Create New Account</h4>
+            </div>
+            <div class="card-body p-4">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-success btn-lg">Register</button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-3">
+                    <p>Already have an account? 
+                        <a href="{% url 'login' %}">Login here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

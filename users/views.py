@@ -1,8 +1,11 @@
+# users/views.py
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
+
 
 def register(request):
     if request.method == 'POST':
@@ -13,7 +16,9 @@ def register(request):
             return redirect('login')
     else:
         form = CustomUserCreationForm()
+    
     return render(request, 'users/register.html', {'form': form})
+
 
 def login_view(request):
     if request.method == 'POST':
@@ -22,8 +27,8 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
             messages.success(request, f"Welcome back, {user.email}!")
-            
-            # Role-based redirect
+
+            # Role-based redirect (Fixed with proper namespace)
             if user.role == 'admin':
                 return redirect('/admin/')
             elif user.role == 'trainer':
@@ -32,10 +37,12 @@ def login_view(request):
                 return redirect('dashboard:student_dashboard')
     else:
         form = CustomAuthenticationForm()
+
     return render(request, 'users/login.html', {'form': form})
+
 
 @login_required
 def logout_view(request):
     logout(request)
-    messages.success(request, "You have been logged out.")
+    messages.success(request, "You have been logged out successfully.")
     return redirect('login')
