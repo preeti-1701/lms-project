@@ -3,7 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from .models import Course, EnrollmentExpiry
+from .models import Course, EnrollmentExpiry, EnrollmentRequest
 from datetime import timedelta
 from django.utils import timezone
 import json
@@ -44,6 +44,7 @@ def create_course(request):
         title = data.get('title')
         description = data.get('description')
         trainer_id = data.get('trainer_id')
+        status = data.get('status', 'upcoming')
 
         if not title or not description:
             return JsonResponse({'error': 'Title and description are required'}, status=400)
@@ -58,7 +59,8 @@ def create_course(request):
         course = Course.objects.create(
             title=title,
             description=description,
-            trainer=trainer
+            trainer=trainer,
+            status=status
         )
 
         return JsonResponse({'message': 'Course created'})
@@ -72,23 +74,44 @@ def get_courses(request):
         return JsonResponse({'error': 'Login required'}, status=401)
 
     user = request.user
+    req_type = request.GET.get('type', 'all')
+    pending_request_course_ids = set()
+    enrolled_set = set()
 
     if user.role == 'admin':
         courses = Course.objects.select_related('trainer').all()
-
     elif user.role == 'trainer':
         courses = Course.objects.select_related('trainer').filter(trainer=user)
-
     else:  # student
-        courses = user.courses_enrolled.select_related('trainer').all()
+        enrolled = list(user.courses_enrolled.select_related('trainer').all())
+        enrolled_set = set(c.id for c in enrolled)
+        
+        if req_type == 'enrolled':
+            courses = enrolled
+        else:
+            upcoming = list(Course.objects.filter(status='upcoming').exclude(id__in=enrolled_set).select_related('trainer').all())
+            pending_request_course_ids = set(user.enrollment_requests.filter(status='pending').values_list('course_id', flat=True))
+            courses = enrolled + upcoming
 
     data = []
 
     for c in courses:
+        is_enrolled = True if user.role != 'student' else (c.id in enrolled_set)
+        enrollment_status = 'none'
+        
+        if user.role == 'student':
+            if c.id in enrolled_set:
+                enrollment_status = 'approved'
+            elif c.id in pending_request_course_ids:
+                enrollment_status = 'pending'
+
         data.append({
             'id': c.id,
             'title': c.title,
-            'trainer': c.trainer.email
+            'trainer': c.trainer.email if c.trainer else 'Unknown',
+            'status': c.status,
+            'is_enrolled': is_enrolled,
+            'enrollment_status': enrollment_status
         })
 
     return JsonResponse({'courses': data})
@@ -182,4 +205,111 @@ def unenroll_student(request):
             return JsonResponse({'message': 'Student unenrolled'})
         except (Course.DoesNotExist, User.DoesNotExist):
             return JsonResponse({'error': 'Not found'}, status=404)
+    return JsonResponse({'error': 'POST only'}, status=405)
+
+@csrf_exempt
+@login_required(login_url='/login/')
+def request_enrollment_api(request, course_id):
+    if request.method == 'POST':
+        if request.user.role != 'student':
+            return JsonResponse({'error': 'Only students can request enrollment'}, status=403)
+            
+        try:
+            course = Course.objects.get(id=course_id, status='upcoming')
+            if course.students.filter(id=request.user.id).exists():
+                return JsonResponse({'error': 'Already enrolled'}, status=400)
+                
+            req, created = EnrollmentRequest.objects.get_or_create(
+                course=course,
+                student=request.user,
+                defaults={'status': 'pending'}
+            )
+            
+            if not created and req.status != 'pending':
+                req.status = 'pending'
+                req.save()
+                
+            return JsonResponse({'message': 'Enrollment requested'})
+        except Course.DoesNotExist:
+            return JsonResponse({'error': 'Course not found or not available for request'}, status=404)
+    return JsonResponse({'error': 'POST only'}, status=405)
+
+@login_required(login_url='/login/')
+def get_enrollment_requests_api(request):
+    if request.user.role != 'admin':
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+        
+    requests = EnrollmentRequest.objects.filter(status='pending').select_related('course', 'student')
+    data = []
+    for req in requests:
+        data.append({
+            'id': req.id,
+            'student_name': req.student.name,
+            'student_email': req.student.email,
+            'course_id': req.course.id,
+            'course_title': req.course.title,
+            'requested_at': req.requested_at.strftime('%Y-%m-%d %H:%M:%S')
+        })
+    return JsonResponse({'requests': data})
+
+@csrf_exempt
+@login_required(login_url='/login/')
+def handle_enrollment_request_api(request, request_id):
+    if request.method == 'POST':
+        if request.user.role != 'admin':
+            return JsonResponse({'error': 'Permission denied'}, status=403)
+            
+        data = json.loads(request.body)
+        action = data.get('action') # 'approve' or 'reject'
+        
+        try:
+            req = EnrollmentRequest.objects.get(id=request_id, status='pending')
+            
+            if action == 'approve':
+                req.status = 'approved'
+                req.save()
+                req.course.students.add(req.student)
+                # Ensure they have lifetime access by default, or admin can edit later
+                EnrollmentExpiry.objects.get_or_create(course=req.course, student=req.student, defaults={'expires_at': None})
+                return JsonResponse({'message': 'Enrollment approved'})
+            elif action == 'reject':
+                req.status = 'rejected'
+                req.save()
+                return JsonResponse({'message': 'Enrollment rejected'})
+            else:
+                return JsonResponse({'error': 'Invalid action'}, status=400)
+                
+        except EnrollmentRequest.DoesNotExist:
+            return JsonResponse({'error': 'Request not found or already handled'}, status=404)
+    return JsonResponse({'error': 'POST only'}, status=405)
+
+@login_required(login_url='/login/')
+def enrollment_requests_page(request):
+    if request.user.role != 'admin':
+        return redirect('/dashboard/')
+    return render(request, 'enrollment_requests.html')
+
+@csrf_exempt
+@login_required(login_url='/login/')
+def update_course_status_api(request, course_id):
+    if request.method == 'POST':
+        if request.user.role not in ['admin', 'trainer']:
+            return JsonResponse({'error': 'Permission denied'}, status=403)
+            
+        data = json.loads(request.body)
+        status = data.get('status')
+        
+        if status not in ['upcoming', 'ongoing', 'completed']:
+            return JsonResponse({'error': 'Invalid status'}, status=400)
+            
+        try:
+            course = Course.objects.get(id=course_id)
+            if request.user.role == 'trainer' and course.trainer != request.user:
+                return JsonResponse({'error': 'Permission denied'}, status=403)
+                
+            course.status = status
+            course.save(update_fields=['status'])
+            return JsonResponse({'message': 'Course status updated'})
+        except Course.DoesNotExist:
+            return JsonResponse({'error': 'Course not found'}, status=404)
     return JsonResponse({'error': 'POST only'}, status=405)

@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Enrollment Requests - LearnManag{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>Enrollment Requests</h2>
+    <a href="/dashboard/" class="btn btn-outline">Back to Dashboard</a>
+</div>
+
+<div class="glass-card" style="padding: 1.5rem; overflow-x: auto;">
+    <p class="subtitle" style="color: var(--text-muted); margin-bottom: 1.5rem;">Review and approve student requests for upcoming courses.</p>
+    
+    <div id="requestList">
+        <p style="color: var(--text-muted);">Loading requests...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function loadRequests() {
+    try {
+        const res = await fetch('/course/enrollment-requests/', { credentials: 'same-origin' });
+        if (!res.ok) {
+            document.getElementById('requestList').innerHTML = `<p style="color: var(--danger);">Failed to load requests.</p>`;
+            return;
+        }
+        
+        const data = await res.json();
+        
+        if (data.requests.length === 0) {
+            document.getElementById('requestList').innerHTML = `<p style="color: var(--text-muted);">No pending enrollment requests.</p>`;
+            return;
+        }
+        
+        let html = `
+            <table style="width: 100%; text-align: left; border-collapse: collapse; color: white;">
+                <thead>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <th style="padding: 1rem 0.5rem; color: var(--text-muted);">Student</th>
+                        <th style="padding: 1rem 0.5rem; color: var(--text-muted);">Course</th>
+                        <th style="padding: 1rem 0.5rem; color: var(--text-muted);">Requested On</th>
+                        <th style="padding: 1rem 0.5rem; color: var(--text-muted); text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        data.requests.forEach(req => {
+            html += `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 1rem 0.5rem;">
+                        <strong>${req.student_name}</strong><br>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">${req.student_email}</span>
+                    </td>
+                    <td style="padding: 1rem 0.5rem; font-weight: 500; color: var(--primary);">
+                        ${req.course_title}
+                    </td>
+                    <td style="padding: 1rem 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
+                        ${req.requested_at}
+                    </td>
+                    <td style="padding: 1rem 0.5rem; text-align: right;">
+                        <button onclick="handleRequest(${req.id}, 'approve')" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: #10b981;">Approve</button>
+                        <button onclick="handleRequest(${req.id}, 'reject')" class="btn btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; margin-left: 0.5rem;">Reject</button>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        html += `</tbody></table>`;
+        document.getElementById('requestList').innerHTML = html;
+        
+    } catch (e) {
+        document.getElementById('requestList').innerHTML = `<p style="color: var(--danger);">Connection error.</p>`;
+    }
+}
+
+async function handleRequest(requestId, action) {
+    try {
+        const res = await fetch(`/course/handle-enrollment/${requestId}/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ action: action })
+        });
+        
+        if (res.ok) {
+            alert(`Request ${action}d successfully.`);
+            loadRequests();
+        } else {
+            const data = await res.json();
+            alert(data.error || `Failed to ${action} request.`);
+        }
+    } catch (e) {
+        alert("Network error.");
+    }
+}
+
+loadRequests();
+</script>
+{% endblock %}

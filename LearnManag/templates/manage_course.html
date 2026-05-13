@@ -8,6 +8,23 @@
     <a href="/dashboard/" class="btn btn-outline">Back to Dashboard</a>
 </div>
 
+<div class="glass-card" style="margin-bottom: 2rem; padding: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h3 style="margin-top: 0;">Course Status</h3>
+            <p class="subtitle" style="color: var(--text-muted); margin: 0;">Change the visibility and availability of this course.</p>
+        </div>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <select id="updateStatusSelect" class="form-control" style="margin: 0; min-width: 150px;">
+                <option value="upcoming" {% if course.status == 'upcoming' %}selected{% endif %}>Upcoming</option>
+                <option value="ongoing" {% if course.status == 'ongoing' %}selected{% endif %}>Ongoing</option>
+                <option value="completed" {% if course.status == 'completed' %}selected{% endif %}>Completed</option>
+            </select>
+            <button onclick="updateCourseStatus()" class="btn" style="white-space: nowrap;">Update Status</button>
+        </div>
+    </div>
+</div>
+
 <div class="grid-layout">
     <!-- Add Video Form -->
     <div class="glass-card">
@@ -331,6 +348,28 @@ async function saveVideoOrder() {
         }
     } catch (e) {
         alert("Error saving order");
+    }
+}
+
+async function updateCourseStatus() {
+    const newStatus = document.getElementById('updateStatusSelect').value;
+    
+    try {
+        const res = await fetch(`/course/update-status/${courseId}/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ status: newStatus })
+        });
+        
+        if (res.ok) {
+            alert("Course status updated successfully!");
+        } else {
+            const data = await res.json();
+            alert(data.error || "Failed to update status");
+        }
+    } catch (e) {
+        alert("Error updating status");
     }
 }
 

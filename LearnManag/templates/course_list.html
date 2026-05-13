@@ -17,7 +17,7 @@
 <script>
 async function loadCourses() {
     try {
-        const res = await fetch('/course/list/', { credentials: 'same-origin' });
+        const res = await fetch('/course/list/?type=all', { credentials: 'same-origin' });
         const data = await res.json();
         
         if (!res.ok) {
@@ -26,16 +26,33 @@ async function loadCourses() {
         }
 
         let html = "";
+        const role = localStorage.getItem("role");
         
         if (!data.courses || data.courses.length === 0) {
             html = "<p style='color: var(--text-muted);'>No courses found.</p>";
         } else {
             data.courses.forEach(c => {
+                let actionBtn = `<button onclick="openCourse(${c.id})" class="btn" style="margin-top: auto;">Open Course</button>`;
+                
+                if (role === 'student' && !c.is_enrolled) {
+                    if (c.enrollment_status === 'pending') {
+                        actionBtn = `<button class="btn btn-outline" style="margin-top: auto; cursor: not-allowed;" disabled>Pending Approval</button>`;
+                    } else {
+                        actionBtn = `<button onclick="requestEnrollment(${c.id})" class="btn" style="margin-top: auto; background: #eab308;">Request Enrollment</button>`;
+                    }
+                }
+                
+                const statusColors = { 'upcoming': '#eab308', 'ongoing': '#10b981', 'completed': '#6366f1' };
+                const badgeColor = statusColors[c.status] || '#94a3b8';
+                
                 html += `
                     <div class="course-card">
-                        <h3 class="course-title">${c.title}</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <h3 class="course-title">${c.title}</h3>
+                            <span style="font-size: 0.7rem; font-weight: bold; padding: 0.2rem 0.5rem; background: ${badgeColor}20; color: ${badgeColor}; border: 1px solid ${badgeColor}; border-radius: 4px; text-transform: uppercase;">${c.status}</span>
+                        </div>
                         <p class="course-meta">Trainer: ${c.trainer || 'Unknown'}</p>
-                        <button onclick="openCourse(${c.id})" class="btn" style="margin-top: auto;">Open Course</button>
+                        ${actionBtn}
                     </div>
                 `;
             });
@@ -49,6 +66,21 @@ async function loadCourses() {
 
 function openCourse(id) {
     window.location.href = `/video/${id}/`;
+}
+
+async function requestEnrollment(courseId) {
+    try {
+        const res = await fetch(`/course/request-enrollment/${courseId}/`, { method: 'POST', credentials: 'same-origin' });
+        if (res.ok) {
+            alert('Enrollment request submitted successfully!');
+            loadCourses();
+        } else {
+            const data = await res.json();
+            alert(data.error || 'Failed to submit request');
+        }
+    } catch (e) {
+        alert('Network error');
+    }
 }
 
 loadCourses();

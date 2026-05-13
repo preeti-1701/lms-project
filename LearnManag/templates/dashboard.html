@@ -8,6 +8,7 @@
     <div style="display: flex; gap: 1rem;">
         <button id="manageUsersBtn" onclick="window.location.href='/auth/manage-users/'" class="btn" style="display: none; background: #6366f1; border: none;">Manage Users</button>
         <button id="approvalsBtn" onclick="window.location.href='/auth/approvals/'" class="btn" style="display: none; background: #10b981; border: none;">Review Approvals</button>
+        <button id="enrollmentReqBtn" onclick="window.location.href='/course/enrollment-requests-page/'" class="btn" style="display: none; background: #eab308; border: none;">Enrollment Requests</button>
         <button id="createCourseBtn" onclick="toggleCreateForm()" class="btn" style="display: none;">+ Create Course</button>
         <button onclick="loadCourses()" class="btn btn-outline">Refresh Courses</button>
     </div>
@@ -21,6 +22,11 @@
     <select id="courseTrainer" class="form-control" style="margin-bottom: 1.5rem;">
         <option value="">Select Trainer (Default: You)</option>
     </select>
+    <select id="courseStatus" class="form-control" style="margin-bottom: 1.5rem;">
+        <option value="upcoming">Upcoming</option>
+        <option value="ongoing">Ongoing</option>
+        <option value="completed">Completed</option>
+    </select>
     <button onclick="submitCourse()" class="btn">Save Course</button>
 </div>
 
@@ -33,7 +39,7 @@
 <script>
 async function loadCourses() {
     try {
-        const res = await fetch('/course/list/', { credentials: 'same-origin' });
+        const res = await fetch('/course/list/?type=enrolled', { credentials: 'same-origin' });
         const data = await res.json();
         
         if (!res.ok) {
@@ -50,6 +56,7 @@ async function loadCourses() {
             document.getElementById('createCourseBtn').style.display = 'inline-block';
             document.getElementById('approvalsBtn').style.display = 'inline-block';
             document.getElementById('manageUsersBtn').style.display = 'inline-block';
+            document.getElementById('enrollmentReqBtn').style.display = 'inline-block';
             loadTrainers();
         }
 
@@ -62,11 +69,27 @@ async function loadCourses() {
                     manageBtn = `<button onclick="manageCourse(${c.id})" class="btn btn-outline" style="margin-top: 0.5rem;">Manage Content</button>`;
                 }
                 
+                let actionBtn = `<button onclick="viewVideos(${c.id})" class="btn" style="margin-top: auto;">Open Course</button>`;
+                
+                if (role === 'student' && !c.is_enrolled) {
+                    if (c.enrollment_status === 'pending') {
+                        actionBtn = `<button class="btn btn-outline" style="margin-top: auto; cursor: not-allowed;" disabled>Pending Approval</button>`;
+                    } else {
+                        actionBtn = `<button onclick="requestEnrollment(${c.id})" class="btn" style="margin-top: auto; background: #eab308;">Request Enrollment</button>`;
+                    }
+                }
+                
+                const statusColors = { 'upcoming': '#eab308', 'ongoing': '#10b981', 'completed': '#6366f1' };
+                const badgeColor = statusColors[c.status] || '#94a3b8';
+                
                 html += `
                     <div class="course-card">
-                        <h3 class="course-title">${c.title}</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <h3 class="course-title">${c.title}</h3>
+                            <span style="font-size: 0.7rem; font-weight: bold; padding: 0.2rem 0.5rem; background: ${badgeColor}20; color: ${badgeColor}; border: 1px solid ${badgeColor}; border-radius: 4px; text-transform: uppercase;">${c.status}</span>
+                        </div>
                         <p class="course-meta">Trainer: ${c.trainer || 'Unknown'}</p>
-                        <button onclick="viewVideos(${c.id})" class="btn" style="margin-top: auto;">Open Course</button>
+                        ${actionBtn}
                         ${manageBtn}
                     </div>
                 `;
@@ -112,6 +135,7 @@ async function submitCourse() {
     const title = document.getElementById('courseTitle').value;
     const desc = document.getElementById('courseDesc').value;
     const trainerId = document.getElementById('courseTrainer').value;
+    const status = document.getElementById('courseStatus').value;
     
     if (!title || !desc) {
         alert("Please fill in both title and description");
@@ -123,7 +147,7 @@ async function submitCourse() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'same-origin',
-            body: JSON.stringify({ title: title, description: desc, trainer_id: trainerId })
+            body: JSON.stringify({ title: title, description: desc, trainer_id: trainerId, status: status })
         });
         
         const data = await res.json();
@@ -132,6 +156,7 @@ async function submitCourse() {
             document.getElementById('courseTitle').value = '';
             document.getElementById('courseDesc').value = '';
             document.getElementById('courseTrainer').value = '';
+            document.getElementById('courseStatus').value = 'upcoming';
             toggleCreateForm();
             loadCourses();
         } else {
@@ -139,6 +164,21 @@ async function submitCourse() {
         }
     } catch (err) {
         alert("Error creating course");
+    }
+}
+
+async function requestEnrollment(courseId) {
+    try {
+        const res = await fetch(`/course/request-enrollment/${courseId}/`, { method: 'POST', credentials: 'same-origin' });
+        if (res.ok) {
+            alert('Enrollment request submitted successfully!');
+            loadCourses();
+        } else {
+            const data = await res.json();
+            alert(data.error || 'Failed to submit request');
+        }
+    } catch (e) {
+        alert('Network error');
     }
 }
 
