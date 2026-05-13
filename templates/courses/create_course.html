@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Course - LMS</title>
+    <style>
+        body { font-family: Arial; background: #f4f4f4; padding: 20px; }
+        .form-container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+        input, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; }
+        button { padding: 12px 30px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Create New Course</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <label>Course Title</label>
+            <input type="text" name="title" required>
+            
+            <label>Description</label>
+            <textarea name="description" rows="5" required></textarea>
+            
+            <button type="submit">Create Course</button>
+        </form>
+    </div>
+</body>
+</html>

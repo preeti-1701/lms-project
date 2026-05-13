@@ -1,19 +1,15 @@
-from django.http import JsonResponse
+from django.http import HttpResponseRedirect
 from django.contrib.auth import logout
-from django.shortcuts import redirect
-from .models import CustomUser
+from django.contrib import messages
 
 class SingleSessionMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        if request.user.is_authenticated:
-            # Simple session key check (can be enhanced with DB session table)
-            current_session_key = request.session.session_key
-            if not hasattr(request.user, 'last_session_key') or request.user.last_session_key != current_session_key:
-                # Force logout old sessions (basic implementation)
-                pass
+        # Skip for unauthenticated users or login/register pages
+        if not request.user.is_authenticated or request.path in ['/users/login/', '/users/register/', '/admin/']:
+            return self.get_response(request)
 
         response = self.get_response(request)
         return response
