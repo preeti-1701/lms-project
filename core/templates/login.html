@@ -12,6 +12,9 @@
 
             <form method="POST">
                 {% csrf_token %}
+                {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+                {% endif %}
                 <div class="mb-4 text-start">
                     <label class="form-label text-muted ms-2 small fw-bold">Username or Email</label>
                     <input type="text" name="username" class="form-control glass-input" placeholder="Enter username" required>
@@ -23,7 +26,6 @@
                 </div>
                 <button type="submit" class="btn btn-custom w-100 py-3 mt-2 fs-5">Login <i class="fa-solid fa-arrow-right ms-2"></i></button>
             </form>
-            <p class="mt-4 text-muted">Don't have an account? <a href="{% url 'signup' %}" class="text-white fw-bold text-decoration-none">Sign up</a></p>
         </div>
     </div>
 </div>

@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row min-vh-75 mt-4">
+    <div class="col-lg-8">
+        <div class="glass-card p-0 overflow-hidden mb-4 position-relative" style="background: #000; border-radius: 15px;">
+            <!-- Dynamic Watermark -->
+            <div id="watermark" class="position-absolute" style="color: rgba(255,255,255,0.2); font-size: 1.2rem; font-weight: bold; pointer-events: none; z-index: 10; white-space: nowrap; user-select: none;">
+                {{ request.user.username }}<br>
+                {{ request.user.email }}<br>
+                <span id="wm-time"></span>
+            </div>
+
+            <!-- YouTube Iframe -->
+            <!-- Note: We must extract the Video ID from the standard youtube link to embed it correctly -->
+            <!-- For demo purposes, assuming youtube_link is in format https://www.youtube.com/embed/VIDEO_ID or similar -->
+            <div class="ratio ratio-16x9">
+                <!-- If the link is not an embed link, this might not work perfectly without a custom template filter to extract ID, but for the demo we'll assume embed links are provided in seed_db -->
+                <iframe src="{{ current_video.youtube_link }}?rel=0&modestbranding=1&controls=1" allowfullscreen></iframe>
+            </div>
+            
+            <!-- Deterrence Message Overlay (briefly shows on hover or click) -->
+            <div class="position-absolute bottom-0 w-100 text-center py-2" style="background: rgba(220, 53, 69, 0.8); z-index: 10; display: none;" id="deterrence-msg">
+                <small class="fw-bold text-white"><i class="fa-solid fa-triangle-exclamation"></i> Unauthorized recording/sharing prohibited.</small>
+            </div>
+        </div>
+
+        <div class="glass-card p-4 mb-4">
+            <h3 class="fw-bold mb-2">{{ current_video.title }}</h3>
+            <p class="text-muted"><i class="fa-solid fa-layer-group me-2"></i> {{ course.title }}</p>
+            <hr class="border-secondary opacity-25">
+            <div class="d-flex justify-content-between align-items-center">
+                <button class="btn btn-outline-success rounded-pill" id="btn-complete-video" onclick="markCompleted({{ current_video.id }})">
+                    <i class="fa-solid fa-check"></i> Mark as Completed
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Playlist -->
+    <div class="col-lg-4">
+        <div class="glass-card p-0" style="height: 600px; overflow-y: auto;">
+            <div class="p-4 border-bottom border-secondary" style="border-color: rgba(255,255,255,0.1) !important; position: sticky; top: 0; background: rgba(17,24,39,0.9); z-index: 5; backdrop-filter: blur(10px);">
+                <h5 class="fw-bold mb-0">Course Content</h5>
+                <div class="mt-2 text-muted small">
+                    <span id="progress-text">{{ enrollment.progress }}% Completed</span>
+                </div>
+                <div class="progress progress-custom mt-2" style="height: 5px;">
+                    <div class="progress-bar progress-bar-custom bg-success" id="progress-bar-fill" style="width: {{ enrollment.progress }}%"></div>
+                </div>
+            </div>
+            
+            <div class="list-group list-group-flush bg-transparent">
+                {% for v in videos %}
+                <a href="{% url 'watch_video' course.id v.id %}" class="list-group-item list-group-item-action bg-transparent border-secondary text-light p-4 {% if v.id == current_video.id %}active-video{% endif %}" style="border-color: rgba(255,255,255,0.05) !important;">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            {% if v.id in completed_video_ids %}
+                                <i class="fa-solid fa-circle-check text-success fs-5"></i>
+                            {% elif v.id == current_video.id %}
+                                <i class="fa-solid fa-circle-play text-primary fs-5"></i>
+                            {% else %}
+                                <i class="fa-regular fa-circle text-muted fs-5"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h6 class="mb-1 fw-bold {% if v.id == current_video.id %}text-primary{% endif %}">{{ v.title }}</h6>
+                            <small class="text-muted"><i class="fa-regular fa-clock"></i> {{ v.duration|default:"Unknown" }}</small>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .active-video {
+        background: rgba(79, 70, 229, 0.1) !important;
+        border-left: 4px solid var(--primary-gradient) !important;
+    }
+</style>
+
+<script>
+    // Watermark Animation
+    function updateWatermark() {
+        const wm = document.getElementById('watermark');
+        const timeSpan = document.getElementById('wm-time');
+        
+        // Update Time
+        const now = new Date();
+        timeSpan.innerText = now.toLocaleString();
+        
+        // Random Position
+        const parent = wm.parentElement;
+        const maxX = parent.clientWidth - wm.clientWidth - 20;
+        const maxY = parent.clientHeight - wm.clientHeight - 20;
+        
+        const randomX = Math.max(0, Math.floor(Math.random() * maxX));
+        const randomY = Math.max(0, Math.floor(Math.random() * maxY));
+        
+        wm.style.left = randomX + 'px';
+        wm.style.top = randomY + 'px';
+    }
+
+    setInterval(updateWatermark, 5000);
+    updateWatermark();
+
+    // Disable Right Click & Text Selection
+    document.addEventListener('contextmenu', event => {
+        event.preventDefault();
+        showDeterrence();
+    });
+    
+    document.addEventListener('selectstart', event => {
+        event.preventDefault();
+    });
+
+    function showDeterrence() {
+        const msg = document.getElementById('deterrence-msg');
+        msg.style.display = 'block';
+        setTimeout(() => {
+            msg.style.display = 'none';
+        }, 3000);
+    }
+
+    // AJAX Mark Completed
+    function markCompleted(videoId) {
+        fetch(`/api/video/${videoId}/complete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'success') {
+                const btn = document.getElementById('btn-complete-video');
+                btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Completed';
+                btn.classList.replace('btn-outline-success', 'btn-success');
+                btn.disabled = true;
+                
+                // Update progress bar
+                document.getElementById('progress-bar-fill').style.width = data.progress + '%';
+                document.getElementById('progress-text').innerText = data.progress + '% Completed';
+            }
+        });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

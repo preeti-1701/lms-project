@@ -2,16 +2,32 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold"><i class="fa-solid fa-layer-group me-2 text-gradient"></i> My Learning</h2>
+    <h2 class="fw-bold"><i class="fa-solid fa-layer-group me-2 text-gradient"></i> Student Dashboard</h2>
 </div>
 
-<div class="row g-4">
+<!-- Enrolled Courses -->
+<h4 class="mb-3 text-light">My Learning</h4>
+<div class="row g-4 mb-5">
     {% for enroll in enrollments %}
     <div class="col-md-4">
-        <a href="{% url 'course_detail' enroll.course.id %}" class="text-decoration-none text-white">
-            <div class="glass-card h-100 p-4 d-flex flex-column">
-                <h4 class="fw-bold mb-3">{{ enroll.course.title }}</h4>
-                <p class="text-muted small mb-4 flex-grow-1">{{ enroll.course.description|default:"No description provided."|truncatechars:100 }}</p>
+        <div class="glass-card h-100 p-0 d-flex flex-column overflow-hidden" style="transition: transform 0.3s;">
+            <div class="bg-secondary" style="height: 120px; background: var(--primary-gradient) !important;">
+                <div class="h-100 d-flex align-items-center justify-content-center">
+                    <i class="fa-solid fa-graduation-cap fa-3x text-white opacity-50"></i>
+                </div>
+            </div>
+            <div class="p-4 d-flex flex-column flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge {% if enroll.status == 'Completed' %}bg-success{% elif enroll.status == 'In Progress' %}bg-info text-dark{% else %}bg-secondary{% endif %} rounded-pill">
+                        {{ enroll.status }}
+                    </span>
+                    {% if enroll.progress == 100 %}
+                        <a href="#" class="badge bg-warning text-dark text-decoration-none rounded-pill"><i class="fa-solid fa-certificate"></i> Certificate</a>
+                    {% endif %}
+                </div>
+                
+                <h5 class="fw-bold mb-2">{{ enroll.course.title }}</h5>
+                <p class="text-muted small mb-3 flex-grow-1">{{ enroll.course.description|default:"No description provided."|truncatechars:80 }}</p>
                 
                 <div class="mb-3">
                     <div class="d-flex justify-content-between text-muted small mb-1">
@@ -23,21 +39,24 @@
                     </div>
                 </div>
 
-                {% if enroll.progress == 0 %}
-                    <span class="badge bg-secondary opacity-75 align-self-start">Not Started</span>
-                {% elif enroll.progress >= 50 and enroll.progress < 100 %}
-                    <span class="badge bg-primary align-self-start">Certificate Available!</span>
-                {% elif enroll.progress == 100 %}
-                    <span class="badge bg-success align-self-start"><i class="fa-solid fa-check-circle me-1"></i> Completed</span>
-                {% else %}
-                    <span class="badge bg-info align-self-start text-dark">In Progress</span>
+                {% if enroll.last_watched_video %}
+                <div class="text-muted small mb-3">
+                    <i class="fa-solid fa-play text-info me-1"></i> Last watched: {{ enroll.last_watched_video.title|truncatechars:25 }}
+                </div>
                 {% endif %}
+
+                <div class="mt-auto">
+                    <a href="{% url 'course_detail' enroll.course.id %}" class="btn btn-custom w-100 rounded-pill py-2">
+                        {% if enroll.status == 'Completed' %}Review Course{% elif enroll.status == 'In Progress' %}Continue Watching{% else %}Start Learning{% endif %} <i class="fa-solid fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
             </div>
-        </a>
+        </div>
     </div>
     {% empty %}
     <div class="col-12 text-center py-5 glass-card">
-        <h4 class="text-muted mb-0">You are not enrolled in any courses yet.</h4>
+        <h5 class="text-muted mb-0">You are not enrolled in any courses yet.</h5>
+        <a href="{% url 'home' %}" class="btn btn-custom mt-3">Browse Courses</a>
     </div>
     {% endfor %}
 </div>

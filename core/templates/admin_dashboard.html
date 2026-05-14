@@ -7,22 +7,28 @@
 
 <div class="row g-4 mb-5">
     <!-- Stat Cards -->
-    <div class="col-md-4">
-        <div class="glass-card p-4 text-center">
+    <div class="col-md-3">
+        <div class="glass-card p-4 text-center h-100 d-flex flex-column justify-content-center">
             <h1 class="display-4 fw-bold text-gradient mb-0">{{ users|length }}</h1>
             <p class="text-muted fw-bold mt-2 mb-0 text-uppercase" style="letter-spacing: 1px;">Total Users</p>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="glass-card p-4 text-center">
-            <h1 class="display-4 fw-bold text-gradient mb-0">{{ courses|length }}</h1>
+    <div class="col-md-3">
+        <div class="glass-card p-4 text-center h-100 d-flex flex-column justify-content-center">
+            <h1 class="display-4 fw-bold text-success mb-0">{{ active_users_count }}</h1>
+            <p class="text-muted fw-bold mt-2 mb-0 text-uppercase" style="letter-spacing: 1px;">Active Sessions</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-card p-4 text-center h-100 d-flex flex-column justify-content-center">
+            <h1 class="display-4 fw-bold text-info mb-0">{{ courses|length }}</h1>
             <p class="text-muted fw-bold mt-2 mb-0 text-uppercase" style="letter-spacing: 1px;">Total Courses</p>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="glass-card p-4 text-center">
-            <h1 class="display-4 fw-bold text-gradient mb-0">{{ enrollments|length }}</h1>
-            <p class="text-muted fw-bold mt-2 mb-0 text-uppercase" style="letter-spacing: 1px;">Enrollments</p>
+    <div class="col-md-3">
+        <div class="glass-card p-4 text-center h-100 d-flex flex-column justify-content-center">
+            <h1 class="display-4 fw-bold text-warning mb-0">+{{ recent_signups_count }}</h1>
+            <p class="text-muted fw-bold mt-2 mb-0 text-uppercase" style="letter-spacing: 1px;">Signups (7 Days)</p>
         </div>
     </div>
 </div>
@@ -31,22 +37,42 @@
     <!-- Users Table -->
     <div class="col-12">
         <div class="glass-card p-4">
-            <h4 class="fw-bold mb-4"><i class="fa-solid fa-users text-primary me-2"></i> Platform Users</h4>
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-3">
+                <h4 class="fw-bold mb-0"><i class="fa-solid fa-users text-primary me-2"></i> User Management</h4>
+                
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="?" class="btn {% if not current_role %}btn-primary{% else %}btn-outline-primary{% endif %} btn-sm rounded-pill px-3">All</a>
+                    <a href="?role=admin" class="btn {% if current_role == 'admin' %}btn-danger{% else %}btn-outline-danger{% endif %} btn-sm rounded-pill px-3">Admins</a>
+                    <a href="?role=trainer" class="btn {% if current_role == 'trainer' %}btn-warning text-dark{% else %}btn-outline-warning{% endif %} btn-sm rounded-pill px-3">Trainers</a>
+                    <a href="?role=student" class="btn {% if current_role == 'student' %}btn-success{% else %}btn-outline-success{% endif %} btn-sm rounded-pill px-3">Students</a>
+                </div>
+            </div>
+            
+            {% if current_role %}
+            <p class="text-muted small mb-3">Showing {{ total_filtered_users }} {{ current_role|title }}{{ total_filtered_users|pluralize }}</p>
+            {% else %}
+            <p class="text-muted small mb-3">Showing all {{ total_filtered_users }} users</p>
+            {% endif %}
+
             <div class="table-responsive">
-                <table class="table table-dark table-hover table-borderless align-middle" style="background: transparent;">
+                <table class="table table-hover table-borderless align-middle" style="background: transparent;">
                     <thead style="border-bottom: 1px solid rgba(255,255,255,0.1);">
                         <tr>
-                            <th class="text-muted pb-3">Username</th>
-                            <th class="text-muted pb-3">Email</th>
+                            <th class="text-muted pb-3">User Details</th>
                             <th class="text-muted pb-3">Role</th>
+                            <th class="text-muted pb-3">Login Activity</th>
+                            <th class="text-muted pb-3">Device / IP</th>
                             <th class="text-muted pb-3 text-end">Joined</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for u in users %}
                         <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                            <td class="py-3 fw-bold">{{ u.username }}</td>
-                            <td class="py-3 text-muted">{{ u.email }}</td>
+                            <td class="py-3">
+                                <div class="fw-bold">{{ u.username }}</div>
+                                <div class="text-muted small">{{ u.email }}</div>
+                                {% if u.mobile %}<div class="text-muted small"><i class="fa-solid fa-phone" style="font-size: 0.7rem;"></i> {{ u.mobile }}</div>{% endif %}
+                            </td>
                             <td class="py-3">
                                 {% if u.role == 'admin' %}
                                 <span class="badge bg-danger rounded-pill px-3">Admin</span>
@@ -56,7 +82,27 @@
                                 <span class="badge bg-success rounded-pill px-3">Student</span>
                                 {% endif %}
                             </td>
-                            <td class="py-3 text-muted text-end">{{ u.date_joined|date:"M d, Y" }}</td>
+                            <td class="py-3">
+                                {% if u.last_login %}
+                                <div class="small">{{ u.last_login|date:"M d, Y" }}</div>
+                                <div class="text-muted small">{{ u.last_login|time:"H:i A" }}</div>
+                                {% else %}
+                                <span class="text-muted small">Never</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3">
+                                {% if u.last_ip %}
+                                <div class="small"><i class="fa-solid fa-globe" style="font-size: 0.7rem;"></i> {{ u.last_ip }}</div>
+                                <div class="text-muted small" style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ u.device_info }}">{{ u.device_info|default:"Unknown Device" }}</div>
+                                {% else %}
+                                <span class="text-muted small">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3 text-muted text-end small">{{ u.date_joined|date:"M d, Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">No users found.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -70,7 +116,7 @@
         <div class="glass-card p-4">
             <h4 class="fw-bold mb-4"><i class="fa-solid fa-graduation-cap text-success me-2"></i> Recent Enrollments</h4>
             <div class="table-responsive">
-                <table class="table table-dark table-hover table-borderless align-middle" style="background: transparent;">
+                <table class="table table-hover table-borderless align-middle" style="background: transparent;">
                     <thead style="border-bottom: 1px solid rgba(255,255,255,0.1);">
                         <tr>
                             <th class="text-muted pb-3">Student</th>

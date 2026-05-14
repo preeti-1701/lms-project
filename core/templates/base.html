@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark" id="html-root">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,13 +12,23 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
     <style>
-        :root {
+        :root, [data-bs-theme="dark"] {
             --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7e22ce 100%);
             --secondary-gradient: linear-gradient(135deg, #111827 0%, #1f2937 100%);
             --glass-bg: rgba(255, 255, 255, 0.05);
             --glass-border: rgba(255, 255, 255, 0.1);
             --text-main: #f9fafb;
             --text-muted: #9ca3af;
+            --nav-bg: rgba(17, 24, 39, 0.7);
+        }
+
+        [data-bs-theme="light"] {
+            --secondary-gradient: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(0, 0, 0, 0.1);
+            --text-main: #212529;
+            --text-muted: #6c757d;
+            --nav-bg: rgba(255, 255, 255, 0.8);
         }
 
         body {
@@ -34,7 +44,7 @@
 
         /* Glassmorphism Navbar */
         .navbar-custom {
-            background: rgba(17, 24, 39, 0.7);
+            background: var(--nav-bg);
             backdrop-filter: blur(12px); border-bottom: 1px solid var(--glass-border);
             padding: 1rem 2rem; transition: all 0.3s ease;
         }
@@ -84,8 +94,8 @@
 
         /* Inputs */
         .glass-input, .glass-select {
-            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white; border-radius: 10px; padding: 0.8rem 1rem; transition: all 0.3s ease;
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            color: var(--text-main); border-radius: 10px; padding: 0.8rem 1rem; transition: all 0.3s ease;
         }
 
         .glass-input:focus, .glass-select:focus {
@@ -95,7 +105,7 @@
         
         .glass-input::placeholder { color: rgba(255,255,255,0.5); }
         
-        .glass-select option { background: var(--secondary-gradient); color: white; }
+        .glass-select option { background: var(--secondary-gradient); color: var(--text-main); }
 
         /* Progress Bar */
         .progress-custom { background: rgba(255,255,255,0.1); border-radius: 20px; height: 10px; overflow: visible; }
@@ -127,9 +137,11 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto align-items-center">
+                {% if request.path != '/' %}
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'home' %}">Home</a>
                 </li>
+                {% endif %}
                 {% if user.is_authenticated %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% if user.role == 'admin' %}{% url 'admin_panel' %}{% elif user.role == 'trainer' %}{% url 'trainer_dashboard' %}{% else %}{% url 'dashboard' %}{% endif %}">Dashboard</a>
@@ -138,13 +150,23 @@
                         <a class="btn btn-custom btn-sm" href="{% url 'logout' %}">Logout</a>
                     </li>
                 {% else %}
+                    {% if request.path != '/login/' %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'login' %}">Login</a>
                     </li>
+                    {% endif %}
+                    {% if request.path != '/signup/' %}
                     <li class="nav-item ms-3">
                         <a class="btn btn-custom btn-sm" href="{% url 'signup' %}">Sign Up</a>
                     </li>
+                    {% endif %}
                 {% endif %}
+                <!-- Theme Toggle Button -->
+                <li class="nav-item ms-3">
+                    <button class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" id="theme-toggle" style="width: 40px; height: 40px; border-color: var(--glass-border);">
+                        <i class="fa-solid fa-moon" id="theme-icon"></i>
+                    </button>
+                </li>
             </ul>
         </div>
     </div>
@@ -156,5 +178,37 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Theme Toggle Logic
+    const htmlRoot = document.getElementById('html-root');
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+
+    // Check local storage for saved theme
+    const savedTheme = localStorage.getItem('lms_theme');
+    if (savedTheme) {
+        htmlRoot.setAttribute('data-bs-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+        const currentTheme = htmlRoot.getAttribute('data-bs-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        htmlRoot.setAttribute('data-bs-theme', newTheme);
+        localStorage.setItem('lms_theme', newTheme);
+        updateThemeIcon(newTheme);
+    });
+
+    function updateThemeIcon(theme) {
+        if (theme === 'light') {
+            themeIcon.classList.remove('fa-moon');
+            themeIcon.classList.add('fa-sun');
+        } else {
+            themeIcon.classList.remove('fa-sun');
+            themeIcon.classList.add('fa-moon');
+        }
+    }
+</script>
 </body>
 </html>

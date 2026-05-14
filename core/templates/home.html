@@ -3,9 +3,8 @@
 <div class="row align-items-center min-vh-75 mt-5">
     <div class="col-md-6 text-md-start text-center mb-5">
         <h1 class="display-3 fw-bold mb-4">
-            <span class="text-gradient">Learn Smarter</span><br>
-            <span class="text-white">Learn Faster</span><br>
-            <span class="text-muted fs-2">Grow Your Skills</span>
+            <span class="text-gradient">Learn Smarter.</span><br>
+            <span class="text-white">Learn Securely.</span><br>
         </h1>
         <p class="lead mb-5 text-muted">Join the modern learning platform designed to help you achieve your goals with engaging content and a beautiful interface.</p>
         <div class="d-flex gap-3 justify-content-md-start justify-content-center">
@@ -29,4 +28,73 @@
         </style>
     </div>
 </div>
+
+<div class="row mt-5 pt-5 mb-4">
+    <div class="col-12 text-center mb-5">
+        <h2 class="display-5 fw-bold text-gradient">Explore Courses</h2>
+        
+        <form method="get" class="mt-4 mx-auto" style="max-width: 600px;">
+            <div class="input-group">
+                <input type="text" name="q" value="{{ query|default:'' }}" class="form-control glass-input border-end-0" placeholder="Search courses...">
+                <button type="submit" class="btn btn-custom border-start-0"><i class="fa-solid fa-search"></i> Search</button>
+            </div>
+        </form>
+
+        <div class="mt-4">
+            <a href="?" class="btn btn-sm {% if not selected_category %}btn-custom{% else %}btn-outline-light{% endif %} rounded-pill me-2 mb-2 glass-btn">All</a>
+            {% for cat in categories %}
+            <a href="?category={{ cat.id }}" class="btn btn-sm {% if selected_category|add:'0' == cat.id %}btn-custom{% else %}btn-outline-light{% endif %} rounded-pill me-2 mb-2 glass-btn">{{ cat.name }}</a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    {% for course in courses %}
+    <div class="col-md-4">
+        <a href="{% url 'course_detail' course.id %}" class="text-decoration-none text-white">
+            <div class="glass-card h-100 p-0 d-flex flex-column overflow-hidden" style="transition: transform 0.3s; cursor: pointer;">
+                <div class="bg-secondary" style="height: 150px; background: var(--primary-gradient) !important;">
+                    <!-- Placeholder for course image -->
+                    <div class="h-100 d-flex align-items-center justify-content-center">
+                        <i class="fa-solid fa-laptop-code fa-3x text-white opacity-50"></i>
+                    </div>
+                </div>
+                <div class="p-4 d-flex flex-column flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-primary rounded-pill">{{ course.category.name|default:"General" }}</span>
+                        {% if course.featured %}
+                        <span class="badge bg-warning text-dark rounded-pill"><i class="fa-solid fa-star"></i> Featured</span>
+                        {% endif %}
+                    </div>
+                    <h4 class="fw-bold mb-3">{{ course.title }}</h4>
+                    <p class="text-muted small mb-4 flex-grow-1">{{ course.description|default:"No description provided."|truncatechars:100 }}</p>
+                    <div class="mt-auto border-top border-secondary pt-3" style="border-color: rgba(255,255,255,0.1) !important;">
+                        <div class="d-flex justify-content-between text-muted small mb-2">
+                            <span><i class="fa-solid fa-chalkboard-user text-primary me-1"></i> {{ course.trainer.username }}</span>
+                            <span><i class="fa-solid fa-clock text-warning me-1"></i> {{ course.duration }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-muted small">
+                            <span><i class="fa-solid fa-video text-info me-1"></i> {{ course.video_set.count }} Videos</span>
+                            <span><i class="fa-solid fa-users text-success me-1"></i> {{ course.enrollment_set.count }} Enrolled</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5 glass-card">
+        <p class="text-muted fs-5 mb-0">No courses available at the moment.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    .glass-btn { border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px); }
+    .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+</style>
 {% endblock %}

@@ -6,21 +6,71 @@
     <span class="badge bg-secondary opacity-75 px-3 py-2 rounded-pill"><i class="fa-solid fa-info-circle me-1"></i> Course creation coming soon</span>
 </div>
 
+<!-- Analytics Row -->
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="glass-card p-4 d-flex align-items-center">
+            <div class="bg-primary rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 60px; height: 60px; background: var(--primary-gradient) !important;">
+                <i class="fa-solid fa-users fa-2x text-white"></i>
+            </div>
+            <div>
+                <h6 class="text-muted mb-1">Total Students Enrolled</h6>
+                <h3 class="fw-bold mb-0">{{ total_students }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="glass-card p-4 d-flex align-items-center">
+            <div class="bg-success rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 60px; height: 60px; background: linear-gradient(135deg, #10b981 0%, #047857 100%) !important;">
+                <i class="fa-solid fa-chart-line fa-2x text-white"></i>
+            </div>
+            <div>
+                <h6 class="text-muted mb-1">Avg. Completion Rate</h6>
+                <h3 class="fw-bold mb-0">{{ avg_completion }}%</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="glass-card p-4 d-flex align-items-center">
+            <div class="bg-warning rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 60px; height: 60px; background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%) !important;">
+                <i class="fa-solid fa-crown fa-2x text-white"></i>
+            </div>
+            <div>
+                <h6 class="text-muted mb-1">Most Watched Course</h6>
+                <h5 class="fw-bold mb-0 text-truncate" style="max-width: 150px;" title="{{ top_course.title|default:'N/A' }}">{{ top_course.title|default:"N/A" }}</h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h4 class="mb-3 text-light">My Courses</h4>
 <div class="row g-4">
     {% for course in courses %}
     <div class="col-md-4">
-        <div class="glass-card h-100 p-4 d-flex flex-column">
-            <h4 class="fw-bold mb-3">{{ course.title }}</h4>
-            <p class="text-muted small mb-4 flex-grow-1">{{ course.description|default:"No description provided."|truncatechars:100 }}</p>
-            
-            <div class="d-flex justify-content-between align-items-center mt-auto border-top border-secondary pt-3" style="border-color: rgba(255,255,255,0.1) !important;">
-                <span class="text-muted small"><i class="fa-solid fa-users me-1"></i> {{ course.enrollment_set.count }} Students</span>
-                <span class="text-muted small"><i class="fa-solid fa-video me-1"></i> {{ course.video_set.count }} Videos</span>
+        <div class="glass-card h-100 p-0 d-flex flex-column overflow-hidden">
+            <div class="bg-secondary" style="height: 120px; background: var(--secondary-gradient) !important;">
+                <div class="h-100 d-flex align-items-center justify-content-center">
+                    <i class="fa-solid fa-book-open fa-3x text-white opacity-25"></i>
+                </div>
             </div>
-            
-            <a href="{% url 'course_detail' course.id %}" class="btn btn-outline-light w-100 mt-4 rounded-pill btn-sm py-2" style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2);">
-                View Course <i class="fa-solid fa-arrow-right ms-2"></i>
-            </a>
+            <div class="p-4 d-flex flex-column flex-grow-1">
+                <h4 class="fw-bold mb-2">{{ course.title }}</h4>
+                <p class="text-muted small mb-4 flex-grow-1">{{ course.description|default:"No description provided."|truncatechars:80 }}</p>
+                
+                <div class="d-flex justify-content-between align-items-center mt-auto border-top border-secondary pt-3 mb-3" style="border-color: rgba(255,255,255,0.1) !important;">
+                    <span class="text-muted small"><i class="fa-solid fa-users text-primary me-1"></i> {{ course.enrollment_set.count }} Students</span>
+                    <span class="text-muted small"><i class="fa-solid fa-video text-info me-1"></i> {{ course.video_set.count }} Videos</span>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <a href="{% url 'course_detail' course.id %}" class="btn btn-outline-light flex-grow-1 rounded-pill btn-sm py-2 glass-btn">
+                        <i class="fa-solid fa-eye me-1"></i> View
+                    </a>
+                    <button class="btn btn-outline-warning rounded-pill btn-sm py-2 px-3 glass-btn" disabled title="Coming Soon">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
     {% empty %}
@@ -29,4 +79,9 @@
     </div>
     {% endfor %}
 </div>
+
+<style>
+    .glass-btn { border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px); background: rgba(255,255,255,0.05); }
+    .glass-btn:hover:not(:disabled) { background: rgba(255,255,255,0.1); }
+</style>
 {% endblock %}

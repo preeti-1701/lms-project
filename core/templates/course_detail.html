@@ -25,9 +25,15 @@
                         {% endif %}
                     </div>
                 </div>
-                <a href="{{ video.youtube_link }}" target="_blank" class="btn btn-custom rounded-pill px-4">
-                    Watch <i class="fa-brands fa-youtube ms-2"></i>
+                {% if is_enrolled %}
+                <a href="{% url 'watch_video' course.id video.id %}" class="btn btn-custom rounded-pill px-4">
+                    Watch Video <i class="fa-solid fa-play ms-2"></i>
                 </a>
+                {% else %}
+                <button disabled class="btn btn-outline-secondary rounded-pill px-4 opacity-50" style="cursor: not-allowed;">
+                    <i class="fa-solid fa-lock me-2"></i> Locked
+                </button>
+                {% endif %}
             </div>
             {% empty %}
             <div class="text-center py-5 glass-card">
@@ -47,9 +53,20 @@
                 <span class="text-muted">Difficulty</span>
                 <span class="badge bg-primary px-3 py-2 rounded-pill">All Levels</span>
             </div>
-            <a href="{% url 'dashboard' %}" class="btn btn-outline-light w-100 rounded-pill py-2" style="background: rgba(255,255,255,0.05);">
-                <i class="fa-solid fa-arrow-left me-2"></i> Back to Dashboard
+            <div class="mb-4 d-flex justify-content-between align-items-center border-bottom border-secondary pb-3" style="border-color: rgba(255,255,255,0.1) !important;">
+                <span class="text-muted">Duration</span>
+                <span class="fw-bold fs-5">{{ course.duration }}</span>
+            </div>
+            
+            {% if not is_enrolled %}
+            <a href="{% url 'enroll_course' course.id %}" class="btn btn-custom w-100 rounded-pill py-3 fw-bold fs-5 mt-2">
+                Enroll Now <i class="fa-solid fa-arrow-right ms-2"></i>
             </a>
+            {% else %}
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-success w-100 rounded-pill py-3 fw-bold fs-5 mt-2" style="background: rgba(25,135,84,0.1);">
+                <i class="fa-solid fa-check-circle me-2"></i> Enrolled
+            </a>
+            {% endif %}
         </div>
     </div>
 </div>

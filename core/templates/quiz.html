@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center min-vh-75 mt-4">
+    <div class="col-md-8">
+        <div class="d-flex align-items-center mb-4">
+            <a href="{% url 'course_detail' course.id %}" class="btn btn-outline-light rounded-pill btn-sm me-3 glass-btn">
+                <i class="fa-solid fa-arrow-left"></i> Back to Course
+            </a>
+            <h2 class="fw-bold mb-0"><i class="fa-solid fa-clipboard-question text-gradient me-2"></i> Course Assessment</h2>
+        </div>
+
+        <div class="glass-card p-4 p-md-5 position-relative overflow-hidden">
+            {% if error %}
+                <div class="text-center py-5">
+                    <i class="fa-solid fa-triangle-exclamation fa-4x text-warning mb-3"></i>
+                    <h4 class="fw-bold">{{ error }}</h4>
+                </div>
+            {% elif completed or passed %}
+                <div class="text-center py-5">
+                    {% if passed %}
+                        <i class="fa-solid fa-medal fa-5x text-warning mb-4" style="filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.5));"></i>
+                        <h2 class="fw-bold text-success mb-3">Congratulations!</h2>
+                        <h4 class="mb-4">You passed with a score of <span class="text-white">{{ score|default:message }}</span>%</h4>
+                        <a href="{% url 'certificate' course.id %}" class="btn btn-warning text-dark fw-bold rounded-pill px-5 py-3 fs-5">
+                            <i class="fa-solid fa-download me-2"></i> Download Certificate
+                        </a>
+                    {% else %}
+                        <i class="fa-solid fa-circle-xmark fa-5x text-danger mb-4"></i>
+                        <h2 class="fw-bold text-danger mb-3">Assessment Failed</h2>
+                        <h4 class="mb-4">You scored <span class="text-white">{{ score }}</span>%. Minimum 70% is required to pass.</h4>
+                        <a href="{% url 'take_quiz' course.id %}" class="btn btn-outline-light rounded-pill px-5 py-2">
+                            <i class="fa-solid fa-rotate-right me-2"></i> Retake Quiz
+                        </a>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="mb-4 pb-4 border-bottom border-secondary" style="border-color: rgba(255,255,255,0.1) !important;">
+                    <h3 class="fw-bold">{{ quiz.title }}</h3>
+                    <p class="text-muted mb-0">Answer all questions to complete the assessment. You need 70% to pass.</p>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    {% for question in quiz.question_set.all %}
+                    <div class="mb-5">
+                        <h5 class="fw-bold mb-3"><span class="text-primary me-2">{{ forloop.counter }}.</span> {{ question.text }}</h5>
+                        <div class="d-flex flex-column gap-2 ms-4">
+                            {% for choice in question.choices.all %}
+                            <label class="glass-input p-3 d-flex align-items-center" style="cursor: pointer;">
+                                <input type="radio" name="question_{{ question.id }}" value="{{ choice.id }}" class="form-check-input me-3 mt-0" required>
+                                <span>{{ choice.text }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <button type="submit" class="btn btn-custom w-100 rounded-pill py-3 fs-5 fw-bold mt-4">
+                        Submit Assessment <i class="fa-solid fa-paper-plane ms-2"></i>
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .glass-input:has(input:checked) {
+        background: rgba(79, 70, 229, 0.2) !important;
+        border-color: #a78bfa !important;
+    }
+    .form-check-input {
+        background-color: transparent;
+        border-color: rgba(255,255,255,0.5);
+    }
+    .form-check-input:checked {
+        background-color: #a78bfa;
+        border-color: #a78bfa;
+    }
+    .glass-btn { border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px); }
+</style>
+{% endblock %}
