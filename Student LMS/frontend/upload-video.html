@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Upload Video</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Segoe UI',sans-serif;
+        }
+
+        body{
+            background:#eef2ff;
+            min-height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            padding:40px;
+        }
+
+        .upload-card{
+
+            width:100%;
+            max-width:650px;
+
+            background:white;
+
+            padding:40px;
+
+            border-radius:30px;
+
+            box-shadow:0 20px 50px rgba(0,0,0,0.08);
+        }
+
+        .title{
+
+            font-size:38px;
+
+            font-weight:800;
+
+            margin-bottom:10px;
+
+            color:#1e293b;
+        }
+
+        .subtitle{
+
+            color:#64748b;
+
+            margin-bottom:35px;
+        }
+
+        .form-label{
+
+            font-weight:700;
+
+            margin-bottom:10px;
+
+            color:#334155;
+        }
+
+        .form-control,
+        .form-select{
+
+            height:55px;
+
+            border-radius:16px;
+
+            border:1px solid #cbd5e1;
+
+            padding:12px 18px;
+
+            font-size:16px;
+        }
+
+        .form-control:focus,
+        .form-select:focus{
+
+            box-shadow:none;
+
+            border-color:#4f46e5;
+        }
+
+        .upload-btn{
+
+            width:100%;
+
+            border:none;
+
+            height:55px;
+
+            border-radius:18px;
+
+            margin-top:20px;
+
+            font-size:18px;
+
+            font-weight:700;
+
+            color:white;
+
+            background:linear-gradient(
+                90deg,
+                #4f46e5,
+                #7c3aed
+            );
+
+            transition:0.3s;
+        }
+
+        .upload-btn:hover{
+
+            transform:translateY(-2px);
+
+            box-shadow:0 12px 25px rgba(79,70,229,0.3);
+        }
+
+        .back-btn{
+
+            width:100%;
+
+            border:none;
+
+            height:50px;
+
+            border-radius:16px;
+
+            margin-top:15px;
+
+            background:#e2e8f0;
+
+            font-weight:700;
+
+            color:#1e293b;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="upload-card">
+
+    <div class="title">
+        Upload Course Video 🎥
+    </div>
+
+    <div class="subtitle">
+        Trainers can upload YouTube videos
+        for assigned courses.
+    </div>
+
+    <!-- COURSE -->
+
+    <div class="mb-4">
+
+        <label class="form-label">
+            Select Course
+        </label>
+
+        <select
+            id="courseSelect"
+            class="form-select">
+
+            <option value="">
+                Loading Courses...
+            </option>
+
+        </select>
+
+    </div>
+
+    <!-- VIDEO TITLE -->
+
+    <div class="mb-4">
+
+        <label class="form-label">
+            Video Title
+        </label>
+
+        <input
+            type="text"
+            id="videoTitle"
+            class="form-control"
+            placeholder="Enter video title">
+
+    </div>
+
+    <!-- YOUTUBE LINK -->
+
+    <div class="mb-4">
+
+        <label class="form-label">
+            YouTube Link
+        </label>
+
+        <input
+            type="text"
+            id="youtubeLink"
+            class="form-control"
+            placeholder="https://youtube.com/...">
+
+    </div>
+
+    <!-- BUTTON -->
+
+    <button
+        class="upload-btn"
+        onclick="uploadVideo()">
+
+        Upload Video
+
+    </button>
+
+    <button
+        class="back-btn"
+        onclick="goDashboard()">
+
+        ← Back to Dashboard
+
+    </button>
+
+</div>
+
+<script>
+
+
+// ================= LOAD COURSES =================
+
+async function loadCourses() {
+
+    let token =
+        localStorage.getItem("token");
+
+    let response = await fetch(
+        "http://127.0.0.1:8000/api/courses/",
+        {
+            headers:{
+                "Authorization":
+                    "Bearer " + token
+            }
+        }
+    );
+
+    let courses = await response.json();
+
+    let select =
+        document.getElementById(
+            "courseSelect"
+        );
+
+    select.innerHTML = `
+        <option value="">
+            Select Course
+        </option>
+    `;
+
+    courses.forEach(course => {
+
+        select.innerHTML += `
+
+            <option value="${course.id}">
+                ${course.title}
+            </option>
+
+        `;
+    });
+}
+
+
+// ================= UPLOAD VIDEO =================
+
+async function uploadVideo() {
+
+    let token =
+        localStorage.getItem("token");
+
+    let course =
+        document.getElementById(
+            "courseSelect"
+        ).value;
+
+    let title =
+        document.getElementById(
+            "videoTitle"
+        ).value;
+
+    let youtube_link =
+        document.getElementById(
+            "youtubeLink"
+        ).value;
+
+    if (
+        !course ||
+        !title ||
+        !youtube_link
+    ) {
+
+        alert("Please fill all fields");
+
+        return;
+    }
+
+    let response = await fetch(
+        "http://127.0.0.1:8000/api/videos/",
+        {
+
+            method:"POST",
+
+            headers:{
+
+                "Content-Type":
+                    "application/json",
+
+                "Authorization":
+                    "Bearer " + token
+            },
+
+            body:JSON.stringify({
+
+                course:course,
+
+                title:title,
+
+                youtube_link:youtube_link
+            })
+        }
+    );
+
+    if(response.ok){
+
+        alert("Video Uploaded Successfully ✅");
+
+        document.getElementById(
+            "videoTitle"
+        ).value = "";
+
+        document.getElementById(
+            "youtubeLink"
+        ).value = "";
+
+    } else {
+
+        let error = await response.json();
+
+        console.log(error);
+
+        alert(
+            "Upload Failed ❌"
+        );
+    }
+}
+
+
+// ================= BACK =================
+
+function goDashboard(){
+
+    window.location.href =
+        "dashboard.html";
+}
+
+
+// ================= PAGE LOAD =================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function(){
+
+        loadCourses();
+    }
+);
+
+</script>
+
+</body>
+</html>

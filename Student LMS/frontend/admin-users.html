@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Admin User Management</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Segoe UI',sans-serif;
+        }
+
+        body{
+            background:#eef2ff;
+            min-height:100vh;
+        }
+
+        .topbar{
+
+            background:white;
+
+            padding:20px 40px;
+
+            display:flex;
+
+            justify-content:space-between;
+
+            align-items:center;
+
+            box-shadow:0 5px 20px rgba(0,0,0,0.05);
+        }
+
+        .logo{
+
+            font-size:34px;
+
+            font-weight:800;
+
+            background:linear-gradient(
+                90deg,
+                #4f46e5,
+                #7c3aed
+            );
+
+            -webkit-background-clip:text;
+
+            -webkit-text-fill-color:transparent;
+        }
+
+        .back-btn{
+
+            border:none;
+
+            padding:12px 24px;
+
+            border-radius:14px;
+
+            color:white;
+
+            font-weight:700;
+
+            background:linear-gradient(
+                90deg,
+                #4f46e5,
+                #7c3aed
+            );
+        }
+
+        .container-box{
+
+            width:92%;
+
+            margin:40px auto;
+        }
+
+        .page-title{
+
+            font-size:42px;
+
+            font-weight:800;
+
+            margin-bottom:30px;
+
+            color:#0f172a;
+        }
+
+        /* FORM */
+
+        .form-card{
+
+            background:white;
+
+            padding:30px;
+
+            border-radius:28px;
+
+            box-shadow:0 10px 30px rgba(0,0,0,0.05);
+
+            margin-bottom:40px;
+        }
+
+        .custom-input{
+
+            height:55px;
+
+            border-radius:14px;
+
+            margin-bottom:20px;
+        }
+
+        .add-btn{
+
+            border:none;
+
+            padding:15px 30px;
+
+            border-radius:14px;
+
+            font-weight:700;
+
+            color:white;
+
+            background:linear-gradient(
+                90deg,
+                #22c55e,
+                #16a34a
+            );
+        }
+
+        /* USERS */
+
+        .users-card{
+
+            background:white;
+
+            border-radius:28px;
+
+            padding:30px;
+
+            box-shadow:0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .user-item{
+
+            display:flex;
+
+            justify-content:space-between;
+
+            align-items:center;
+
+            padding:20px;
+
+            border-radius:18px;
+
+            background:#f8fafc;
+
+            margin-bottom:18px;
+        }
+
+        .user-info h4{
+
+            margin:0;
+
+            font-size:22px;
+
+            font-weight:700;
+        }
+
+        .role{
+
+            color:#64748b;
+
+            font-weight:600;
+        }
+
+        .delete-btn{
+
+            border:none;
+
+            padding:12px 22px;
+
+            border-radius:12px;
+
+            color:white;
+
+            font-weight:700;
+
+            background:linear-gradient(
+                90deg,
+                #ff416c,
+                #ff4b2b
+            );
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <!-- TOPBAR -->
+
+    <div class="topbar">
+
+        <div class="logo">
+            LearnSphere Admin
+        </div>
+
+        <button
+            onclick="window.location.href='dashboard.html'"
+            class="back-btn">
+
+            ← Dashboard
+
+        </button>
+
+    </div>
+
+    <!-- MAIN -->
+
+    <div class="container-box">
+
+        <h1 class="page-title">
+            User Management 👨‍💼
+        </h1>
+
+        <!-- ADD USER -->
+
+        <div class="form-card">
+
+            <h3 class="mb-4">
+                Add New User
+            </h3>
+
+            <input
+                type="text"
+                id="newUsername"
+                class="form-control custom-input"
+                placeholder="Enter Username">
+
+            <input
+                type="password"
+                id="newPassword"
+                class="form-control custom-input"
+                placeholder="Enter Password">
+
+            <select
+                id="newRole"
+                class="form-select custom-input">
+
+                <option value="student">
+                    Student
+                </option>
+
+                <option value="trainer">
+                    Trainer
+                </option>
+
+                <option value="admin">
+                    Admin
+                </option>
+
+            </select>
+
+            <button
+                onclick="createUser()"
+                class="add-btn">
+
+                Add User
+
+            </button>
+
+        </div>
+
+        <!-- USERS LIST -->
+
+        <div class="users-card">
+
+            <h3 class="mb-4">
+                Existing Users
+            </h3>
+
+            <div id="usersList"></div>
+
+        </div>
+
+    </div>
+
+<script src="app.js"></script>
+
+</body>
+
+</html>

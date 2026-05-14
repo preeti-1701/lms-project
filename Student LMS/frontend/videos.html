@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Learnify - Course Videos</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            background:#eef2ff;
+            font-family:'Segoe UI',sans-serif;
+            overflow:hidden;
+        }
+
+        .layout{
+            display:flex;
+            height:100vh;
+        }
+
+        /* SIDEBAR */
+
+        .sidebar{
+            width:320px;
+            background:linear-gradient(180deg,#312e81,#4f46e5);
+            padding:30px;
+            color:white;
+            overflow-y:auto;
+            box-shadow:5px 0 25px rgba(0,0,0,0.15);
+        }
+
+        .logo{
+            font-size:34px;
+            font-weight:800;
+            margin-bottom:35px;
+            text-align:center;
+            letter-spacing:1px;
+        }
+
+        .video-item{
+            padding:16px;
+            border-radius:16px;
+            background:rgba(255,255,255,0.12);
+            margin-bottom:15px;
+            cursor:pointer;
+            transition:0.3s;
+            font-weight:600;
+            backdrop-filter:blur(10px);
+        }
+
+        .video-item:hover{
+            background:white;
+            color:#4f46e5;
+            transform:translateX(6px);
+        }
+
+        .back-btn{
+            width:100%;
+            margin-top:20px;
+            border:none;
+            padding:15px;
+            border-radius:16px;
+            background:white;
+            color:#4f46e5;
+            font-weight:700;
+            transition:0.3s;
+        }
+
+        .back-btn:hover{
+            transform:scale(1.03);
+        }
+
+        /* MAIN CONTENT */
+
+        .content{
+            flex:1;
+            padding:35px;
+            overflow-y:auto;
+        }
+
+        .top-section{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:25px;
+            gap:20px;
+        }
+
+        #videoTitle{
+            font-size:38px;
+            font-weight:800;
+            color:#1e293b;
+        }
+
+        .progress-wrapper{
+            width:260px;
+            background:white;
+            padding:20px;
+            border-radius:20px;
+            box-shadow:0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        .progress-title{
+            font-weight:700;
+            margin-bottom:10px;
+            color:#334155;
+        }
+
+        .progress{
+            height:18px;
+            border-radius:20px;
+            overflow:hidden;
+            background:#cbd5e1;
+        }
+
+        .progress-bar{
+            background:linear-gradient(90deg,#22c55e,#16a34a);
+            transition:0.5s;
+        }
+
+        #progressText{
+            margin-top:10px;
+            font-weight:700;
+            color:#0f172a;
+        }
+
+        /* PLAYER */
+
+        .player-card{
+            background:white;
+            border-radius:30px;
+            padding:25px;
+            box-shadow:0 15px 40px rgba(0,0,0,0.08);
+        }
+
+        #videoPlayer{
+            width:100%;
+            height:650px;
+            border-radius:20px;
+            overflow:hidden;
+        }
+
+        iframe{
+            border-radius:20px;
+        }
+
+        /* CONTROLS */
+
+        .controls{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-top:25px;
+            gap:20px;
+            flex-wrap:wrap;
+        }
+
+        .complete-btn{
+            border:none;
+            padding:16px 30px;
+            border-radius:16px;
+            font-weight:700;
+            font-size:16px;
+            color:white;
+            background:linear-gradient(90deg,#22c55e,#16a34a);
+            transition:0.3s;
+            box-shadow:0 8px 20px rgba(34,197,94,0.3);
+        }
+
+        .complete-btn:hover{
+            transform:scale(1.05);
+        }
+
+        .complete-btn:disabled{
+            opacity:0.5;
+            cursor:not-allowed;
+            transform:none;
+        }
+
+        .watch-note{
+            color:#64748b;
+            font-weight:600;
+            background:#f8fafc;
+            padding:14px 20px;
+            border-radius:14px;
+        }
+
+        /* RESPONSIVE */
+
+        @media(max-width:1000px){
+
+            .layout{
+                flex-direction:column;
+            }
+
+            .sidebar{
+                width:100%;
+                height:auto;
+            }
+
+            body{
+                overflow:auto;
+            }
+
+            #videoPlayer{
+                height:400px;
+            }
+
+            .top-section{
+                flex-direction:column;
+                align-items:flex-start;
+            }
+
+            .progress-wrapper{
+                width:100%;
+            }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- SIDEBAR -->
+
+    <div class="sidebar">
+
+        <div class="logo">
+            Learnify
+        </div>
+
+        <div id="videoList"></div>
+
+        <button onclick="goBack()" class="back-btn">
+            ← Back to Dashboard
+        </button>
+
+    </div>
+
+    <!-- MAIN CONTENT -->
+
+    <div class="content">
+
+        <div class="top-section">
+
+            <div>
+
+                <h1 id="videoTitle">
+                    Select a Video
+                </h1>
+
+            </div>
+
+            <!-- PROGRESS -->
+
+            <div class="progress-wrapper">
+
+                <div class="progress-title">
+                    Course Progress
+                </div>
+
+                <div class="progress">
+
+                    <div
+                        id="progressBar"
+                        class="progress-bar"
+                        style="width:0%;">
+                    </div>
+
+                </div>
+
+                <div id="progressText">
+                    0%
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- VIDEO PLAYER -->
+
+        <div class="player-card">
+
+            <!-- IMPORTANT -->
+            <!-- YOUTUBE API PLAYER -->
+
+            <div id="videoPlayer"></div>
+
+            <!-- CONTROLS -->
+
+            <div class="controls">
+
+                <button
+                    id="completeBtn"
+                    onclick="markCompleted()"
+                    class="complete-btn"
+                    disabled>
+
+                    Mark as Completed ✅
+
+                </button>
+
+                <div class="watch-note">
+
+                    Watch Full Video to unlock completion
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- YOUTUBE API -->
+
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<script src="app.js"></script>
+
+</body>
+</html>
