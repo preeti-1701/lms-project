@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Learnify Dashboard</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Segoe UI',sans-serif;
+        }
+
+        body{
+            background:#eef2ff;
+            min-height:100vh;
+            overflow-x:hidden;
+        }
+
+        /* NAVBAR */
+
+        .topbar{
+            width:100%;
+            padding:22px 50px;
+            background:white;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            box-shadow:0 5px 20px rgba(0,0,0,0.05);
+            position:sticky;
+            top:0;
+            z-index:1000;
+        }
+
+        .logo{
+            font-size:34px;
+            font-weight:800;
+            background:linear-gradient(90deg,#4f46e5,#7c3aed);
+            -webkit-background-clip:text;
+            -webkit-text-fill-color:transparent;
+        }
+
+        .top-right{
+            display:flex;
+            align-items:center;
+            gap:15px;
+        }
+
+        .role-badge{
+            padding:10px 18px;
+            border-radius:30px;
+            background:#ede9fe;
+            color:#4f46e5;
+            font-weight:700;
+        }
+
+        .logout-btn{
+            border:none;
+            padding:12px 22px;
+            border-radius:14px;
+            background:linear-gradient(90deg,#ff416c,#ff4b2b);
+            color:white;
+            font-weight:700;
+            transition:0.3s;
+        }
+
+        .logout-btn:hover{
+            transform:translateY(-2px);
+            box-shadow:0 10px 20px rgba(255,75,43,0.3);
+        }
+
+        /* HERO */
+
+        .hero{
+            width:92%;
+            margin:35px auto;
+            border-radius:35px;
+            padding:60px;
+            background:linear-gradient(135deg,#4f46e5,#7c3aed);
+            color:white;
+            position:relative;
+            overflow:hidden;
+        }
+
+        .hero::before{
+            content:'';
+            position:absolute;
+            width:500px;
+            height:500px;
+            border-radius:50%;
+            background:rgba(255,255,255,0.08);
+            right:-180px;
+            top:-180px;
+        }
+
+        .hero h1{
+            font-size:60px;
+            font-weight:800;
+            margin-bottom:15px;
+        }
+
+        .hero p{
+            font-size:20px;
+            opacity:0.95;
+        }
+
+        /* STATS */
+
+        .stats{
+            width:92%;
+            margin:auto;
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+            gap:25px;
+            margin-bottom:40px;
+        }
+
+        .stat-card{
+            background:white;
+            padding:30px;
+            border-radius:24px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.05);
+            transition:0.3s;
+        }
+
+        .stat-card:hover{
+            transform:translateY(-8px);
+        }
+
+        .stat-number{
+            font-size:42px;
+            font-weight:800;
+            color:#4f46e5;
+        }
+
+        .stat-title{
+            color:#64748b;
+            font-weight:600;
+            margin-top:8px;
+        }
+
+        /* ACTIONS */
+
+        .actions{
+            width:92%;
+            margin:auto;
+            margin-bottom:40px;
+            display:flex;
+            gap:20px;
+            flex-wrap:wrap;
+        }
+
+        .action-btn{
+            border:none;
+            padding:16px 26px;
+            border-radius:16px;
+            color:white;
+            font-weight:700;
+            font-size:16px;
+            transition:0.3s;
+        }
+
+        .action-btn:hover{
+            transform:translateY(-3px);
+        }
+
+        .admin-btn{
+            background:linear-gradient(90deg,#0f172a,#1e293b);
+        }
+
+        .trainer-btn{
+            background:linear-gradient(90deg,#f59e0b,#ea580c);
+        }
+
+        .student-btn{
+            background:linear-gradient(90deg,#22c55e,#16a34a);
+        }
+
+        /* COURSES */
+
+        .course-section{
+            width:92%;
+            margin:auto;
+            padding-bottom:60px;
+        }
+
+        .section-title{
+            font-size:36px;
+            font-weight:800;
+            color:#0f172a;
+            margin-bottom:30px;
+        }
+
+        .course-card{
+            background:white;
+            border-radius:28px;
+            padding:30px;
+            transition:0.4s;
+            box-shadow:0 10px 30px rgba(0,0,0,0.05);
+            height:100%;
+        }
+
+        .course-card:hover{
+            transform:translateY(-10px);
+            box-shadow:0 20px 40px rgba(79,70,229,0.15);
+        }
+
+        .course-icon{
+            width:75px;
+            height:75px;
+            border-radius:22px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background:linear-gradient(135deg,#4f46e5,#7c3aed);
+            color:white;
+            font-size:34px;
+            margin-bottom:22px;
+        }
+
+        .course-title{
+            font-size:28px;
+            font-weight:800;
+            color:#0f172a;
+            margin-bottom:10px;
+        }
+
+        .course-desc{
+            color:#64748b;
+            margin-bottom:20px;
+        }
+
+        .progress{
+            height:12px;
+            border-radius:30px;
+            overflow:hidden;
+            background:#dbeafe;
+            margin-bottom:20px;
+        }
+
+        .progress-bar{
+            background:linear-gradient(90deg,#22c55e,#16a34a);
+        }
+
+        .start-btn{
+            width:100%;
+            border:none;
+            padding:15px;
+            border-radius:16px;
+            font-size:17px;
+            font-weight:700;
+            color:white;
+            background:linear-gradient(90deg,#4f46e5,#7c3aed);
+            transition:0.3s;
+        }
+
+        .start-btn:hover{
+            transform:scale(1.03);
+            box-shadow:0 10px 25px rgba(79,70,229,0.3);
+        }
+
+        @media(max-width:900px){
+
+            .hero{
+                padding:40px;
+            }
+
+            .hero h1{
+                font-size:42px;
+            }
+
+            .topbar{
+                padding:20px;
+            }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+
+    <div class="topbar">
+
+        <div class="logo">
+            Learnify
+        </div>
+
+        <div class="top-right">
+
+            <div class="role-badge" id="roleBadge">
+                Student
+            </div>
+
+            <button onclick="logout()" class="logout-btn">
+                Logout
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- HERO -->
+
+    <div class="hero">
+
+        <h1>
+            Welcome Back 🚀
+        </h1>
+
+        <p>
+            Master new skills with interactive learning and smart progress tracking.
+        </p>
+
+    </div>
+
+    <!-- STATS -->
+
+    <div class="stats">
+
+        <div class="stat-card">
+
+            <div class="stat-number" id="courseCount">
+                0
+            </div>
+
+            <div class="stat-title">
+                Total Courses
+            </div>
+
+        </div>
+
+        <div class="stat-card">
+
+            <div class="stat-number">
+                24/7
+            </div>
+
+            <div class="stat-title">
+                Learning Access
+            </div>
+
+        </div>
+
+        <div class="stat-card">
+
+            <div class="stat-number">
+                AI
+            </div>
+
+            <div class="stat-title">
+                Smart Learning
+            </div>
+
+        </div>
+
+    </div>
+
+<!-- ROLE ACTIONS -->
+
+<div class="actions" id="roleActions">
+
+    <!-- ADMIN BUTTONS -->
+
+    <button
+        class="action-btn admin-btn"
+        id="manageUsersBtn"
+        style="display:none;"
+    >
+        👨‍💼 Manage Users
+    </button>
+
+    <button
+        class="action-btn admin-btn"
+        id="assignCoursesBtn"
+        style="display:none;"
+    >
+        📚 Assign Courses
+    </button>
+
+    <!-- TRAINER BUTTON -->
+
+    <button
+        class="action-btn trainer-btn"
+        id="uploadVideoBtn"
+        style="display:none;"
+    >
+        🎥 Upload Video
+    </button>
+
+    <!-- STUDENT BUTTON -->
+
+    <button
+        class="action-btn student-btn"
+        id="myLearningBtn"
+    >
+        🚀 My Learning
+    </button>
+
+</div>
+
+    <!-- COURSES -->
+
+    <div class="course-section">
+
+        <h2 class="section-title">
+            Available Courses
+        </h2>
+
+        <div class="row g-4" id="courses">
+
+        </div>
+
+    </div>
+
+<script src="app.js"></script>
+
+</body>
+
+</html>

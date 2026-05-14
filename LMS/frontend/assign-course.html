@@ -1,0 +1,181 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Assign Course
+    </title>
+
+    <!-- BOOTSTRAP -->
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <!-- CSS -->
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+<body>
+
+    <!-- ================= NAVBAR ================= -->
+
+    <nav class="navbar navbar-dark bg-dark px-4">
+
+        <span class="navbar-brand mb-0 h1">
+
+            LMS - Assign Course
+
+        </span>
+
+        <button
+            class="btn btn-danger"
+            onclick="logout()"
+        >
+
+            Logout
+
+        </button>
+
+    </nav>
+
+    <!-- ================= MAIN SECTION ================= -->
+
+    <div class="container mt-5">
+
+        <div class="row justify-content-center">
+
+            <div class="col-lg-6">
+
+                <div class="course-card p-4">
+
+                    <h2 class="text-center mb-4">
+
+                        Assign Course
+
+                    </h2>
+
+                    <!-- USERNAME -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+
+                            Username
+
+                        </label>
+
+                        <input
+                            type="text"
+                            id="username"
+                            class="form-control"
+                            placeholder="Enter username"
+                        >
+
+                    </div>
+
+                    <!-- COURSE NAME -->
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+
+                            Course Name
+
+                        </label>
+
+                        <input
+                            type="text"
+                            id="courseName"
+                            class="form-control"
+                            placeholder="Enter course name"
+                        >
+
+                    </div>
+
+                    <!-- ROLE -->
+
+                    <div class="mb-4">
+
+                        <label class="form-label">
+
+                            Assign As
+
+                        </label>
+
+                        <select
+                            id="assignRole"
+                            class="form-select"
+                        >
+
+                            <option value="student">
+
+                                Student
+
+                            </option>
+
+                            <option value="trainer">
+
+                                Trainer
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <!-- BUTTONS -->
+
+                    <div class="d-grid gap-3">
+
+                        <button
+                            class="btn btn-primary"
+                            onclick="assignCourse()"
+                        >
+
+                            Assign Course
+
+                        </button>
+
+                        <button
+                            class="btn btn-secondary"
+                            onclick="goBack()"
+                        >
+
+                            Back to Dashboard
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- APP JS -->
+
+    <script src="app.js"></script>
+
+</body>
+
+</html>
+

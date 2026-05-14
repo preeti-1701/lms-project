@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Upload Video</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Segoe UI',sans-serif;
+        }
+
+        body{
+            background:#eef2ff;
+            min-height:100vh;
+            padding:40px;
+        }
+
+        .upload-card{
+
+            max-width:700px;
+
+            margin:auto;
+
+            background:white;
+
+            padding:40px;
+
+            border-radius:30px;
+
+            box-shadow:0 15px 40px rgba(0,0,0,0.08);
+        }
+
+        .title{
+
+            font-size:42px;
+
+            font-weight:800;
+
+            color:#1e293b;
+
+            margin-bottom:10px;
+        }
+
+        .subtitle{
+
+            color:#64748b;
+
+            margin-bottom:35px;
+        }
+
+        .form-label{
+
+            font-weight:700;
+
+            margin-bottom:10px;
+
+            color:#334155;
+        }
+
+        .form-control,
+        .form-select{
+
+            height:55px;
+
+            border-radius:16px;
+
+            border:1px solid #cbd5e1;
+
+            padding-left:18px;
+
+            font-size:16px;
+        }
+
+        .form-control:focus,
+        .form-select:focus{
+
+            border-color:#4f46e5;
+
+            box-shadow:none;
+        }
+
+        .upload-btn{
+
+            width:100%;
+
+            height:55px;
+
+            border:none;
+
+            border-radius:16px;
+
+            font-size:18px;
+
+            font-weight:700;
+
+            color:white;
+
+            background:linear-gradient(90deg,#4f46e5,#7c3aed);
+
+            transition:0.3s;
+        }
+
+        .upload-btn:hover{
+
+            transform:scale(1.02);
+        }
+
+        .back-btn{
+
+            width:100%;
+
+            height:55px;
+
+            border:none;
+
+            border-radius:16px;
+
+            margin-top:15px;
+
+            background:#e2e8f0;
+
+            font-weight:700;
+
+            transition:0.3s;
+        }
+
+        .back-btn:hover{
+
+            background:#cbd5e1;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="upload-card">
+
+    <div class="title">
+        Upload New Video 🎥
+    </div>
+
+    <div class="subtitle">
+        Trainers can upload videos directly into assigned courses.
+    </div>
+
+    <!-- COURSE -->
+
+    <div class="mb-4">
+
+        <label class="form-label">
+            Select Course
+        </label>
+
+        <select id="courseSelect" class="form-select">
+
+            <option value="">
+                Loading Courses...
+            </option>
+
+        </select>
+
+    </div>
+
+    <!-- VIDEO TITLE -->
+
+    <div class="mb-4">
+
+        <label class="form-label">
+            Video Title
+        </label>
+
+        <input
+            type="text"
+            id="videoTitle"
+            class="form-control"
+            placeholder="Enter video title">
+
+    </div>
+
+    <!-- YOUTUBE LINK -->
+
+    <div class="mb-4">
+
+        <label class="form-label">
+            YouTube Video Link
+        </label>
+
+        <input
+            type="text"
+            id="youtubeLink"
+            class="form-control"
+            placeholder="https://youtube.com/watch?v=...">
+
+    </div>
+
+    <!-- BUTTON -->
+
+    <button
+        onclick="uploadVideo()"
+        class="upload-btn">
+
+        Upload Video 🚀
+
+    </button>
+
+    <button
+        onclick="goBack()"
+        class="back-btn">
+
+        ← Back to Dashboard
+
+    </button>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
