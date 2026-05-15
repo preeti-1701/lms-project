@@ -2,19 +2,13 @@
 {% block title %}My Learning Dashboard{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h2>Welcome back, {{ user.get_full_name|default:user.email }}!</h2>
-                <p class="lead text-muted">Continue your learning journey</p>
-            </div>
-            <div>
-                <span class="badge bg-primary fs-6">
-                    Student
-                </span>
-            </div>
-        </div>
+<div class="page-header">
+    <div>
+        <h2 class="mb-1">Welcome back, {{ user.get_full_name|default:user.email }}</h2>
+        <p class="page-kicker">Continue your learning journey.</p>
+    </div>
+    <div>
+        <span class="badge bg-primary fs-6">Student</span>
     </div>
 </div>
 
@@ -66,9 +60,9 @@
     </div>
     {% empty %}
     <div class="col-12">
-        <div class="card text-center py-5">
-            <div class="card-body">
-                <i class="fas fa-book-open fa-4x text-muted mb-4"></i>
+        <div class="card">
+            <div class="card-body empty-state">
+                <i class="fas fa-book-open fa-4x mb-4"></i>
                 <h4>No Courses Enrolled Yet</h4>
                 <p class="text-muted">Browse and enroll in courses to start learning.</p>
                 <a href="{% url 'course_list' %}" class="btn btn-primary btn-lg">
@@ -89,7 +83,7 @@
             </div>
             <div class="card-body">
                 {% for enrollment in pending_enrollments %}
-                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                <div class="d-flex justify-content-between align-items-center list-row">
                     <div>
                         <strong>{{ enrollment.course.title }}</strong>
                         <div class="text-muted small">Trainer: {{ enrollment.course.trainer.email }}</div>
@@ -98,7 +92,7 @@
                 </div>
                 {% endfor %}
                 {% for enrollment in rejected_enrollments %}
-                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                <div class="d-flex justify-content-between align-items-center list-row">
                     <div>
                         <strong>{{ enrollment.course.title }}</strong>
                         <div class="text-muted small">Trainer: {{ enrollment.course.trainer.email }}</div>

@@ -1,54 +1,43 @@
-{% extends 'base.html' %}  <!-- We'll create base.html soon -->
+{% extends 'base.html' %}
 
 {% block title %}{{ video.course.title }} - {{ video.title }}{% endblock %}
 
 {% block content %}
-<div class="video-wrapper" style="max-width: 1100px; margin: 30px auto; padding: 0 15px;">
-    
-    <div class="video-header">
-        <h2>{{ video.course.title }}</h2>
-        <h3>{{ video.title }}</h3>
-        <p><strong>Student:</strong> {{ user.email }}</p>
+<div class="page-header">
+    <div>
+        <h2 class="mb-1">{{ video.title }}</h2>
+        <p class="page-kicker">{{ video.course.title }} - {{ user.email }}</p>
+    </div>
+    <a href="{% url 'course_detail' video.course.pk %}" class="btn btn-outline-secondary">
+        Back to Course
+    </a>
+</div>
+
+<div class="video-container">
+    <div id="watermark" class="watermark">
+        {{ user.email }} | {{ video.course.title }} | {{ now|date:"d M Y H:i:s" }}
     </div>
 
-    <!-- Secure Video Container -->
-    <div class="video-container" style="position: relative; background: #000; border-radius: 8px; overflow: hidden;">
-        
-        <!-- Dynamic Watermark -->
-        <div id="watermark" class="watermark">
-            {{ user.email }} | {{ video.course.title }} | {{ now|date:"d M Y H:i:s" }}
-        </div>
-
-        <!-- YouTube Player -->
-        <iframe 
-            id="youtube-player"
-            width="100%" 
-            height="620" 
-            src="https://www.youtube.com/embed/{{ video.youtube_link|cut:'https://www.youtube.com/watch?v=' }}?enablejsapi=1&amp;modestbranding=1&amp;rel=0&amp;showinfo=0&amp;iv_load_policy=3"
-            frameborder="0" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowfullscreen>
-        </iframe>
-    </div>
-
-    <div class="video-controls mt-3">
-        <a href="{% url 'course_detail' video.course.pk %}" class="btn btn-secondary">← Back to Course</a>
-    </div>
+    <iframe
+        id="youtube-player"
+        width="100%"
+        height="620"
+        src="https://www.youtube.com/embed/{{ video.youtube_link|cut:'https://www.youtube.com/watch?v=' }}?enablejsapi=1&amp;modestbranding=1&amp;rel=0&amp;showinfo=0&amp;iv_load_policy=3"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen>
+    </iframe>
 </div>
 
 <script>
-// ============== SECURITY FEATURES ==============
-
-// 1. Disable Right Click
 document.addEventListener('contextmenu', function(e) {
     e.preventDefault();
     return false;
 });
 
-// 2. Disable Print Screen & Common Screenshot Shortcuts
 document.addEventListener('keydown', function(e) {
-    if (e.key === "PrintScreen" || 
-        (e.ctrlKey && e.key === "p") || 
+    if (e.key === "PrintScreen" ||
+        (e.ctrlKey && e.key === "p") ||
         (e.metaKey && e.key === "p") ||
         (e.ctrlKey && e.shiftKey && e.key === "S")) {
         e.preventDefault();
@@ -57,50 +46,54 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// 3. Dynamic Moving Watermark (Anti-Recording)
 const watermark = document.getElementById('watermark');
 
 function moveWatermark() {
-    const x = Math.random() * 60 + 20;   // Random position
+    const x = Math.random() * 60 + 20;
     const y = Math.random() * 60 + 20;
     watermark.style.left = `${x}%`;
     watermark.style.top = `${y}%`;
     watermark.style.opacity = (Math.random() * 0.4 + 0.5).toString();
 }
 
-setInterval(moveWatermark, 7000);   // Move every 7 seconds
-moveWatermark(); // Initial position
+setInterval(moveWatermark, 7000);
+moveWatermark();
 
-// 4. Prevent Video Download / Inspector Tricks
 document.addEventListener('selectstart', e => e.preventDefault());
 document.addEventListener('dragstart', e => e.preventDefault());
-
-// Optional: Warn on tab switch / minimize
-document.addEventListener('visibilitychange', function() {
-    if (document.hidden) {
-        console.log("%cUser switched tab - Activity logged", "color: red");
-        // You can later send log to backend
-    }
-});
 </script>
 
 <style>
+.video-container {
+    position: relative;
+    background: #020617;
+    border-radius: 8px;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.25);
+    overflow: hidden;
+}
+.video-container iframe {
+    display: block;
+    min-height: 420px;
+}
 .watermark {
     position: absolute;
     color: rgba(255, 255, 255, 0.65);
-    font-size: 18px;
-    font-weight: bold;
+    font-size: 1rem;
+    font-weight: 700;
     text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.9);
     pointer-events: none;
     z-index: 100;
-    padding: 8px 16px;
-    border: 1px solid rgba(255,255,255,0.3);
-    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    border: 1px solid rgba(255,255,255,0.28);
+    border-radius: 7px;
     transition: all 0.6s ease;
     user-select: none;
 }
-.video-container {
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+@media (max-width: 767.98px) {
+    .video-container iframe {
+        height: 320px;
+        min-height: 320px;
+    }
 }
 </style>
 {% endblock %}

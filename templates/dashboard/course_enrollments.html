@@ -2,10 +2,10 @@
 {% block title %}Manage Enrollments{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-header">
     <div>
         <h2 class="mb-1">{{ course.title }}</h2>
-        <p class="text-muted mb-0">Manage student enrollment and course progress.</p>
+        <p class="page-kicker">Manage student enrollment and course progress.</p>
     </div>
     <a href="{% url 'dashboard:trainer_dashboard' %}" class="btn btn-outline-secondary">
         Back to Dashboard
@@ -14,26 +14,26 @@
 
 <div class="row mb-4">
     <div class="col-md-4 mb-3">
-        <div class="card text-center">
+        <div class="card metric-card text-center">
             <div class="card-body">
-                <h3 class="mb-1">{{ approved_count }}</h3>
-                <p class="text-muted mb-0">Enrolled Students</p>
+                <div class="metric-value">{{ approved_count }}</div>
+                <div class="metric-label">Enrolled Students</div>
             </div>
         </div>
     </div>
     <div class="col-md-4 mb-3">
-        <div class="card text-center">
+        <div class="card metric-card text-center">
             <div class="card-body">
-                <h3 class="mb-1">{{ pending_count }}</h3>
-                <p class="text-muted mb-0">Pending Requests</p>
+                <div class="metric-value">{{ pending_count }}</div>
+                <div class="metric-label">Pending Requests</div>
             </div>
         </div>
     </div>
     <div class="col-md-4 mb-3">
-        <div class="card text-center">
+        <div class="card metric-card text-center">
             <div class="card-body">
-                <h3 class="mb-1">{{ rejected_count }}</h3>
-                <p class="text-muted mb-0">Rejected Requests</p>
+                <div class="metric-value">{{ rejected_count }}</div>
+                <div class="metric-label">Rejected Requests</div>
             </div>
         </div>
     </div>

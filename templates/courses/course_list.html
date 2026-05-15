@@ -2,11 +2,14 @@
 {% block title %}All Courses{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h2 class="mb-4">Available Courses</h2>
+<div class="page-header">
+    <div>
+        <h2 class="mb-1">Available Courses</h2>
+        <p class="page-kicker">Browse approved courses and manage enrollment requests.</p>
     </div>
+</div>
 
+<div class="row">
     {% for course in courses %}
     <div class="col-md-6 col-lg-4 mb-4">
         <div class="card h-100">
@@ -57,7 +60,13 @@
     </div>
     {% empty %}
     <div class="col-12">
-        <div class="alert alert-info">No courses available yet.</div>
+        <div class="card">
+            <div class="card-body empty-state">
+                <i class="fas fa-book fa-3x mb-3"></i>
+                <h5>No courses available yet</h5>
+                <p class="text-muted mb-0">Approved courses will appear here.</p>
+            </div>
+        </div>
     </div>
     {% endfor %}
 </div>
