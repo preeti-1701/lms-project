@@ -30,10 +30,18 @@
                             {% else %}
                             <span class="badge bg-warning text-dark">Pending admin approval</span>
                             {% endif %}
+                            <div class="d-flex flex-wrap gap-2 mt-3">
+                                <span class="badge bg-primary">{{ course.approved_students_count }} enrolled</span>
+                                <span class="badge bg-warning text-dark">{{ course.pending_requests_count }} pending</span>
+                                <span class="badge bg-secondary">{{ course.rejected_requests_count }} rejected</span>
+                            </div>
                         </div>
                         <div class="text-end">
                             <a href="{% url 'course_detail' course.id %}" class="btn btn-outline-primary btn-sm mb-2">
                                 View
+                            </a>
+                            <a href="{% url 'dashboard:course_enrollments' course.id %}" class="btn btn-outline-success btn-sm mb-2">
+                                Students
                             </a>
                             <a href="{% url 'add_video' course.id %}" class="btn btn-outline-secondary btn-sm mb-2">
                                 Add Video

@@ -42,6 +42,9 @@ def enroll_course(request, course_id):
 @login_required
 def review_enrollment(request, enrollment_id, action):
     """Allow a trainer to approve or reject requests for their own courses."""
+    next_url = request.POST.get('next')
+    redirect_url = next_url if next_url and next_url.startswith('/') else None
+
     if request.user.role != 'trainer':
         messages.error(request, "Only trainers can review enrollment requests.")
         return redirect('course_list')
@@ -67,6 +70,8 @@ def review_enrollment(request, enrollment_id, action):
     else:
         messages.error(request, "Invalid enrollment action.")
 
+    if redirect_url:
+        return redirect(redirect_url)
     return redirect('dashboard:trainer_dashboard')
 
 

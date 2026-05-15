@@ -48,3 +48,52 @@ class EnrollmentRequestFlowTests(TestCase):
         enrollment.refresh_from_db()
         self.assertEqual(enrollment.status, Enrollment.STATUS_APPROVED)
         self.assertIsNotNone(enrollment.reviewed_at)
+
+    def test_trainer_dashboard_shows_course_enrollment_counts(self):
+        Enrollment.objects.create(
+            student=self.student,
+            course=self.course,
+            status=Enrollment.STATUS_APPROVED,
+        )
+        other_student = CustomUser.objects.create_user(
+            username='other-student',
+            email='other@example.com',
+            password='pass12345',
+            role='student',
+        )
+        Enrollment.objects.create(student=other_student, course=self.course)
+        self.client.force_login(self.trainer)
+
+        response = self.client.get(reverse('dashboard:trainer_dashboard'))
+
+        self.assertContains(response, '1 enrolled')
+        self.assertContains(response, '1 pending')
+        self.assertContains(
+            response,
+            reverse('dashboard:course_enrollments', args=[self.course.id]),
+        )
+
+    def test_trainer_can_view_only_own_course_enrollments(self):
+        other_trainer = CustomUser.objects.create_user(
+            username='other-trainer',
+            email='trainer2@example.com',
+            password='pass12345',
+            role='trainer',
+        )
+        other_course = Course.objects.create(
+            title='Private Course',
+            description='Another trainer course.',
+            trainer=other_trainer,
+            is_approved=True,
+        )
+        self.client.force_login(self.trainer)
+
+        own_response = self.client.get(
+            reverse('dashboard:course_enrollments', args=[self.course.id])
+        )
+        other_response = self.client.get(
+            reverse('dashboard:course_enrollments', args=[other_course.id])
+        )
+
+        self.assertEqual(own_response.status_code, 200)
+        self.assertEqual(other_response.status_code, 404)
