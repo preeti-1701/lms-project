@@ -12,7 +12,13 @@ def register(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            messages.success(request, "Registration successful! Please login.")
+            if user.role == 'student':
+                messages.success(request, "Registration successful! Please login.")
+            else:
+                messages.info(
+                    request,
+                    "Registration submitted. An existing admin must approve this account before you can login.",
+                )
             return redirect('login')
     else:
         form = CustomUserCreationForm()

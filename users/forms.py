@@ -10,5 +10,22 @@ class CustomUserCreationForm(UserCreationForm):
         model = CustomUser
         fields = ['username', 'email', 'role', 'password1', 'password2']
 
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        if user.role == 'student':
+            user.is_active = True
+            user.is_staff = False
+        else:
+            user.is_active = False
+            user.is_staff = False
+
+        if commit:
+            user.save()
+        return user
+
 class CustomAuthenticationForm(AuthenticationForm):
     username = forms.EmailField(label="Email")
+    error_messages = {
+        **AuthenticationForm.error_messages,
+        'inactive': "This account is waiting for admin approval.",
+    }
