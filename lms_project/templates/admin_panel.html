@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+<style>
+  .page-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .page-title { font-size: 20px; font-weight: 500; letter-spacing: -0.3px; }
+  .role-tag { font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* CREATE FORM */
+  .create-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 32px; }
+  .create-card h2 { font-size: 14px; font-weight: 500; margin-bottom: 14px; }
+  .form-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .form-row input, .form-row select { flex: 1; min-width: 140px; }
+
+  /* USER TABLE */
+  .user-table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .user-table th { padding: 10px 14px; text-align: left; font-size: 11px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-3); border-bottom: 1px solid var(--line); background: var(--bg); }
+  .user-table td { padding: 12px 14px; font-size: 13px; color: var(--ink); border-bottom: 1px solid var(--line); vertical-align: middle; }
+  .user-table tr:last-child td { border-bottom: none; }
+  .user-table tr.disabled-row td { color: var(--ink-3); }
+
+  /* INLINE EDIT */
+  .edit-row { display: none; background: var(--bg); }
+  .edit-row.open { display: table-row; }
+  .edit-row td { padding: 12px 14px; }
+  .edit-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .edit-form input, .edit-form select { flex: 1; min-width: 120px; padding: 6px 10px; font-size: 13px; }
+
+  .action-group { display: flex; gap: 6px; flex-wrap: wrap; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <div class="role-tag">Admin</div>
+    <h1 class="page-title">User Management</h1>
+  </div>
+  <a href="{% url 'dashboard' %}" class="btn btn-ghost btn-sm">← Dashboard</a>
+</div>
+
+<!-- CREATE USER -->
+<div class="create-card">
+  <h2>Create new user</h2>
+  <form method="POST">
+    {% csrf_token %}
+    <div class="form-row">
+      <input type="text"     name="username" placeholder="Username"       required>
+      <input type="email"    name="email"    placeholder="Email"          required>
+      <input type="password" name="password" placeholder="Password"       required>
+      <select name="role">
+        <option value="student">Student</option>
+        <option value="trainer">Trainer</option>
+        <option value="admin">Admin</option>
+      </select>
+      <button type="submit" name="create_user" class="btn btn-primary btn-sm">Create</button>
+    </div>
+  </form>
+</div>
+
+<!-- USER TABLE -->
+<table class="user-table">
+  <thead>
+    <tr>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Role</th>
+      <th>Status</th>
+      <th>Last IP</th>
+      <th>Device</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for u in users %}
+    <tr class="{% if u.is_disabled %}disabled-row{% endif %}">
+      <td>
+        {{ u.username }}
+        {% if u == request.user %}
+          <span class="badge badge-blue" style="font-size:10px;">you</span>
+        {% endif %}
+      </td>
+      <td>{{ u.email }}</td>
+      <td>
+        <span class="badge {% if u.role == 'admin' %}badge-red{% elif u.role == 'trainer' %}badge-blue{% else %}badge-gray{% endif %}">
+          {{ u.role }}
+        </span>
+      </td>
+      <td>
+        {% if u.is_disabled %}
+          <span class="badge badge-red">Disabled</span>
+        {% elif u.active_session_key %}
+          <span class="badge badge-green">&#x25cf; Online</span>
+        {% else %}
+          <span class="badge badge-gray">Offline</span>
+        {% endif %}
+      </td>
+      <td style="font-family: var(--mono); font-size: 12px;">{{ u.last_login_ip|default:"—" }}</td>
+      <td style="font-size: 12px; color: var(--ink-2);">{{ u.last_login_device|default:"—" }}</td>
+      <td>
+        <div class="action-group">
+          <!-- Edit toggle -->
+          <button class="btn btn-ghost btn-sm"
+                  onclick="toggleEdit('{{ u.id }}')">Edit</button>
+
+          <!-- Force logout -->
+          {% if u.active_session_key and u != request.user %}
+          <form method="POST" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="user_id" value="{{ u.id }}">
+            <button type="submit" name="force_logout" class="btn btn-warn btn-sm"
+                    onclick="return confirm('Force logout {{ u.username }}?')">Logout</button>
+          </form>
+          {% endif %}
+
+          <!-- Disable / Enable -->
+          {% if u != request.user %}
+          <form method="POST" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="user_id" value="{{ u.id }}">
+            {% if u.is_disabled %}
+              <button type="submit" name="enable_user" class="btn btn-success btn-sm">Enable</button>
+            {% else %}
+              <button type="submit" name="disable_user" class="btn btn-danger btn-sm"
+                      onclick="return confirm('Disable {{ u.username }}?')">Disable</button>
+            {% endif %}
+          </form>
+
+          <!-- Delete -->
+          <form method="POST" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="user_id" value="{{ u.id }}">
+            <button type="submit" name="delete_user" class="btn btn-danger btn-sm"
+                    onclick="return confirm('Permanently delete {{ u.username }}?')">Delete</button>
+          </form>
+          {% endif %}
+        </div>
+      </td>
+    </tr>
+
+    <!-- Inline edit row -->
+    <tr class="edit-row" id="edit-{{ u.id }}">
+      <td colspan="7">
+        <form method="POST" class="edit-form">
+          {% csrf_token %}
+          <input type="hidden" name="user_id" value="{{ u.id }}">
+          <input type="text"  name="username" value="{{ u.username }}" placeholder="Username">
+          <input type="email" name="email"    value="{{ u.email }}"    placeholder="Email">
+          <select name="role">
+            <option value="student"  {% if u.role == 'student'  %}selected{% endif %}>Student</option>
+            <option value="trainer"  {% if u.role == 'trainer'  %}selected{% endif %}>Trainer</option>
+            <option value="admin"    {% if u.role == 'admin'    %}selected{% endif %}>Admin</option>
+          </select>
+          <button type="submit" name="edit_user" class="btn btn-primary btn-sm">Save</button>
+          <button type="button" class="btn btn-ghost btn-sm"
+                  onclick="toggleEdit('{{ u.id }}')">Cancel</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleEdit(uid) {
+  const row = document.getElementById('edit-' + uid);
+  row.classList.toggle('open');
+}
+</script>
+{% endblock %}
