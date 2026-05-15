@@ -24,8 +24,8 @@ admin.site.register(User, UserAdmin)
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ('title', 'created_by', 'difficulty_level', 'status', 'created_at')
-    list_filter = ('status', 'difficulty_level', 'created_by')
+    list_display = ('title', 'trainer', 'created_by', 'difficulty_level', 'status', 'created_at')
+    list_filter = ('status', 'difficulty_level', 'trainer', 'created_by')
     search_fields = ('title', 'description')
     readonly_fields = ('created_at',)
 

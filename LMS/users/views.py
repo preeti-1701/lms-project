@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout as django_logout
 from django.contrib.auth.views import LoginView, LogoutView
 from django.views.generic import CreateView, TemplateView, ListView, FormView
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .forms import CustomUserCreationForm, CustomLoginForm, TrainerRegistrationForm
@@ -164,6 +164,42 @@ LearnDesk Team.'''
                     print(f"Failed to send email to {email}: {str(e)}")
                     messages.warning(request, f"Student added successfully (Code: {student_code}), but we couldn't send the email. Please provide the code manually.")
 
+        elif action == 'register_trainer':
+            email = request.POST.get('email')
+            full_name = request.POST.get('full_name')
+            mobile = request.POST.get('mobile')
+            
+            if User.objects.filter(email=email).exists():
+                messages.error(request, "A user with this email already exists.")
+            else:
+                trainer_code = "TRN-" + ''.join(random.choices(string.digits, k=4))
+                User.objects.create_user(
+                    email=email,
+                    password=trainer_code,
+                    full_name=full_name,
+                    mobile=mobile,
+                    role='TRAINER'
+                )
+                messages.success(request, f"Trainer registered! Initial Password/Code is: {trainer_code}")
+
+        elif action == 'edit_student':
+            student_id = request.POST.get('student_id')
+            full_name = request.POST.get('full_name')
+            email = request.POST.get('email')
+            mobile = request.POST.get('mobile')
+            if student_id and full_name and email:
+                try:
+                    student = User.objects.get(id=student_id, role='STUDENT')
+                    student.full_name = full_name
+                    student.email = email
+                    student.mobile = mobile
+                    student.save()
+                    messages.success(request, "Student details updated successfully!")
+                except User.DoesNotExist:
+                    messages.error(request, "Student not found.")
+            else:
+                messages.error(request, "Full Name and Email are required.")
+                
         elif action == 'add_enrollment':
             student_id = request.POST.get('student_id')
             course_id = request.POST.get('course_id')
@@ -178,7 +214,76 @@ LearnDesk Team.'''
             else:
                 messages.error(request, "Please select both a student and a course.")
         
-        return redirect('admin_dashboard')
+        elif action == 'create_course':
+            title = request.POST.get('title')
+            description = request.POST.get('description')
+            thumbnail = request.POST.get('thumbnail')
+            difficulty_level = request.POST.get('difficulty_level')
+            status = request.POST.get('status')
+            trainer_id = request.POST.get('trainer_id')
+            
+            if title and trainer_id:
+                try:
+                    trainer = User.objects.get(id=trainer_id, role='TRAINER')
+                    Course.objects.create(
+                        title=title,
+                        description=description,
+                        thumbnail=thumbnail,
+                        difficulty_level=difficulty_level,
+                        status=status,
+                        trainer=trainer,
+                        created_by=request.user
+                    )
+                    messages.success(request, "Course created successfully!")
+                except User.DoesNotExist:
+                    messages.error(request, "Selected trainer not found.")
+            else:
+                messages.error(request, "Title and Trainer are required.")
+        elif action == 'edit_course':
+            course_id = request.POST.get('course_id')
+            title = request.POST.get('title')
+            description = request.POST.get('description')
+            thumbnail = request.POST.get('thumbnail')
+            difficulty_level = request.POST.get('difficulty_level')
+            status = request.POST.get('status')
+            trainer_id = request.POST.get('trainer_id')
+            
+            try:
+                course = Course.objects.get(id=course_id)
+                if title and trainer_id:
+                    trainer = User.objects.get(id=trainer_id, role='TRAINER')
+                    course.title = title
+                    course.description = description
+                    course.thumbnail = thumbnail
+                    course.difficulty_level = difficulty_level
+                    course.status = status
+                    course.trainer = trainer
+                    course.save()
+                    messages.success(request, "Course updated successfully!")
+                else:
+                    messages.error(request, "Title and Trainer are required.")
+            except Course.DoesNotExist:
+                messages.error(request, "Course not found.")
+            except User.DoesNotExist:
+                messages.error(request, "Selected trainer not found.")
+        elif action == 'delete_course':
+            course_id = request.POST.get('course_id')
+            try:
+                course = Course.objects.get(id=course_id)
+                course.delete()
+                messages.success(request, "Course deleted successfully!")
+            except Course.DoesNotExist:
+                messages.error(request, "Course not found.")
+        
+        tab_hash = ""
+        if action in ['add_student', 'edit_student', 'add_enrollment']:
+            tab_hash = "#students"
+        elif action in ['create_course', 'edit_course', 'delete_course']:
+            tab_hash = "#courses"
+        elif action == 'register_trainer':
+            tab_hash = "#trainers"
+            
+        return redirect(reverse('admin_dashboard') + tab_hash)
 
 @method_decorator(never_cache, name='dispatch')
 class AdminCourseVideosView(LoginRequiredMixin, AdminRequiredMixin, TemplateView):
@@ -241,9 +346,9 @@ class TrainerDashboardView(LoginRequiredMixin, TrainerRequiredMixin, TemplateVie
         context = super().get_context_data(**kwargs)
         trainer = self.request.user
         
-        context['my_courses'] = Course.objects.filter(created_by=trainer).order_by('-created_at')
-        context['my_videos'] = CourseVideo.objects.filter(course__created_by=trainer)
-        context['my_enrollments'] = Enrollment.objects.filter(course__created_by=trainer).select_related('student', 'course').order_by('-enrolled_at')
+        context['my_courses'] = Course.objects.filter(trainer=trainer).order_by('-created_at')
+        context['my_videos'] = CourseVideo.objects.filter(course__trainer=trainer)
+        context['my_enrollments'] = Enrollment.objects.filter(course__trainer=trainer).select_related('student', 'course').order_by('-enrolled_at')
         
         student_ids = context['my_enrollments'].values_list('student_id', flat=True).distinct()
         context['my_students'] = User.objects.filter(id__in=student_ids)
@@ -270,6 +375,7 @@ class TrainerDashboardView(LoginRequiredMixin, TrainerRequiredMixin, TemplateVie
                     thumbnail=thumbnail,
                     difficulty_level=difficulty_level,
                     status=status,
+                    trainer=request.user,
                     created_by=request.user
                 )
                 messages.success(request, "Course created successfully!")
@@ -282,7 +388,7 @@ class TrainerDashboardView(LoginRequiredMixin, TrainerRequiredMixin, TemplateVie
             status = request.POST.get('status')
             
             try:
-                course = Course.objects.get(id=course_id, created_by=request.user)
+                course = Course.objects.get(id=course_id, trainer=request.user)
                 if title:
                     course.title = title
                     course.description = description
@@ -296,7 +402,11 @@ class TrainerDashboardView(LoginRequiredMixin, TrainerRequiredMixin, TemplateVie
         elif action == 'delete_video':
             pass # Removed from here, moved to ManageCourseVideosView
                 
-        return redirect('trainer_dashboard')
+        tab_hash = ""
+        if action in ['create_course', 'edit_course']:
+            tab_hash = "#course-list"
+                
+        return redirect(reverse('trainer_dashboard') + tab_hash)
 
 @method_decorator(never_cache, name='dispatch')
 class ManageCourseVideosView(LoginRequiredMixin, TrainerRequiredMixin, TemplateView):
@@ -306,7 +416,7 @@ class ManageCourseVideosView(LoginRequiredMixin, TrainerRequiredMixin, TemplateV
         context = super().get_context_data(**kwargs)
         course_id = self.kwargs.get('course_id')
         try:
-            course = Course.objects.get(id=course_id, created_by=self.request.user)
+            course = Course.objects.get(id=course_id, trainer=self.request.user)
             context['course'] = course
             context['videos'] = course.videos.all()
         except Course.DoesNotExist:
@@ -318,7 +428,7 @@ class ManageCourseVideosView(LoginRequiredMixin, TrainerRequiredMixin, TemplateV
         action = request.POST.get('action')
         
         try:
-            course = Course.objects.get(id=course_id, created_by=request.user)
+            course = Course.objects.get(id=course_id, trainer=request.user)
             
             if action == 'add_video':
                 title = request.POST.get('title')

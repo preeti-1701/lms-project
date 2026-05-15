@@ -476,6 +476,32 @@
             document.getElementById('course-form-status-input').value = "DRAFT";
             document.getElementById('course-form-submit-btn').innerHTML = '<i class="fa-solid fa-save"></i> Save Course';
         }
+
+        // Auto-dismiss alerts after 5 seconds
+        document.addEventListener("DOMContentLoaded", function() {
+            if(window.location.hash) {
+                const hash = window.location.hash.substring(1);
+                // Find menu item for this hash to pass as 'el' if possible
+                const menuItems = document.querySelectorAll('.menu-item');
+                let targetEl = null;
+                menuItems.forEach(item => {
+                    if (item.getAttribute('onclick') && item.getAttribute('onclick').includes("'" + hash + "'")) {
+                        targetEl = item;
+                    }
+                });
+                switchTab(hash, targetEl);
+            }
+
+            setTimeout(() => {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    alert.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+                    alert.style.opacity = "0";
+                    alert.style.transform = "translateY(-10px)";
+                    setTimeout(() => alert.remove(), 600);
+                });
+            }, 5000);
+        });
     </script>
 </body>
 </html>

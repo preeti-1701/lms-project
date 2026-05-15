@@ -100,6 +100,40 @@
         .modal-close:hover { background: rgba(255,255,255,0.4); }
         .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; }
         .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+        
+        .video-watermark {
+            position: absolute;
+            bottom: 50px;
+            right: 20px;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 13px;
+            font-weight: 600;
+            pointer-events: none;
+            z-index: 100;
+            user-select: none;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+            letter-spacing: 0.5px;
+            background: rgba(0,0,0,0.1);
+            padding: 4px 10px;
+            border-radius: 4px;
+        }
+
+        .security-warning {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--danger);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            z-index: 2000;
+            display: none;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+            animation: fadeInDown 0.3s ease;
+        }
+        @keyframes fadeInDown { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
     </style>
 </head>
 <body>
@@ -170,8 +204,8 @@
                     
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-top: auto;">
                         <div style="display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-size: 14px; font-weight: 500;">
-                            <div class="avatar" style="width: 32px; height: 32px; font-size: 12px; background: var(--warning);">{{ course.created_by.full_name|make_list|first }}</div>
-                            Instructor: {{ course.created_by.full_name }}
+                            <div class="avatar" style="width: 32px; height: 32px; font-size: 12px; background: var(--warning);">{{ course.trainer.full_name|make_list|first }}</div>
+                            Instructor: {{ course.trainer.full_name }}
                         </div>
                         
                         {% if not is_enrolled %}
@@ -240,11 +274,17 @@
     </div>
 
     <!-- Video Player Modal -->
-    <div class="modal-overlay" id="videoModal">
+    <div class="modal-overlay" id="videoModal" oncontextmenu="return false;">
+        <div class="security-warning" id="securityWarning">
+            <i class="fa-solid fa-circle-exclamation"></i> Unauthorized screenshots or recordings are prohibited.
+        </div>
         <div class="modal-content">
             <button class="modal-close" onclick="closeVideo()"><i class="fa-solid fa-xmark"></i></button>
             <div class="video-container" id="videoContainer">
                 <!-- iframe injected here -->
+            </div>
+            <div class="video-watermark" id="videoWatermark">
+                LearnDesk | {{ course.trainer.full_name }}
             </div>
         </div>
     </div>
@@ -295,6 +335,41 @@
 
         window.addEventListener("blur", () => {
             pauseVideo();
+        });
+
+        // Security: Prevent right-click in modal
+        const videoModal = document.getElementById('videoModal');
+        videoModal.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            showSecurityWarning();
+        });
+
+        function showSecurityWarning() {
+            const warning = document.getElementById('securityWarning');
+            warning.style.display = 'block';
+            setTimeout(() => {
+                warning.style.display = 'none';
+            }, 3000);
+        }
+
+        // Security: Detect PrintScreen
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'PrintScreen') {
+                navigator.clipboard.writeText(''); // Clear clipboard
+                showSecurityWarning();
+            }
+        });
+
+        // Detect screen recording/screenshot software (basic)
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && (e.key === 'S' || e.key === 'I' || e.key === 'C')) {
+                // Snipping tool or Inspect
+                showSecurityWarning();
+            }
+            if (e.metaKey && e.shiftKey && (e.key === '4' || e.key === '3')) {
+                // Mac screenshots
+                showSecurityWarning();
+            }
         });
     </script>
 </body>

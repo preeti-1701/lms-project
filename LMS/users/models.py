@@ -67,7 +67,8 @@ class Course(models.Model):
     thumbnail = models.TextField(blank=True, null=True, help_text="URL or Base64 data for course thumbnail image")
     difficulty_level = models.CharField(max_length=15, choices=DIFFICULTY_CHOICES, default="BEGINNER")
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="DRAFT")
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_courses')
+    trainer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='trainer_courses')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_courses', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

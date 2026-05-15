@@ -166,8 +166,8 @@
                             
                             <div class="course-footer">
                                 <div class="trainer-info">
-                                    <div class="trainer-avatar">{{ course.created_by.full_name|make_list|first }}</div>
-                                    {{ course.created_by.full_name }}
+                                    <div class="trainer-avatar">{{ course.trainer.full_name|make_list|first }}</div>
+                                    {{ course.trainer.full_name }}
                                 </div>
                                 
                                 {% if course.id not in enrolled_course_ids %}
@@ -214,8 +214,8 @@
                             
                             <div class="course-footer">
                                 <div class="trainer-info">
-                                    <div class="trainer-avatar">{{ course.created_by.full_name|make_list|first }}</div>
-                                    {{ course.created_by.full_name }}
+                                    <div class="trainer-avatar">{{ course.trainer.full_name|make_list|first }}</div>
+                                    {{ course.trainer.full_name }}
                                 </div>
                                 <span class="btn btn-outline">Continue <i class="fa-solid fa-arrow-right" style="margin-left: 5px;"></i></span>
                             </div>
@@ -255,6 +255,19 @@
                 document.getElementById('topbar-title').innerText = titleMap[tabId] || 'Student Portal';
             }
         }
+
+        // Auto-dismiss alerts after 5 seconds
+        document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(() => {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    alert.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+                    alert.style.opacity = "0";
+                    alert.style.transform = "translateY(-10px)";
+                    setTimeout(() => alert.remove(), 600);
+                });
+            }, 5000);
+        });
     </script>
 </body>
 </html>
