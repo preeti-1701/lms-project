@@ -6,6 +6,15 @@ from courses.models import Course
 
 
 class Enrollment(models.Model):
+    STATUS_PENDING = 'pending'
+    STATUS_APPROVED = 'approved'
+    STATUS_REJECTED = 'rejected'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_APPROVED, 'Approved'),
+        (STATUS_REJECTED, 'Rejected'),
+    ]
+
     student = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
@@ -20,6 +29,13 @@ class Enrollment(models.Model):
     )
 
     enrolled_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_PENDING,
+    )
+    requested_at = models.DateTimeField(default=timezone.now)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
     last_accessed = models.DateTimeField(auto_now=True)           # Tracks last activity
     progress = models.PositiveIntegerField(default=0)             # 0-100
     completed = models.BooleanField(default=False)
@@ -39,12 +55,27 @@ class Enrollment(models.Model):
         verbose_name_plural = "Enrollments"
         indexes = [
             models.Index(fields=['student', 'course']),
+            models.Index(fields=['status', 'requested_at']),
             models.Index(fields=['completed', 'completed_at']),
             models.Index(fields=['last_accessed']),
         ]
 
     def __str__(self):
-        return f"{self.student.email} - {self.course.title}"
+        return f"{self.student.email} - {self.course.title} ({self.get_status_display()})"
+
+    @property
+    def is_approved(self):
+        return self.status == self.STATUS_APPROVED
+
+    def approve(self):
+        self.status = self.STATUS_APPROVED
+        self.reviewed_at = timezone.now()
+        self.save(update_fields=['status', 'reviewed_at', 'last_accessed'])
+
+    def reject(self):
+        self.status = self.STATUS_REJECTED
+        self.reviewed_at = timezone.now()
+        self.save(update_fields=['status', 'reviewed_at', 'last_accessed'])
 
     def save(self, *args, **kwargs):
         # Auto-complete logic

@@ -1,23 +1,84 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trainer Dashboard - LMS</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
-        .header { background: #28a745; color: white; padding: 20px; border-radius: 8px; text-align: center; }
-        .card { background: white; padding: 20px; margin: 15px 0; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>Welcome, {{ user.email }} (Trainer)</h1>
-        <a href="{% url 'logout' %}" style="color:white;">Logout</a>
+{% extends 'base.html' %}
+{% block title %}Trainer Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Trainer Dashboard</h2>
+        <p class="text-muted mb-0">Create courses and review student enrollment requests.</p>
     </div>
-    <div class="card">
-        <h2>Manage Your Courses</h2>
-        <p>Course management coming soon...</p>
+    <a href="{% url 'create_course' %}" class="btn btn-success">
+        <i class="fas fa-plus-circle"></i> Add Course
+    </a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-lg-8 mb-4 mb-lg-0">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Your Courses</h5>
+            </div>
+            <div class="card-body">
+                {% for course in courses %}
+                <div class="border-bottom pb-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                            <h5 class="mb-1">{{ course.title }}</h5>
+                            <p class="text-muted mb-2">{{ course.description|truncatewords:24 }}</p>
+                            {% if course.is_approved %}
+                            <span class="badge bg-success">Approved by admin</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">Pending admin approval</span>
+                            {% endif %}
+                        </div>
+                        <div class="text-end">
+                            <a href="{% url 'course_detail' course.id %}" class="btn btn-outline-primary btn-sm mb-2">
+                                View
+                            </a>
+                            <a href="{% url 'add_video' course.id %}" class="btn btn-outline-secondary btn-sm mb-2">
+                                Add Video
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5">
+                    <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                    <h5>No Courses Yet</h5>
+                    <p class="text-muted">Add your first course and submit it for admin approval.</p>
+                    <a href="{% url 'create_course' %}" class="btn btn-primary">Create Course</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
-</body>
-</html>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Enrollment Requests</h5>
+            </div>
+            <div class="card-body">
+                {% for enrollment in pending_requests %}
+                <div class="border-bottom pb-3 mb-3">
+                    <h6 class="mb-1">{{ enrollment.student.email }}</h6>
+                    <p class="text-muted small mb-3">{{ enrollment.course.title }}</p>
+                    <div class="d-flex gap-2">
+                        <form method="POST" action="{% url 'review_enrollment' enrollment.id 'approve' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                        </form>
+                        <form method="POST" action="{% url 'review_enrollment' enrollment.id 'reject' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Reject</button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted mb-0">No pending enrollment requests.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

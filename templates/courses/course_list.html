@@ -12,26 +12,46 @@
         <div class="card h-100">
             <div class="card-body">
                 <h5 class="card-title">{{ course.title }}</h5>
-                <p class="card-text text-muted">
-                    By: {{ course.trainer.email }}
-                </p>
+                <p class="card-text text-muted">By: {{ course.trainer.email }}</p>
                 <p class="card-text">{{ course.description|truncatewords:30 }}</p>
-                
-                {% if user.role == 'student' %}
-                    {% if course.enrollments.filter(student=user).exists %}
-                        <a href="{% url 'course_detail' course.pk %}" class="btn btn-success btn-sm">
-                            Continue Learning →
-                        </a>
+
+                {% if user.role == 'trainer' %}
+                    {% if course.is_approved %}
+                    <span class="badge bg-success mb-3">Approved</span>
                     {% else %}
-                        <a href="{% url 'enroll_course' course.pk %}" class="btn btn-primary btn-sm">
-                            Enroll Now
+                    <span class="badge bg-warning text-dark mb-3">Pending admin approval</span>
+                    {% endif %}
+                {% endif %}
+
+                <div>
+                    {% if user.role == 'student' %}
+                        {% if course.user_enrollment.status == 'approved' %}
+                            <a href="{% url 'course_detail' course.pk %}" class="btn btn-success btn-sm">
+                                Continue Learning
+                            </a>
+                        {% elif course.user_enrollment.status == 'pending' %}
+                            <span class="badge bg-warning text-dark">Request pending</span>
+                        {% elif course.user_enrollment.status == 'rejected' %}
+                            <form method="POST" action="{% url 'enroll_course' course.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-primary btn-sm">
+                                    Request Again
+                                </button>
+                            </form>
+                        {% else %}
+                            <form method="POST" action="{% url 'enroll_course' course.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    Request Enrollment
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% else %}
+                        <a href="{% url 'course_detail' course.pk %}" class="btn btn-primary btn-sm">
+                            View Course
                         </a>
                     {% endif %}
-                {% else %}
-                    <a href="{% url 'course_detail' course.pk %}" class="btn btn-primary btn-sm">
-                        View Course
-                    </a>
-                {% endif %}
+                </div>
             </div>
         </div>
     </div>

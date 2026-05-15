@@ -19,7 +19,7 @@
 </div>
 
 <div class="row">
-    {% for enrollment in user.enrollments.all %}
+    {% for enrollment in approved_enrollments %}
     <div class="col-lg-6 col-xl-4 mb-4">
         <div class="card h-100">
             <div class="card-body">
@@ -79,4 +79,36 @@
     </div>
     {% endfor %}
 </div>
+
+{% if pending_enrollments or rejected_enrollments %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Enrollment Requests</h5>
+            </div>
+            <div class="card-body">
+                {% for enrollment in pending_enrollments %}
+                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                    <div>
+                        <strong>{{ enrollment.course.title }}</strong>
+                        <div class="text-muted small">Trainer: {{ enrollment.course.trainer.email }}</div>
+                    </div>
+                    <span class="badge bg-warning text-dark">Pending trainer approval</span>
+                </div>
+                {% endfor %}
+                {% for enrollment in rejected_enrollments %}
+                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                    <div>
+                        <strong>{{ enrollment.course.title }}</strong>
+                        <div class="text-muted small">Trainer: {{ enrollment.course.trainer.email }}</div>
+                    </div>
+                    <span class="badge bg-danger">Rejected</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

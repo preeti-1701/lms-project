@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}{{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start gap-3">
+                    <div>
+                        <h2 class="mb-2">{{ course.title }}</h2>
+                        <p class="text-muted mb-3">Trainer: {{ course.trainer.email }}</p>
+                    </div>
+                    {% if course.is_approved %}
+                    <span class="badge bg-success">Approved</span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark">Pending admin approval</span>
+                    {% endif %}
+                </div>
+                <p>{{ course.description }}</p>
+
+                {% if user.role == 'student' %}
+                    {% if enrollment.status == 'approved' %}
+                    <div class="alert alert-success">Your enrollment is approved.</div>
+                    {% elif enrollment.status == 'pending' %}
+                    <div class="alert alert-warning">Your request is waiting for trainer approval.</div>
+                    {% elif enrollment.status == 'rejected' %}
+                    <div class="alert alert-danger">Your previous enrollment request was rejected.</div>
+                    <form method="POST" action="{% url 'enroll_course' course.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">Request Again</button>
+                    </form>
+                    {% else %}
+                    <form method="POST" action="{% url 'enroll_course' course.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">Request Enrollment</button>
+                    </form>
+                    {% endif %}
+                {% endif %}
+
+                {% if user == course.trainer %}
+                <a href="{% url 'add_video' course.id %}" class="btn btn-outline-primary">
+                    <i class="fas fa-plus"></i> Add Video
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Course Videos</h5>
+            </div>
+            <div class="card-body">
+                {% if user.role == 'student' and enrollment.status != 'approved' %}
+                <p class="text-muted mb-0">Videos unlock after the trainer approves your enrollment request.</p>
+                {% else %}
+                    {% for video in videos %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+                        <div>
+                            <h6 class="mb-1">{{ video.title }}</h6>
+                            {% if video.duration %}
+                            <small class="text-muted">{{ video.duration }}</small>
+                            {% endif %}
+                        </div>
+                        <a href="{{ video.youtube_link }}" target="_blank" class="btn btn-outline-danger btn-sm">
+                            <i class="fab fa-youtube"></i> Watch
+                        </a>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">No videos have been added yet.</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -9,6 +9,11 @@ urlpatterns = [
         views.enroll_course,
         name='enroll_course'
     ),
+    path(
+        'review/<int:enrollment_id>/<str:action>/',
+        views.review_enrollment,
+        name='review_enrollment'
+    ),
     
     # Update Progress (Recommended for YouTube player integration)
     path(
