@@ -12,6 +12,8 @@ class EmailBackend:
             else:
                 user = User.objects.get(username=username)
             if user.check_password(password):
+                if user.is_disabled:
+                    return None
                 return user
         except User.DoesNotExist:
             return None

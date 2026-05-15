@@ -1,7 +1,7 @@
 from django.shortcuts import redirect
 from django.contrib.auth import logout
 
-EXCLUDED_PATHS = ['/login/', '/register/', '/admin/']
+EXCLUDED_PATHS = ['/login/', '/register/', '/admin/' , '/admin-panel/']
 
 class SingleSessionMiddleware:
     def __init__(self, get_response):

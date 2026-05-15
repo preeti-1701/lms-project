@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from accounts.views import login_view , logout_view , register_view , home_view
+from accounts.views import login_view , logout_view , register_view , home_view , admin_panel
 from courses.views import dashboard
 
 urlpatterns = [
@@ -26,4 +26,5 @@ urlpatterns = [
     path('dashboard/',dashboard , name='dashboard'),
     path('logout/',logout_view,name='logout'),
     path('register/' , register_view , name='register'),
+    path("admin-panel/" , admin_panel , name='admin_panel')
 ]

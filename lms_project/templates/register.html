@@ -1,59 +1,52 @@
 {% extends 'base.html' %}
-
 {% block content %}
 
-<div class="row justify-content-center mt-5">
-    <div class="col-md-5 col-lg-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-4">
-                <div class="text-center mb-4">
-                    <h3 class="fw-bold text-success">Create Account</h3>
-                    <p class="text-muted small">Join the LMS community today</p>
-                </div>
-                {% if error %}
-    <div class="alert alert-danger">{{ error }}</div>
-{% endif %}
+<div style="max-width: 380px; margin: 60px auto 0;">
 
-                <form method="POST">
-                    {% csrf_token %}
+  <div style="margin-bottom: 28px;">
+    <h1 style="font-size: 22px; font-weight: 500; letter-spacing: -0.3px;">Create account</h1>
+    <p style="color: var(--ink-2); font-size: 14px; margin-top: 4px;">Fill in the details below to get started.</p>
+  </div>
 
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold">Username</label>
-                        <input type="text" name="username" class="form-control" placeholder="johndoe" required>
-                    </div>
+  {% if error %}
+  <div class="alert alert-error">{{ error }}</div>
+  {% endif %}
 
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold">Email Address</label>
-                        <input type="email" name="email" class="form-control" placeholder="name@example.com" required>
-                    </div>
+  <form method="POST">
+    {% csrf_token %}
 
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold">Password</label>
-                        <input type="password" name="password" class="form-control" placeholder="Create a strong password" required>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label small fw-semibold">I am a...</label>
-                        <select name="role" class="form-select">
-                            <option value="student">Student</option>
-                            <option value="trainer">Trainer</option>
-                        </select>
-                    </div>
-
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-success py-2 fw-bold">Register</button>
-                    </div>
-                </form>
-
-                <div class="text-center mt-4">
-                    <p class="mb-0 text-muted small">
-                        Already have an account? 
-                        <a href="{% url 'login' %}" class="text-decoration-none fw-bold text-success">Log in here</a>
-                    </p>
-                </div>
-            </div>
-        </div>
+    <div class="field">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" placeholder="johndoe" required autofocus>
     </div>
+
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" placeholder="you@example.com" required>
+    </div>
+
+    <div class="field">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" placeholder="Create a strong password" required>
+    </div>
+
+    <div class="field">
+      <label for="role">I am a</label>
+      <select id="role" name="role">
+        <option value="student">Student</option>
+        <option value="trainer">Trainer</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 8px; padding: 10px;">
+      Create account
+    </button>
+  </form>
+
+  <p style="text-align: center; margin-top: 24px; font-size: 13px; color: var(--ink-2);">
+    Already have an account? <a href="{% url 'login' %}" style="color: var(--accent); text-decoration: none; font-weight: 500;">Sign in</a>
+  </p>
+
 </div>
 
 {% endblock %}

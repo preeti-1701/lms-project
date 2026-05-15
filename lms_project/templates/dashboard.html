@@ -1,196 +1,422 @@
 {% extends 'base.html' %}
+{% block extra_head %}
+<style>
+  .page-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .page-title {
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: -0.3px;
+  }
+  .role-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* CREATE COURSE BAR */
+  .create-bar {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .create-bar input { flex: 1; }
+
+  /* COURSE LIST */
+  .course-item {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+
+  .course-header {
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--line);
+    gap: 12px;
+  }
+
+  .course-title {
+    font-weight: 500;
+    font-size: 15px;
+  }
+
+  .course-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .course-actions input[type="text"] {
+    width: 140px;
+    padding: 5px 10px;
+    font-size: 13px;
+  }
+
+  .course-body {
+    padding: 16px 20px;
+  }
+
+  /* TRAINER TOOLS */
+  .tools-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  .tool-section label {
+    margin-bottom: 8px;
+  }
+
+  .tool-section .input-row {
+    display: flex;
+    gap: 6px;
+  }
+
+  .tool-section .input-row input,
+  .tool-section .input-row select {
+    flex: 1;
+  }
+
+  .video-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .video-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    font-family: var(--font);
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .video-btn:hover { background: var(--accent-light); border-color: #bfdbfe; color: var(--accent); }
+  .video-btn .play-dot {
+    width: 16px;
+    height: 16px;
+    background: #ef4444;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .video-btn .play-dot::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 3.5px 0 3.5px 6px;
+    border-color: transparent transparent transparent white;
+    margin-left: 1px;
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--ink-3);
+    font-size: 14px;
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+  }
+
+  /* VIDEO MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal-box {
+    background: #111;
+    border-radius: 10px;
+    width: min(800px, 95vw);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .modal-top {
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #333;
+  }
+
+  .modal-top span {
+    font-size: 13px;
+    color: #aaa;
+    font-family: var(--mono);
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 4px;
+  }
+  .modal-close:hover { color: #fff; }
+
+  .modal-video {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+  }
+  .modal-video iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  .watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-20deg);
+    font-family: var(--mono);
+    font-size: 14px;
+    color: rgba(255,255,255,0.12);
+    pointer-events: none;
+    z-index: 10;
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-3);
+    margin-bottom: 10px;
+  }
+
+  @media (max-width: 600px) {
+    .tools-row { grid-template-columns: 1fr; }
+    .course-header { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h2 class="text-capitalize">{{ user.role }} Dashboard</h2>
-  <span class="badge bg-primary px-3 py-2">Active Session</span>
+<div class="page-header">
+  <div>
+    <div class="role-tag">{{ user.role }}</div>
+    <h1 class="page-title">Dashboard</h1>
+  </div>
+  <span class="badge badge-green">&#x25cf; Active</span>
 </div>
 
-{% if user.role == 'trainer' %}
-<div class="card mb-5 border-0 shadow-sm">
-  <div class="card-body">
-    <h4 class="card-title mb-3">Add New Course</h4>
-    <form method="POST" class="row g-3">
-      {% csrf_token %}
-      <div class="col-md-9">
-        <input type="text" name="title" class="form-control" placeholder="Course Title" required>
+{% if is_admin %}
+<form method="POST" class="create-bar">
+  {% csrf_token %}
+  <input type="text" name="title" placeholder="New course title..." required>
+  <button type="submit" name="add_course" class="btn btn-primary btn-sm">Create course</button>
+</form>
+{% endif %}
+
+{% if courses %}
+  {% for course in courses %}
+  <div class="course-item">
+
+    <div class="course-header">
+      <span class="course-title">{{ course.title }}</span>
+      {% if course.trainer %}
+        <span class="badge badge-gray">{{ course.trainer.username }}</span>
+      {% else %}
+        <span class="badge badge-red">No trainer assigned</span>
+      {% endif %}
+
+      {% if is_admin %}
+      <div class="course-actions">
+        <form method="POST" style="display:flex; gap:6px; align-items:center;">
+          {% csrf_token %}
+          <input type="hidden" name="course_id" value="{{ course.id }}">
+          <input type="text" name="title" placeholder="Rename...">
+          <button type="submit" name="update_course" class="btn btn-warn btn-sm">Rename</button>
+        </form>
+        <form method="POST">
+          {% csrf_token %}
+          <input type="hidden" name="course_id" value="{{ course.id }}">
+          <button type="submit" name="delete_course" class="btn btn-danger btn-sm"
+                  onclick="return confirm('Delete this course?')">Delete</button>
+        </form>
       </div>
-      <div class="col-md-3">
-        <button type="submit" name="add_course" class="btn btn-success w-100">Create Course</button>
+      {% endif %}
+    </div>
+
+    <div class="course-body">
+
+      {% if is_admin %}
+      <div class="tools-row">
+
+        <div class="tool-section">
+          <div class="section-label">Assign trainer</div>
+          <form method="POST" class="input-row">
+            {% csrf_token %}
+            <input type="hidden" name="course_id" value="{{ course.id }}">
+            <select name="trainer_id">
+              {% for trainer in trainers %}
+              <option value="{{ trainer.id }}" {% if course.trainer == trainer %}selected{% endif %}>
+                {{ trainer.username }}
+              </option>
+              {% endfor %}
+            </select>
+            <button type="submit" name="assign_trainer" class="btn btn-ghost btn-sm">Assign</button>
+          </form>
+        </div>
+
+        <div class="tool-section">
+          <div class="section-label">Assign student</div>
+          <form method="POST" class="input-row">
+            {% csrf_token %}
+            <input type="hidden" name="course_id" value="{{ course.id }}">
+            <select name="student_id">
+              {% for student in students %}
+              <option value="{{ student.id }}">{{ student.username }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" name="assign_student" class="btn btn-ghost btn-sm">Assign</button>
+          </form>
+        </div>
+
       </div>
-    </form>
+      <hr>
+      {% endif %}
+
+      {% if user.role == 'trainer' %}
+      <div style="margin-bottom: 16px;">
+        <div class="section-label">Add video</div>
+        <form method="POST">
+          {% csrf_token %}
+          <input type="hidden" name="course_id" value="{{ course.id }}">
+          <div style="display:flex; gap:6px; margin-bottom:6px;">
+            <input type="text" name="video_title" placeholder="Title" style="flex:1;">
+            <input type="url" name="youtube_link" placeholder="YouTube URL" style="flex:2;">
+          </div>
+          <button type="submit" name="add_video" class="btn btn-ghost btn-sm">Add video</button>
+        </form>
+      </div>
+      <hr>
+      {% endif %}
+
+      <div class="section-label">Videos</div>
+      <div class="video-grid">
+        {% for video in course.video_set.all %}
+          <button class="video-btn" onclick="openVideo('{{ video.youtube_link }}', '{{ video.title }}')">
+            <span class="play-dot"></span>
+            {{ video.title }}
+          </button>
+        {% empty %}
+          <span style="font-size:13px; color: var(--ink-3);">No videos yet.</span>
+        {% endfor %}
+      </div>
+
+    </div>
   </div>
+  {% endfor %}
+
+{% else %}
+<div class="empty-state">
+  {% if user.role == 'student' %}No courses have been assigned to you yet.
+  {% elif user.role == 'trainer' %}No courses have been assigned to you yet.
+  {% else %}No courses yet. Create one above.{% endif %}
 </div>
 {% endif %}
 
-<div class="row">
-  {% if courses %}
-    {% for course in courses %}
-    <div class="col-12 mb-4">
-      <div class="card h-100 shadow-sm">
 
-        <!-- HEADER -->
-        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-          <h3 class="h5 mb-0 text-primary">{{ course.title }}</h3>
 
-          {% if user.role == 'trainer' %}
-          <div class="d-flex gap-2">
-            <!-- UPDATE -->
-            <form method="POST" class="d-flex">
-              {% csrf_token %}
-              <input type="hidden" name="course_id" value="{{ course.id }}">
-              <input type="text" name="title" class="form-control form-control-sm me-2"
-                     placeholder="New Title" style="width:150px;">
-              <button type="submit" name="update_course" class="btn btn-sm btn-warning">Update</button>
-            </form>
-            <!-- DELETE -->
-            <form method="POST">
-              {% csrf_token %}
-              <input type="hidden" name="course_id" value="{{ course.id }}">
-              <button type="submit" name="delete_course" class="btn btn-sm btn-danger"
-                      onclick="return confirm('Delete this course?')">Delete</button>
-            </form>
-          </div>
-          {% endif %}
-        </div>
 
-        <!-- BODY -->
-        <div class="card-body">
-          {% if user.role == 'trainer' %}
-          <div class="row g-4 mb-4">
-            <!-- ASSIGN STUDENT -->
-            <div class="col-lg-6 border-end">
-              <h6 class="text-muted mb-3">Assign Student</h6>
-              <form method="POST" class="input-group">
-                {% csrf_token %}
-                <input type="hidden" name="course_id" value="{{ course.id }}">
-                <select name="student_id" class="form-select form-select-sm">
-                  {% for student in students %}
-                  <option value="{{ student.id }}">{{ student.username }}</option>
-                  {% endfor %}
-                </select>
-                <button type="submit" name="assign_student" class="btn btn-sm btn-outline-primary">Assign</button>
-              </form>
-            </div>
 
-            <!-- ADD VIDEO -->
-            <div class="col-lg-6">
-              <h6 class="text-muted mb-3">Add Video Material</h6>
-              <form method="POST" class="row g-2">
-                {% csrf_token %}
-                <input type="hidden" name="course_id" value="{{ course.id }}">
-                <div class="col-6">
-                  <input type="text" name="video_title" class="form-control form-control-sm" placeholder="Title">
-                </div>
-                <div class="col-6">
-                  <input type="url" name="youtube_link" class="form-control form-control-sm" placeholder="YouTube URL">
-                </div>
-                <div class="col-12 mt-2">
-                  <button type="submit" name="add_video" class="btn btn-sm btn-dark w-100">Upload Video</button>
-                </div>
-              </form>
-            </div>
-          </div>
-          <hr>
-          {% endif %}
-
-          <!-- COURSE CONTENT -->
-          <h6 class="mb-3">Course Content</h6>
-          <div class="d-flex flex-wrap gap-2">
-            {% for video in course.video_set.all %}
-              <button class="btn btn-light border btn-sm"
-                      onclick="openVideo('{{ video.youtube_link }}')">
-                <span class="text-danger me-1">▶</span> {{ video.title }}
-              </button>
-            {% empty %}
-              <p class="text-muted small">No videos available yet.</p>
-            {% endfor %}
-          </div>
-
-        </div>
-      </div>
+<div class="modal-overlay" id="videoModal">
+  <div class="modal-box">
+    <div class="modal-top">
+      <span id="modalTitle">—</span>
+      <button class="modal-close" onclick="closeVideo()">&#x2715;</button>
     </div>
-    {% endfor %}
-
-  {% else %}
-  <div class="col-12">
-    <div class="alert alert-light border text-center py-5">
-      <p class="mb-0 text-muted">
-        {% if user.role == 'student' %}No courses assigned to you yet.
-        {% elif user.role == 'trainer' %}You haven't created any courses yet.
-        {% else %}No courses available in the system.{% endif %}
-      </p>
-    </div>
-  </div>
-  {% endif %}
-</div>
-
-<!-- VIDEO MODAL -->
-<div class="modal fade" id="videoModal" tabindex="-1">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content bg-dark position-relative">
-
-      <!-- Watermark -->
-      <div style="
-          position: absolute; top: 50%; left: 50%;
-          transform: translate(-50%, -50%);
-          opacity: 0.15; font-size: 1.5rem; color: white;
-          pointer-events: none; z-index: 10; white-space: nowrap;">
-        {{ user.email }}
-      </div>
-
-      <div class="modal-header border-0">
-        <h5 class="modal-title text-white">Now Playing</h5>
-        <button type="button" class="btn-close btn-close-white"
-                data-bs-dismiss="modal" onclick="stopVideo()"></button>
-      </div>
-
-      <div class="modal-body p-0">
-        <div class="ratio ratio-16x9">
-          <iframe id="videoFrame" src="" allowfullscreen
-                  allow="autoplay; encrypted-media"></iframe>
-        </div>
-      </div>
-
+    <div class="modal-video" style="position:relative;">
+      <div class="watermark" id="watermark">{{ user.email }}</div>
+      <iframe id="videoFrame" src="" allowfullscreen allow="autoplay; encrypted-media"></iframe>
     </div>
   </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
 <script>
-document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('contextmenu', e => e.preventDefault());
 
-document.addEventListener('keydown', function(e) {
+  document.addEventListener('keydown', function(e) {
     if (e.key === 'PrintScreen' || (e.ctrlKey && e.shiftKey && e.key === 'S')) {
-        e.preventDefault();
-        alert('Screenshots are disabled on this platform.');
+      e.preventDefault();
     }
-});
+  });
 
-function openVideo(youtubeUrl) {
+  function openVideo(url, title) {
     let videoId = null;
     try {
-        const url = new URL(youtubeUrl);
-        if (url.hostname.includes('youtu.be')) {
-            videoId = url.pathname.slice(1);
-        } else {
-            videoId = url.searchParams.get('v');
-        }
-    } catch(e) {
-        videoId = youtubeUrl;
-    }
+      const u = new URL(url);
+      videoId = u.hostname.includes('youtu.be')
+        ? u.pathname.slice(1)
+        : u.searchParams.get('v');
+    } catch(e) { videoId = url; }
 
-    const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-    document.getElementById('videoFrame').src = embedUrl;
+    document.getElementById('videoFrame').src =
+      `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('videoModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
 
-    const modal = new bootstrap.Modal(document.getElementById('videoModal'));
-    modal.show();
-}
-
-function stopVideo() {
+  function closeVideo() {
     document.getElementById('videoFrame').src = '';
-}
+    document.getElementById('videoModal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
 
-document.getElementById('videoModal').addEventListener('hidden.bs.modal', stopVideo);
+  document.getElementById('videoModal').addEventListener('click', function(e) {
+    if (e.target === this) closeVideo();
+  });
 </script>
-
 {% endblock %}

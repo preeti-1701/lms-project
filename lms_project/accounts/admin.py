@@ -6,16 +6,16 @@ from .models import User
 class CustomUserAdmin(UserAdmin):
     model = User
 
-    list_display = ('username', 'email', 'role', 'is_staff')
+    list_display = ('email', 'username', 'role', 'last_login_ip', 'last_login_device', 'is_staff')
     list_filter = ('role', 'is_staff')
 
     fieldsets = UserAdmin.fieldsets + (
         ('Role Info', {'fields': ('role',)}),
+        ('Session Info', {'fields': ('active_session_key', 'last_login_ip', 'last_login_device')}),
     )
 
     add_fieldsets = UserAdmin.add_fieldsets + (
         ('Role Info', {'fields': ('role',)}),
     )
 
-
-admin.site.register(User, CustomUserAdmin)
+    readonly_fields = ('active_session_key', 'last_login_ip', 'last_login_device')

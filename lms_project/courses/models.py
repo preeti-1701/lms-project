@@ -6,8 +6,10 @@ User = settings.AUTH_USER_MODEL
 
 class Course(models.Model):
     title = models.CharField(max_length=200)
-    trainer = models.ForeignKey(User , on_delete=models.CASCADE , related_name='created_courses')
-    students = models.ManyToManyField(User,related_name='enrolled_courses' , blank=True)
+    trainer = models.ForeignKey(User , on_delete=models.SET_NULL , related_name='assigned_courses' , blank=True , null = True)
+    students = models.ManyToManyField(User,related_name='enrolled_courses' ,   blank=True)
+    created_by = models.ForeignKey(User , on_delete = models.CASCADE , related_name='created_courses' , null=True , blank=True)
+    
 
 
     def __str__(self):

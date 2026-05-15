@@ -14,6 +14,10 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     active_session_key = models.CharField(max_length=255 , null= True , blank= True)
 
+    last_login_ip = models.GenericIPAddressField(null = True , blank = True)
+    last_login_device = models.CharField(max_length=300 , null=True , blank=True)
+    is_disabled = models.BooleanField(default=False)
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
