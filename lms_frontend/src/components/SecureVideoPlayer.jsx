@@ -29,7 +29,6 @@ const SecureVideoPlayer = ({ videoUrl, title, userEmail }) => {
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        // You could pause video or show overlay
         console.log("Visibility lost - security monitoring active");
       }
     };
@@ -57,10 +56,9 @@ const SecureVideoPlayer = ({ videoUrl, title, userEmail }) => {
       const watermark = document.createElement('div');
       watermark.className = 'video-watermark';
       watermark.textContent = `${userEmail} | ${new Date().toLocaleString()}`;
-      
-      // Random position
-      const top = Math.floor(Math.random() * 80) + 10; // 10% to 90%
-      const left = Math.floor(Math.random() * 70) + 5; // 5% to 75%
+
+      const top = Math.floor(Math.random() * 80) + 10; 
+      const left = Math.floor(Math.random() * 70) + 5; 
       
       watermark.style.top = `${top}%`;
       watermark.style.left = `${left}%`;
