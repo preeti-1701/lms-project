@@ -33,6 +33,7 @@ import TrainerCourseDetails from "./pages/trainer/TrainerCourseDetails";
 import TrainerEnrollmentRequests from "./pages/trainer/TrainerEnrollmentRequests";
 import TrainerAddChapter from "./pages/trainer/TrainerAddChapter";
 import TrainerDashboardLanding from "./pages/trainer/TrainerDashboardLanding";
+import TrainerWatchChapter from "./pages/trainer/TrainerWatchChapter";
 
 function App() {
   return (
@@ -59,6 +60,7 @@ function App() {
           <Route path="courses" element={<TrainerCourses />} />
           <Route path="enrollment-requests" element={<TrainerEnrollmentRequests />} />
           <Route path="course/:id" element={<TrainerCourseDetails />} />
+          <Route path="course/:id/watch/:chapterId" element={<TrainerWatchChapter />} />
           <Route path="add-chapter/:courseId" element={<TrainerAddChapter />} />
         </Route>
         <Route path="/admin/dashboard" element={<AdminDashboardWrapper />}>

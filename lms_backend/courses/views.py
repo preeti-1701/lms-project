@@ -59,7 +59,8 @@ def course_detail(request, course_id):
             "id": course.id,
             "title": course.title,
             "description": course.description,
-            "image": course.image_url,
+            "image_url": course.image_url,
+            "status": course.status,
             "chapter_count": videos.count(),
             "chapters": video_data
         })
@@ -95,6 +96,104 @@ def add_chapter(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 @csrf_exempt
+def admin_create_course(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=400)
+    try:
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        from user_sessions.models import UserSession
+        from users.models import User
+        session = UserSession.objects.filter(token=token).first()
+        if not session or session.user.role != 'admin':
+            return JsonResponse({"error": "Admin access required"}, status=403)
+        data = json.loads(request.body)
+        title = data.get("title")
+        description = data.get("description")
+        image_url = data.get("image_url", "")
+        status = data.get("status", "ongoing")
+        if not title or not description:
+            return JsonResponse({"error": "title and description required"}, status=400)
+        course = Course.objects.create(
+            title=title,
+            description=description,
+            image_url=image_url,
+            status=status,
+            created_by=session.user
+        )
+        return JsonResponse({"message": "Course created successfully", "course_id": course.id})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+@csrf_exempt
+def admin_update_course(request, course_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=400)
+    try:
+        data = json.loads(request.body)
+        course = Course.objects.get(id=course_id)
+        course.title = data.get("title", course.title)
+        course.description = data.get("description", course.description)
+        course.image_url = data.get("image_url", course.image_url)
+        course.status = data.get("status", course.status)
+        course.save()
+        return JsonResponse({"message": "Course updated successfully"})
+    except Course.DoesNotExist:
+        return JsonResponse({"error": "Course not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+@csrf_exempt
+def admin_delete_course(request, course_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=400)
+    try:
+        course = Course.objects.get(id=course_id)
+        course.delete()
+        return JsonResponse({"message": "Course deleted successfully"})
+    except Course.DoesNotExist:
+        return JsonResponse({"error": "Course not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+@csrf_exempt
+def admin_assign_course(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=400)
+    try:
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        from user_sessions.models import UserSession
+        session = UserSession.objects.filter(token=token).first()
+        if not session or session.user.role != 'admin':
+            return JsonResponse({"error": "Admin access required"}, status=403)
+
+        data = json.loads(request.body)
+        user_id = data.get("user_id")
+        course_id = data.get("course_id")
+        
+        if not user_id or not course_id:
+            return JsonResponse({"error": "user_id and course_id required"}, status=400)
+            
+        from users.models import User
+        user = User.objects.get(id=user_id)
+        course = Course.objects.get(id=course_id)
+        
+        enrollment, created = Enrollment.objects.get_or_create(
+            student=user,
+            course=course
+        )
+        enrollment.status = 'approved' 
+        enrollment.save()
+        
+        return JsonResponse({"message": f"Course assigned to {user.email} successfully"})
+    except User.DoesNotExist:
+        return JsonResponse({"error": "User not found"}, status=404)
+    except Course.DoesNotExist:
+        return JsonResponse({"error": "Course not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@csrf_exempt
 def delete_chapter(request, chapter_id):
     if request.method != "POST":
         return JsonResponse({"error": "POST required"}, status=400)
@@ -103,6 +202,30 @@ def delete_chapter(request, chapter_id):
         video = Video.objects.get(id=chapter_id)
         video.delete()
         return JsonResponse({"message": "Chapter deleted successfully"})
+    except Video.DoesNotExist:
+        return JsonResponse({"error": "Chapter not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+@csrf_exempt
+def update_chapter(request, chapter_id):
+    if request.method != "PUT":
+        return JsonResponse({"error": "PUT required"}, status=400)
+    
+    try:
+        data = json.loads(request.body)
+        title = data.get("title")
+        youtube_url = data.get("youtube_url")
+        
+        if not title or not youtube_url:
+            return JsonResponse({"error": "title and youtube_url required"}, status=400)
+        
+        video = Video.objects.get(id=chapter_id)
+        video.title = title
+        video.youtube_url = youtube_url
+        video.save()
+        
+        return JsonResponse({"message": "Chapter updated successfully"})
     except Video.DoesNotExist:
         return JsonResponse({"error": "Chapter not found"}, status=404)
     except Exception as e:

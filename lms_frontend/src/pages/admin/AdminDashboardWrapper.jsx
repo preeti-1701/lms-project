@@ -20,12 +20,12 @@ const AdminDashboardWrapper = () => {
         <h3>Admin Dashboard</h3>
         <nav>
           <Link to="/admin/dashboard">Dashboard</Link>
-          <Link to="/admin/create-course">Add Course</Link>
-          <Link to="/admin/courses">Manage Courses</Link>
-          <Link to="/admin/students">Manage Students</Link>
-          <Link to="/admin/trainers">Manage Trainers</Link>
-          <Link to="/admin/sessions">Sessions</Link>
-          <Link to="/admin/enrollment-requests">Enrollment Requests</Link>
+          <Link to="/admin/dashboard/create-course">Add Course</Link>
+          <Link to="/admin/dashboard/courses">Manage Courses</Link>
+          <Link to="/admin/dashboard/students">Manage Students</Link>
+          <Link to="/admin/dashboard/trainers">Manage Trainers</Link>
+          <Link to="/admin/dashboard/sessions">Sessions</Link>
+          <Link to="/admin/dashboard/enrollment-requests">Enrollment Requests</Link>
         </nav>
       </div>
       <div className="dashboard-content">

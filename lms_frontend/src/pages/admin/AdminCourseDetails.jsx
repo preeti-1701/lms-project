@@ -5,11 +5,10 @@ import API from "../../utils/api";
 const AdminCourseDetails = () => {
   const { id } = useParams();
   const [course, setCourse] = useState(null);
-  const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [editingVideo, setEditingVideo] = useState(null);
-  const [editForm, setEditForm] = useState({ title: "", video_url: "" });
+  const [editingChapter, setEditingChapter] = useState(null);
+  const [editForm, setEditForm] = useState({ title: "", youtube_url: "" });
 
   useEffect(() => {
     fetchCourseDetails();
@@ -17,11 +16,8 @@ const AdminCourseDetails = () => {
 
   const fetchCourseDetails = async () => {
     try {
-      const courseResponse = await API.get(`/courses/${id}/`);
-      setCourse(courseResponse.data);
-      
-      const videosResponse = await API.get(`/course/${id}/video/`);
-      setVideos(videosResponse.data.videos || []);
+      const res = await API.get(`/courses/${id}/`);
+      setCourse(res.data);
     } catch (err) {
       setError("Failed to fetch course details");
       console.error("Error fetching course details:", err);
@@ -30,10 +26,10 @@ const AdminCourseDetails = () => {
     }
   };
 
-  const deleteChapter = async (videoId) => {
+  const deleteChapter = async (chapterId) => {
     if (window.confirm("Are you sure you want to delete this chapter?")) {
       try {
-        await API.post(`/delete-chapter/${videoId}/`);
+        await API.post(`/courses/delete-chapter/${chapterId}/`);
         alert("Chapter deleted successfully");
         fetchCourseDetails();
       } catch (err) {
@@ -43,22 +39,22 @@ const AdminCourseDetails = () => {
     }
   };
 
-  const startEditChapter = (video) => {
-    setEditingVideo(video.id);
-    setEditForm({ title: video.title, video_url: video.video_url });
+  const startEditChapter = (chapter) => {
+    setEditingChapter(chapter.id);
+    setEditForm({ title: chapter.title, youtube_url: chapter.youtube_url });
   };
 
   const cancelEditChapter = () => {
-    setEditingVideo(null);
-    setEditForm({ title: "", video_url: "" });
+    setEditingChapter(null);
+    setEditForm({ title: "", youtube_url: "" });
   };
 
-  const saveChapter = async (videoId) => {
+  const saveChapter = async (chapterId) => {
     try {
-      await API.post(`/update-chapter/${videoId}/`, editForm);
+      await API.put(`/courses/update-chapter/${chapterId}/`, editForm);
       alert("Chapter updated successfully");
-      setEditingVideo(null);
-      setEditForm({ title: "", video_url: "" });
+      setEditingChapter(null);
+      setEditForm({ title: "", youtube_url: "" });
       fetchCourseDetails();
     } catch (err) {
       setError("Failed to update chapter");
@@ -73,63 +69,81 @@ const AdminCourseDetails = () => {
   return (
     <div>
       <h2>Course Details</h2>
+      {course.image_url && (
+        <img
+          src={course.image_url}
+          alt={course.title}
+          style={{ width: "100%", maxHeight: "240px", objectFit: "cover", borderRadius: "8px", marginBottom: "16px" }}
+          onError={(e) => { e.target.style.display = "none"; }}
+        />
+      )}
       <h3>{course.title}</h3>
       <p>{course.description}</p>
-      <p>Status: {course.status}</p>
+      <p>Status: <strong>{course.status || "ongoing"}</strong></p>
+      <p>Chapters: <strong>{course.chapter_count ?? (course.chapters?.length || 0)}</strong></p>
 
-      <Link to={`/admin/course/${id}/edit`} style={{ display: "inline-block", padding: "10px 20px", backgroundColor: "#ffc107", color: "black", textDecoration: "none", borderRadius: "5px", marginBottom: "20px" }}>
-        Edit Course
-      </Link>
+      <div style={{ display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap" }}>
+        <Link
+          to={`/admin/dashboard/course/${id}/edit`}
+          style={{ display: "inline-block", padding: "8px 16px", backgroundColor: "#ffc107", color: "black", textDecoration: "none", borderRadius: "5px" }}
+        >
+          Edit Course
+        </Link>
+        <Link
+          to={`/admin/dashboard/add-chapter/${id}`}
+          style={{ display: "inline-block", padding: "8px 16px", backgroundColor: "#28a745", color: "white", textDecoration: "none", borderRadius: "5px" }}
+        >
+          Add Chapter
+        </Link>
+      </div>
 
-      <Link to={`/admin/add-chapter/${id}`}>Add Chapter</Link>
-
-      <h4>Chapters/Videos</h4>
-      {videos.length === 0 ? (
+      <h4>Chapters / Videos</h4>
+      {!course.chapters || course.chapters.length === 0 ? (
         <p>No chapters added yet.</p>
       ) : (
-        videos.map((video) => (
-          <div key={video.id} style={{ border: "1px solid #ccc", padding: "10px", margin: "10px 0" }}>
-            {editingVideo === video.id ? (
+        course.chapters.map((chapter, idx) => (
+          <div key={chapter.id} style={{ border: "1px solid #ccc", padding: "12px", margin: "10px 0", borderRadius: "6px" }}>
+            {editingChapter === chapter.id ? (
               <div>
                 <input
                   type="text"
                   value={editForm.title}
                   onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                  style={{ width: "100%", padding: "5px", marginBottom: "5px" }}
+                  style={{ width: "100%", padding: "6px", marginBottom: "6px", borderRadius: "4px", border: "1px solid #ddd" }}
                   placeholder="Chapter title"
                 />
                 <input
                   type="text"
-                  value={editForm.video_url}
-                  onChange={(e) => setEditForm({ ...editForm, video_url: e.target.value })}
-                  style={{ width: "100%", padding: "5px", marginBottom: "5px" }}
-                  placeholder="Video URL"
+                  value={editForm.youtube_url}
+                  onChange={(e) => setEditForm({ ...editForm, youtube_url: e.target.value })}
+                  style={{ width: "100%", padding: "6px", marginBottom: "6px", borderRadius: "4px", border: "1px solid #ddd" }}
+                  placeholder="YouTube URL"
                 />
-                <div style={{ display: "flex", gap: "10px" }}>
-                  <button onClick={() => saveChapter(video.id)} style={{ backgroundColor: "#28a745", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button onClick={() => saveChapter(chapter.id)} style={{ backgroundColor: "#28a745", color: "white", border: "none", padding: "5px 12px", borderRadius: "4px", cursor: "pointer" }}>
                     Save
                   </button>
-                  <button onClick={cancelEditChapter} style={{ backgroundColor: "#6c757d", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}>
+                  <button onClick={cancelEditChapter} style={{ backgroundColor: "#6c757d", color: "white", border: "none", padding: "5px 12px", borderRadius: "4px", cursor: "pointer" }}>
                     Cancel
                   </button>
                 </div>
               </div>
             ) : (
               <div>
-                <h5>{video.title}</h5>
-                <a href={video.video_url} target="_blank" rel="noopener noreferrer">
-                  Watch Video
+                <h5 style={{ margin: "0 0 6px 0" }}>{idx + 1}. {chapter.title}</h5>
+                <a href={chapter.youtube_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: "13px", color: "#007bff", wordBreak: "break-all" }}>
+                  {chapter.youtube_url}
                 </a>
-                <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
-                  <button 
-                    onClick={() => startEditChapter(video)} 
-                    style={{ marginLeft: "10px", backgroundColor: "#ffc107", color: "black", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}
+                <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+                  <button
+                    onClick={() => startEditChapter(chapter)}
+                    style={{ backgroundColor: "#ffc107", color: "black", border: "none", padding: "5px 12px", borderRadius: "4px", cursor: "pointer" }}
                   >
                     Edit
                   </button>
-                  <button 
-                    onClick={() => deleteChapter(video.id)} 
-                    style={{ marginLeft: "10px", backgroundColor: "#ff4444", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}
+                  <button
+                    onClick={() => deleteChapter(chapter.id)}
+                    style={{ backgroundColor: "#dc3545", color: "white", border: "none", padding: "5px 12px", borderRadius: "4px", cursor: "pointer" }}
                   >
                     Delete
                   </button>

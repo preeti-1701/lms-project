@@ -16,11 +16,21 @@ const SecureVideoPlayer = ({ videoUrl, title, userEmail }) => {
     };
 
     const disableKeyboardShortcuts = (e) => {
+      // 123: F12, 73/74: I/J, 85: U, 44: PrintScreen
       if (e.keyCode === 123 || 
           (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || 
-          (e.ctrlKey && e.keyCode === 85)) { 
+          (e.ctrlKey && e.keyCode === 85) ||
+          e.keyCode === 44) { 
         e.preventDefault();
+        alert("Security: Screenshots and developer tools are disabled.");
         return false;
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // You could pause video or show overlay
+        console.log("Visibility lost - security monitoring active");
       }
     };
 
@@ -36,23 +46,39 @@ const SecureVideoPlayer = ({ videoUrl, title, userEmail }) => {
 
     containerElement.addEventListener('contextmenu', disableContextMenu);
     document.addEventListener('keydown', disableKeyboardShortcuts);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     containerElement.addEventListener('selectstart', disableSelection);
     containerElement.addEventListener('dragstart', disableDrag);
 
     const addWatermark = () => {
+      const existing = containerElement.querySelector('.video-watermark');
+      if (existing) existing.remove();
+
       const watermark = document.createElement('div');
       watermark.className = 'video-watermark';
       watermark.textContent = `${userEmail} | ${new Date().toLocaleString()}`;
+      
+      // Random position
+      const top = Math.floor(Math.random() * 80) + 10; // 10% to 90%
+      const left = Math.floor(Math.random() * 70) + 5; // 5% to 75%
+      
+      watermark.style.top = `${top}%`;
+      watermark.style.left = `${left}%`;
+      watermark.style.position = 'absolute';
+      
       containerElement.appendChild(watermark);
     };
 
     addWatermark();
+    const watermarkInterval = setInterval(addWatermark, 5000);
 
     return () => {
       containerElement.removeEventListener('contextmenu', disableContextMenu);
       document.removeEventListener('keydown', disableKeyboardShortcuts);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       containerElement.removeEventListener('selectstart', disableSelection);
       containerElement.removeEventListener('dragstart', disableDrag);
+      clearInterval(watermarkInterval);
       
       const existingWatermark = containerElement.querySelector('.video-watermark');
       if (existingWatermark) {

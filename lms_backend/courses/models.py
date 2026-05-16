@@ -5,9 +5,15 @@ User = settings.AUTH_USER_MODEL
 
 
 class Course(models.Model):
+    STATUS_CHOICES = (
+        ('ongoing', 'Ongoing'),
+        ('completed', 'Completed'),
+        ('upcoming', 'Upcoming'),
+    )
     title = models.CharField(max_length=255)
     description = models.TextField()
     image_url = models.URLField(blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ongoing')
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):

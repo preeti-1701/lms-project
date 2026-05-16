@@ -288,7 +288,7 @@ def admin_sessions(request):
     try:
         from user_sessions.models import UserSession
         sessions = UserSession.objects.select_related('user').values(
-            'id', 'user__id', 'user__email', 'user__name', 'ip_address', 'device'
+            'id', 'user__id', 'user__email', 'user__name', 'user__role', 'ip_address', 'device'
         )
         return JsonResponse({"sessions": list(sessions)})
     except Exception as e:
@@ -306,5 +306,42 @@ def admin_force_logout(request, session_id):
         return JsonResponse({"message": "User logged out successfully"})
     except UserSession.DoesNotExist:
         return JsonResponse({"error": "Session not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+@csrf_exempt
+def admin_update_user(request, user_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=400)
+    try:
+        data = json.loads(request.body)
+        user = User.objects.get(id=user_id)
+        user.name = data.get("name", user.name)
+        user.email = data.get("email", user.email)
+        user.mobile = data.get("mobile", user.mobile)
+        user.role = data.get("role", user.role)
+        user.save()
+        return JsonResponse({"message": "User updated successfully"})
+    except User.DoesNotExist:
+        return JsonResponse({"error": "User not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+@csrf_exempt
+def admin_toggle_user_status(request, user_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=400)
+    try:
+        user = User.objects.get(id=user_id)
+        user.is_active = not user.is_active
+        user.save()
+        
+        # If disabled, also clear their sessions
+        if not user.is_active:
+            from user_sessions.models import UserSession
+            UserSession.objects.filter(user=user).delete()
+            
+        return JsonResponse({"message": f"User {'enabled' if user.is_active else 'disabled'} successfully", "is_active": user.is_active})
+    except User.DoesNotExist:
+        return JsonResponse({"error": "User not found"}, status=404)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)

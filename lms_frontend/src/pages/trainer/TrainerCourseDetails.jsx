@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import API from "../../utils/api";
 import "../../pages/courseDetails.css";
 
 const TrainerCourseDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editingChapter, setEditingChapter] = useState(null);
-  const [editForm, setEditForm] = useState({ title: "", video_url: "" });
+  const [editForm, setEditForm] = useState({ title: "", youtube_url: "" });
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -44,20 +45,19 @@ const TrainerCourseDetails = () => {
 
   const startEditChapter = (chapter) => {
     setEditingChapter(chapter.id);
-    setEditForm({ title: chapter.title, video_url: chapter.video_url });
+    setEditForm({ title: chapter.title, youtube_url: chapter.youtube_url });
   };
 
   const cancelEditChapter = () => {
     setEditingChapter(null);
-    setEditForm({ title: "", video_url: "" });
+    setEditForm({ title: "", youtube_url: "" });
   };
 
   const saveChapter = async (chapterId) => {
     try {
-      await API.post(`/update-chapter/${chapterId}/`, editForm);
+      await API.put(`/courses/update-chapter/${chapterId}/`, editForm);
       alert("Chapter updated successfully");
       setEditingChapter(null);
-      setEditForm({ title: "", video_url: "" });
       const res = await API.get(`/courses/${id}/`);
       setCourse(res.data);
     } catch (err) {
@@ -75,7 +75,7 @@ const TrainerCourseDetails = () => {
       <div className="course-hero">
         <img
           className="course-image"
-          src={course.image ? `http://127.0.0.1:8000${course.image}` : "https://via.placeholder.com/800x320"}
+          src={course.image_url || "https://via.placeholder.com/800x320"}
           alt={course.title}
         />
         <div className="course-meta">
@@ -108,10 +108,10 @@ const TrainerCourseDetails = () => {
                     />
                     <input
                       type="text"
-                      value={editForm.video_url}
-                      onChange={(e) => setEditForm({ ...editForm, video_url: e.target.value })}
+                      value={editForm.youtube_url}
+                      onChange={(e) => setEditForm({ ...editForm, youtube_url: e.target.value })}
                       style={{ width: "100%", padding: "5px", marginBottom: "5px" }}
-                      placeholder="Video URL"
+                      placeholder="YouTube URL"
                     />
                     <div style={{ display: "flex", gap: "10px" }}>
                       <button onClick={() => saveChapter(ch.id)} style={{ backgroundColor: "#28a745", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}>
@@ -128,13 +128,13 @@ const TrainerCourseDetails = () => {
                       <b>
                         {idx + 1}. {ch.title}
                       </b>
-                      <div className="chapter-url">{ch.video_url}</div>
+                      <div className="chapter-url">{ch.youtube_url}</div>
                     </div>
                     <div style={{ display: "flex", gap: "10px" }}>
                       <button
                         className="chapter-watch"
                         onClick={() =>
-                          window.open(ch.video_url, "_blank", "noopener,noreferrer")
+                          window.open(ch.youtube_url, "_blank")
                         }
                       >
                         Watch

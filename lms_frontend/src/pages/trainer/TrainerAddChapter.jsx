@@ -11,6 +11,7 @@ const TrainerAddChapter = () => {
   });
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,6 +24,7 @@ const TrainerAddChapter = () => {
         setLoading(false);
       } catch (err) {
         console.error("Error fetching course:", err);
+        setError("Failed to load course");
         setLoading(false);
       }
     };
@@ -36,15 +38,17 @@ const TrainerAddChapter = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await API.post("/courses/add-chapter/", {
+      console.log("Submitting chapter:", { course_id: courseId, ...formData });
+      const response = await API.post("/courses/add-chapter/", {
         course_id: courseId,
         ...formData
       });
+      console.log("Add chapter response:", response.data);
       alert("Chapter added successfully");
       navigate(`/trainer/dashboard/course/${courseId}`);
     } catch (err) {
-      alert("Failed to add chapter");
       console.error("Error adding chapter:", err);
+      alert("Failed to add chapter");
     }
   };
 
@@ -52,12 +56,14 @@ const TrainerAddChapter = () => {
     <div className="add-chapter-container">
       {loading ? (
         <p>Loading course...</p>
+      ) : error ? (
+        <div className="error">{error}</div>
       ) : (
         <>
           {course && (
             <div className="course-header">
               <img 
-                src={course.image || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop"} 
+                src={course.image_url || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop"} 
                 alt={course.title} 
                 className="course-image"
               />

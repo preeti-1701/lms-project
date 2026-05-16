@@ -55,11 +55,11 @@ const CourseDetails = () => {
                   <b>
                     {idx + 1}. {ch.title}
                   </b>
-                  <div className="chapter-url">{ch.video_url}</div>
+                  <div className="chapter-url">{ch.youtube_url}</div>
                 </div>
                 <div className="video-container">
                   <SecureVideoPlayer 
-                    videoUrl={ch.video_url} 
+                    videoUrl={ch.youtube_url} 
                     title={ch.title}
                     userEmail={localStorage.getItem('email') || 'user@example.com'}
                   />

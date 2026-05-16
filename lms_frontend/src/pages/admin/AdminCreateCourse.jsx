@@ -7,67 +7,57 @@ const AdminCreateCourse = () => {
     title: "",
     description: "",
     status: "ongoing",
-    image: null
+    image_url: ""
   });
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleImageChange = (e) => {
-    setFormData({ ...formData, image: e.target.files[0] });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const data = new FormData();
-    data.append("title", formData.title);
-    data.append("description", formData.description);
-    data.append("status", formData.status);
-    if (formData.image) {
-      data.append("image", formData.image);
-    }
-
+    setLoading(true);
     try {
-      await API.post("/admin/courses/create/", data, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
+      await API.post("/courses/admin/create/", formData);
       alert("Course created successfully");
-      navigate("/admin/courses");
+      navigate("/admin/dashboard/courses");
     } catch (err) {
-      alert("Failed to create course");
+      alert("Failed to create course: " + (err.response?.data?.error || err.message));
       console.error("Error creating course:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div>
       <h2>Create Course</h2>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} style={{ maxWidth: "600px" }}>
         <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px" }}>Title:</label>
+          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Title:</label>
           <input
             type="text"
             name="title"
             value={formData.title}
             onChange={handleChange}
             required
-            style={{ width: "100%", padding: "8px", border: "1px solid #ddd", borderRadius: "4px" }}
+            style={{ width: "100%", padding: "8px", border: "1px solid #ddd", borderRadius: "4px", boxSizing: "border-box" }}
           />
         </div>
         <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px" }}>Description:</label>
+          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Description:</label>
           <textarea
             name="description"
             value={formData.description}
             onChange={handleChange}
             required
-            style={{ width: "100%", padding: "8px", border: "1px solid #ddd", borderRadius: "4px", minHeight: "100px" }}
+            style={{ width: "100%", padding: "8px", border: "1px solid #ddd", borderRadius: "4px", minHeight: "100px", boxSizing: "border-box" }}
           />
         </div>
         <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px" }}>Status:</label>
+          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Status:</label>
           <select
             name="status"
             value={formData.status}
@@ -79,27 +69,31 @@ const AdminCreateCourse = () => {
             <option value="upcoming">Upcoming</option>
           </select>
         </div>
-        <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px" }}>Course Image:</label>
+        <div style={{ marginBottom: "20px" }}>
+          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Course Image URL:</label>
           <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            style={{ width: "100%" }}
+            type="url"
+            name="image_url"
+            value={formData.image_url}
+            onChange={handleChange}
+            placeholder="https://example.com/image.jpg"
+            style={{ width: "100%", padding: "8px", border: "1px solid #ddd", borderRadius: "4px", boxSizing: "border-box" }}
           />
         </div>
         <button
           type="submit"
+          disabled={loading}
           style={{
-            backgroundColor: "#28a745",
+            backgroundColor: loading ? "#aaa" : "#28a745",
             color: "white",
-            padding: "10px 20px",
+            padding: "10px 24px",
             border: "none",
             borderRadius: "4px",
-            cursor: "pointer"
+            cursor: loading ? "not-allowed" : "pointer",
+            fontSize: "15px"
           }}
         >
-          Create Course
+          {loading ? "Creating..." : "Create Course"}
         </button>
       </form>
     </div>

@@ -53,7 +53,7 @@ const TrainerCourses = () => {
               <div className="course-info">
                 <h3>{c.title}</h3>
                 <p>{c.description}</p>
-                <button className="add-chapter-button" onClick={() => navigate(`/trainer/course/${c.id}`)}>
+                <button className="add-chapter-button" onClick={() => navigate(`/trainer/dashboard/course/${c.id}`)}>
                   Add Chapter
                 </button>
               </div>

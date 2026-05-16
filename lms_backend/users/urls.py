@@ -13,4 +13,6 @@ urlpatterns = [
     path('admin/trainers/', views.admin_trainers, name='admin_trainers'),
     path('admin/sessions/', views.admin_sessions, name='admin_sessions'),
     path('admin/sessions/<int:session_id>/logout/', views.admin_force_logout, name='admin_force_logout'),
+    path('admin/user/<int:user_id>/update/', views.admin_update_user, name='admin_update_user'),
+    path('admin/user/<int:user_id>/toggle-status/', views.admin_toggle_user_status, name='admin_toggle_user_status'),
 ]
