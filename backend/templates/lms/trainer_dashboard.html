@@ -1,0 +1,46 @@
+{% extends 'lms/base.html' %}
+{% block title %}Trainer Dashboard{% endblock %}
+{% block page_title %}Trainer Dashboard{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#dbeafe;"><i class="fas fa-book" style="color:#2563eb;"></i></div>
+      <div><div class="stat-value">{{ total_courses }}</div><div class="stat-label">My Courses</div></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#d1fae5;"><i class="fas fa-users" style="color:#059669;"></i></div>
+      <div><div class="stat-value">{{ total_students }}</div><div class="stat-label">Enrolled Students</div></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fef3c7;"><i class="fas fa-video" style="color:#d97706;"></i></div>
+      <div><div class="stat-value">{{ total_lessons }}</div><div class="stat-label">Total Lessons</div></div>
+    </div>
+  </div>
+</div>
+<div class="row g-3">
+  {% for c in courses %}
+  <div class="col-md-6">
+    <div class="form-card h-100">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <h6 class="mb-0 fw-bold">{{ c.title }}</h6>
+        <span class="badge {% if c.is_active %}bg-success{% else %}bg-secondary{% endif %}">{% if c.is_active %}Active{% else %}Inactive{% endif %}</span>
+      </div>
+      <p class="text-muted" style="font-size:.85rem;">{{ c.description|truncatechars:100 }}</p>
+      <div class="d-flex gap-3 mb-3" style="font-size:.82rem;color:#64748b;">
+        <span><i class="fas fa-video me-1"></i>{{ c.total_lessons }} lessons</span>
+        <span><i class="fas fa-users me-1"></i>{{ c.enrolled_count }} students</span>
+        <span><i class="fas fa-layer-group me-1"></i>{{ c.get_level_display }}</span>
+      </div>
+      <a href="{% url 'trainer_course_detail' c.pk %}" class="btn btn-outline-primary btn-sm">View Details</a>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12"><p class="text-muted">No courses assigned to you yet. Contact admin.</p></div>
+  {% endfor %}
+</div>
+{% endblock %}

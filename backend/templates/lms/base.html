@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}LMS Portal{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root{--primary:#2563eb;--primary-dark:#1d4ed8;--sidebar-bg:#0f172a;--sidebar-text:#94a3b8;--sidebar-hover:#1e293b;--body-bg:#f1f5f9;}
+    body{background:var(--body-bg);font-family:'Segoe UI',sans-serif;}
+    .sidebar{width:260px;min-height:100vh;background:var(--sidebar-bg);position:fixed;top:0;left:0;z-index:1000;display:flex;flex-direction:column;}
+    .sidebar-brand{padding:1.5rem 1.25rem;border-bottom:1px solid #1e293b;color:#fff;}
+    .sidebar-brand span{font-size:1.35rem;font-weight:700;}
+    .sidebar-brand small{display:block;font-size:.72rem;color:var(--sidebar-text);}
+    .sidebar-nav{flex:1;padding:1rem 0;}
+    .nav-section{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:#475569;padding:.5rem 1.25rem;margin-top:.75rem;}
+    .sidebar-nav a{display:flex;align-items:center;gap:.75rem;padding:.65rem 1.25rem;color:var(--sidebar-text);text-decoration:none;font-size:.88rem;border-left:3px solid transparent;transition:all .2s;}
+    .sidebar-nav a:hover{background:var(--sidebar-hover);color:#e2e8f0;}
+    .sidebar-nav a.active{background:var(--sidebar-hover);color:#fff;border-left-color:#2563eb;}
+    .sidebar-nav a i{width:18px;text-align:center;}
+    .main-wrapper{margin-left:260px;min-height:100vh;}
+    .topbar{background:#fff;padding:.75rem 1.5rem;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:999;}
+    .role-badge{font-size:.68rem;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+    .role-admin{background:#fef3c7;color:#92400e;}
+    .role-trainer{background:#d1fae5;color:#065f46;}
+    .role-student{background:#dbeafe;color:#1e40af;}
+    .page-content{padding:1.75rem;}
+    .stat-card{background:#fff;border-radius:12px;padding:1.25rem;border:1px solid #e2e8f0;display:flex;align-items:center;gap:1rem;}
+    .stat-icon{width:50px;height:50px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;}
+    .stat-value{font-size:1.6rem;font-weight:700;color:#0f172a;line-height:1;}
+    .stat-label{font-size:.78rem;color:#64748b;margin-top:2px;}
+    .table-card{background:#fff;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;}
+    .table-card .table-header{padding:1rem 1.25rem;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;}
+    .table-card .table-header h5{margin:0;font-size:1rem;font-weight:600;}
+    .table{margin:0;}
+    .table thead th{background:#f8fafc;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:#64748b;border-bottom:1px solid #e2e8f0;padding:.75rem 1.25rem;}
+    .table tbody td{padding:.85rem 1.25rem;vertical-align:middle;font-size:.88rem;}
+    .form-card{background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:1.5rem;}
+    .form-label{font-size:.85rem;font-weight:600;color:#374151;}
+    .form-control,.form-select{border-radius:8px;border-color:#d1d5db;font-size:.9rem;}
+    .form-control:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.15);}
+    .btn-primary{background:#2563eb;border-color:#2563eb;}
+    .btn-primary:hover{background:#1d4ed8;border-color:#1d4ed8;}
+    .video-container{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;}
+    .video-container iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;}
+    .progress{border-radius:10px;height:8px;}
+    .alert{border-radius:8px;border:none;font-size:.9rem;}
+    .sidebar-logout{padding:1rem 1.25rem;border-top:1px solid #1e293b;}
+    .sidebar-logout a{color:#ef4444;text-decoration:none;font-size:.85rem;}
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+{% if user.is_authenticated %}
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <span><i class="fas fa-graduation-cap me-2"></i>LMS Portal</span>
+    <small>Learning Management System</small>
+  </div>
+  <nav class="sidebar-nav">
+    {% if user.role == 'admin' %}
+      <div class="nav-section">Overview</div>
+      <a href="{% url 'admin_dashboard' %}"><i class="fas fa-chart-pie"></i> Dashboard</a>
+      <div class="nav-section">Management</div>
+      <a href="{% url 'manage_users' %}"><i class="fas fa-users"></i> Users</a>
+      <a href="{% url 'manage_courses' %}"><i class="fas fa-book"></i> Courses</a>
+      <a href="{% url 'manage_enrollments' %}"><i class="fas fa-user-plus"></i> Enrollments</a>
+      <div class="nav-section">System</div>
+      <a href="/django-admin/" target="_blank"><i class="fas fa-cog"></i> Django Admin</a>
+    {% elif user.role == 'trainer' %}
+      <div class="nav-section">Overview</div>
+      <a href="{% url 'trainer_dashboard' %}"><i class="fas fa-chart-bar"></i> Dashboard</a>
+      <div class="nav-section">My Courses</div>
+      {% for c in user.courses_taught.all %}
+      <a href="{% url 'trainer_course_detail' c.pk %}"><i class="fas fa-play-circle"></i> {{ c.title|truncatechars:22 }}</a>
+      {% endfor %}
+    {% else %}
+      <div class="nav-section">Overview</div>
+      <a href="{% url 'student_dashboard' %}"><i class="fas fa-home"></i> My Dashboard</a>
+      <div class="nav-section">My Courses</div>
+      {% for enr in user.enrollments.all %}
+      <a href="{% url 'student_course_detail' enr.course.pk %}"><i class="fas fa-play-circle"></i> {{ enr.course.title|truncatechars:22 }}</a>
+      {% endfor %}
+    {% endif %}
+  </nav>
+  <div class="sidebar-logout">
+    <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
+  </div>
+</div>
+<div class="main-wrapper">
+  <div class="topbar">
+    <div style="font-weight:600;color:#0f172a;">{% block page_title %}Dashboard{% endblock %}</div>
+    <div style="display:flex;align-items:center;gap:.5rem;">
+      <div style="width:32px;height:32px;border-radius:50%;background:#2563eb;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:.85rem;">{{ user.first_name.0|default:user.username.0|upper }}</div>
+      <div>
+        <div style="font-weight:600;font-size:.875rem;color:#0f172a;">{{ user.get_full_name|default:user.username }}</div>
+        <span class="role-badge role-{{ user.role }}">{{ user.role }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="page-content">
+    {% for message in messages %}
+    <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show">
+      {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </div>
+</div>
+{% else %}
+{% block auth_content %}{% endblock %}
+{% endif %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

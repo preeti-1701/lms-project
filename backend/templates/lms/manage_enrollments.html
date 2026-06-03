@@ -1,0 +1,55 @@
+{% extends 'lms/base.html' %}
+{% block title %}Manage Enrollments{% endblock %}
+{% block page_title %}Manage Enrollments{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="form-card">
+      <h5 class="mb-3"><i class="fas fa-user-plus me-2 text-success"></i>Enroll a Student</h5>
+      <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="mb-3">
+          <label class="form-label">{{ field.label }}</label>
+          {{ field }}
+          {% for e in field.errors %}<div style="color:#ef4444;font-size:.8rem;">{{ e }}</div>{% endfor %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-success w-100"><i class="fas fa-user-plus me-1"></i>Enroll</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="table-card">
+      <div class="table-header">
+        <h5><i class="fas fa-list me-2"></i>All Enrollments</h5>
+        <span class="text-muted" style="font-size:.85rem;">{{ enrollments.count }} total</span>
+      </div>
+      <table class="table table-hover">
+        <thead><tr><th>#</th><th>Student</th><th>Course</th><th>Enrolled</th><th>Progress</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for e in enrollments %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ e.student.get_full_name|default:e.student.username }}</td>
+            <td>{{ e.course.title|truncatechars:25 }}</td>
+            <td>{{ e.enrolled_at|date:"d M Y" }}</td>
+            <td>
+              {% with pct=e.progress_percent %}
+              <div class="progress" style="width:80px;height:6px;">
+                <div class="progress-bar" style="width:{{ pct }}%;background:#2563eb;"></div>
+              </div>
+              <small>{{ pct }}%</small>
+              {% endwith %}
+            </td>
+            <td>
+              <a href="{% url 'remove_enrollment' e.pk %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Remove this enrollment?')"><i class="fas fa-trash"></i></a>
+            </td>
+          </tr>
+          {% empty %}<tr><td colspan="6" class="text-muted text-center">No enrollments yet.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'lms/base.html' %}
+{% block title %}{{ course.title }}{% endblock %}
+{% block page_title %}{{ course.title }}{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-8">
+    <div class="form-card mb-3">
+      <h5><i class="fas fa-book me-2 text-primary"></i>Course Info</h5>
+      <p>{{ course.description }}</p>
+      <div class="d-flex gap-3" style="font-size:.85rem;color:#64748b;">
+        <span><i class="fas fa-layer-group me-1"></i>{{ course.get_level_display }}</span>
+        <span><i class="fas fa-video me-1"></i>{{ lessons.count }} lessons</span>
+        <span><i class="fas fa-users me-1"></i>{{ enrollments.count }} students</span>
+      </div>
+    </div>
+    <div class="table-card">
+      <div class="table-header"><h5><i class="fas fa-list me-2"></i>Lessons</h5></div>
+      <table class="table table-hover">
+        <thead><tr><th>#</th><th>Title</th><th>Duration</th><th>YouTube</th></tr></thead>
+        <tbody>
+          {% for l in lessons %}
+          <tr>
+            <td>{{ l.order }}</td>
+            <td>{{ l.title }}</td>
+            <td>{{ l.duration_minutes }} min</td>
+            <td>{% if l.youtube_id %}<a href="https://youtu.be/{{ l.youtube_id }}" target="_blank" class="btn btn-sm btn-outline-danger"><i class="fab fa-youtube"></i></a>{% else %}—{% endif %}</td>
+          </tr>
+          {% empty %}<tr><td colspan="4" class="text-muted text-center">No lessons.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="table-card">
+      <div class="table-header"><h5><i class="fas fa-users me-2"></i>Enrolled Students</h5></div>
+      <table class="table">
+        <thead><tr><th>Student</th><th>Progress</th></tr></thead>
+        <tbody>
+          {% for e in enrollments %}
+          <tr>
+            <td>{{ e.student.get_full_name|default:e.student.username }}</td>
+            <td>
+              {% with pct=e.progress_percent %}
+              <div class="progress mb-1"><div class="progress-bar" style="width:{{ pct }}%;background:#2563eb;"></div></div>
+              <small>{{ pct }}%</small>
+              {% endwith %}
+            </td>
+          </tr>
+          {% empty %}<tr><td colspan="2" class="text-muted text-center">No students.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

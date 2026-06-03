@@ -1,0 +1,31 @@
+{% extends 'lms/base.html' %}
+{% block title %}Lessons - {{ course.title }}{% endblock %}
+{% block page_title %}Lessons: {{ course.title }}{% endblock %}
+{% block content %}
+<div class="table-card">
+  <div class="table-header">
+    <h5><i class="fas fa-list me-2"></i>Lessons ({{ lessons.count }})</h5>
+    <div class="d-flex gap-2">
+      <a href="{% url 'manage_courses' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+      <a href="{% url 'create_lesson' course.pk %}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Add Lesson</a>
+    </div>
+  </div>
+  <table class="table table-hover">
+    <thead><tr><th>Order</th><th>Title</th><th>Duration</th><th>YouTube ID</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for lesson in lessons %}
+      <tr>
+        <td>{{ lesson.order }}</td>
+        <td>{{ lesson.title }}</td>
+        <td>{{ lesson.duration_minutes }} min</td>
+        <td><code>{{ lesson.youtube_id|default:"Not set" }}</code></td>
+        <td>
+          <a href="{% url 'edit_lesson' lesson.pk %}" class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></a>
+          <a href="{% url 'delete_lesson' lesson.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+        </td>
+      </tr>
+      {% empty %}<tr><td colspan="5" class="text-muted text-center">No lessons added yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

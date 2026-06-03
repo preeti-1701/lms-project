@@ -1,0 +1,23 @@
+{% extends 'lms/base.html' %}
+{% block title %}Confirm Delete{% endblock %}
+{% block page_title %}Confirm Delete{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="form-card text-center">
+      <div style="width:64px;height:64px;background:#fef2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+        <i class="fas fa-trash fa-2x" style="color:#ef4444;"></i>
+      </div>
+      <h5>Delete {{ type }}</h5>
+      <p class="text-muted">Are you sure you want to delete <strong>"{{ object }}"</strong>? This action cannot be undone.</p>
+      <form method="post">
+        {% csrf_token %}
+        <div class="d-flex gap-2 justify-content-center">
+          <button type="submit" class="btn btn-danger"><i class="fas fa-trash me-1"></i>Delete</button>
+          <a href="javascript:history.back()" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

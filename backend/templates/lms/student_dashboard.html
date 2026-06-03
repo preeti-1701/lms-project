@@ -1,0 +1,41 @@
+{% extends 'lms/base.html' %}
+{% block title %}My Courses{% endblock %}
+{% block page_title %}My Courses{% endblock %}
+{% block content %}
+{% if enrollments %}
+<div class="row g-3">
+  {% for e in enrollments %}
+  <div class="col-md-6 col-lg-4">
+    <div class="form-card h-100" style="border-radius:14px;overflow:hidden;">
+      <div style="background:linear-gradient(135deg,#2563eb,#1d4ed8);padding:1.25rem;margin:-1.5rem -1.5rem 1rem;color:#fff;">
+        <div style="font-size:.75rem;opacity:.8;margin-bottom:.25rem;">{{ e.course.get_level_display|upper }}</div>
+        <h6 style="margin:0;font-weight:700;">{{ e.course.title }}</h6>
+        <div style="font-size:.8rem;opacity:.8;margin-top:.25rem;">{{ e.course.trainer.get_full_name|default:e.course.trainer.username|default:"No Trainer" }}</div>
+      </div>
+      <p style="font-size:.85rem;color:#64748b;">{{ e.course.description|truncatechars:90 }}</p>
+      <div class="mb-2">
+        <div class="d-flex justify-content-between" style="font-size:.8rem;color:#64748b;margin-bottom:4px;">
+          <span>Progress</span>
+          <span>{{ e.progress_percent }}%</span>
+        </div>
+        <div class="progress"><div class="progress-bar" style="width:{{ e.progress_percent }}%;background:#2563eb;"></div></div>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mt-3">
+        <small style="color:#64748b;font-size:.78rem;"><i class="fas fa-video me-1"></i>{{ e.course.total_lessons }} lessons</small>
+        {% if e.completed %}<span class="badge bg-success"><i class="fas fa-check me-1"></i>Completed</span>{% endif %}
+        <a href="{% url 'student_course_detail' e.course.pk %}" class="btn btn-primary btn-sm">Continue</a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5">
+  <div style="width:80px;height:80px;background:#f1f5f9;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+    <i class="fas fa-book-open fa-2x" style="color:#94a3b8;"></i>
+  </div>
+  <h5 style="color:#374151;">No courses assigned yet</h5>
+  <p class="text-muted">Ask your admin to enroll you in a course.</p>
+</div>
+{% endif %}
+{% endblock %}

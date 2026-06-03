@@ -1,0 +1,73 @@
+{% extends 'lms/base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#dbeafe;"><i class="fas fa-user-graduate" style="color:#2563eb;"></i></div>
+      <div><div class="stat-value">{{ total_students }}</div><div class="stat-label">Total Students</div></div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#d1fae5;"><i class="fas fa-chalkboard-teacher" style="color:#059669;"></i></div>
+      <div><div class="stat-value">{{ total_trainers }}</div><div class="stat-label">Total Trainers</div></div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fef3c7;"><i class="fas fa-book" style="color:#d97706;"></i></div>
+      <div><div class="stat-value">{{ total_courses }}</div><div class="stat-label">Total Courses</div></div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fce7f3;"><i class="fas fa-user-check" style="color:#db2777;"></i></div>
+      <div><div class="stat-value">{{ total_enrollments }}</div><div class="stat-label">Active Enrollments</div></div>
+    </div>
+  </div>
+</div>
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="table-card">
+      <div class="table-header">
+        <h5><i class="fas fa-book me-2 text-primary"></i>Recent Courses</h5>
+        <a href="{% url 'manage_courses' %}" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      <table class="table table-hover">
+        <thead><tr><th>Title</th><th>Level</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for c in recent_courses %}
+          <tr>
+            <td>{{ c.title }}</td>
+            <td><span class="badge bg-secondary">{{ c.get_level_display }}</span></td>
+            <td>{% if c.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-danger">Inactive</span>{% endif %}</td>
+          </tr>
+          {% empty %}<tr><td colspan="3" class="text-muted text-center">No courses yet.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="table-card">
+      <div class="table-header">
+        <h5><i class="fas fa-user-plus me-2 text-success"></i>Recent Enrollments</h5>
+        <a href="{% url 'manage_enrollments' %}" class="btn btn-sm btn-outline-success">View All</a>
+      </div>
+      <table class="table table-hover">
+        <thead><tr><th>Student</th><th>Course</th><th>Date</th></tr></thead>
+        <tbody>
+          {% for e in recent_enrollments %}
+          <tr>
+            <td>{{ e.student.get_full_name|default:e.student.username }}</td>
+            <td>{{ e.course.title|truncatechars:25 }}</td>
+            <td>{{ e.enrolled_at|date:"d M Y" }}</td>
+          </tr>
+          {% empty %}<tr><td colspan="3" class="text-muted text-center">No enrollments yet.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

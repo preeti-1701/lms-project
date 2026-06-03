@@ -1,0 +1,34 @@
+{% extends 'lms/base.html' %}
+{% block title %}Manage Users{% endblock %}
+{% block page_title %}Manage Users{% endblock %}
+{% block content %}
+<div class="table-card">
+  <div class="table-header">
+    <h5><i class="fas fa-users me-2"></i>All Users</h5>
+    <span class="text-muted" style="font-size:.85rem;">{{ users.count }} total</span>
+  </div>
+  <table class="table table-hover">
+    <thead><tr><th>#</th><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ u.get_full_name|default:"-" }}</td>
+        <td><code>{{ u.username }}</code></td>
+        <td>{{ u.email|default:"-" }}</td>
+        <td><span class="badge {% if u.role == 'admin' %}bg-warning text-dark{% elif u.role == 'trainer' %}bg-success{% else %}bg-primary{% endif %}">{{ u.role }}</span></td>
+        <td>{% if u.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-danger">Inactive</span>{% endif %}</td>
+        <td>{{ u.date_joined|date:"d M Y" }}</td>
+        <td>
+          {% if u != request.user %}
+          <a href="{% url 'toggle_user' u.pk %}" class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}" onclick="return confirm('Toggle this user?')">
+            {% if u.is_active %}<i class="fas fa-ban"></i>{% else %}<i class="fas fa-check"></i>{% endif %}
+          </a>
+          {% else %}<span class="text-muted" style="font-size:.8rem;">You</span>{% endif %}
+        </td>
+      </tr>
+      {% empty %}<tr><td colspan="8" class="text-muted text-center">No users found.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
