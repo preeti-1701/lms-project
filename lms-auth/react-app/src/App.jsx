@@ -41,7 +41,7 @@ function AppRoutes() {
     </>
   );
 }
-
+console.log('App.jsx loaded');
 export default function App() {
   return (
     <AppProvider>
